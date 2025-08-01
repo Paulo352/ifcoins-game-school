@@ -27,12 +27,25 @@ export function useAuthActions() {
     try {
       console.log('Tentando cadastro para:', email, 'nome:', name);
       
-      const { error } = await supabase.auth.signUp({
+      // Determinar tipo de usuário baseado no email
+      const getUserTypeFromEmail = (email: string) => {
+        if (email.endsWith('@estudantes.ifpr.edu.br')) return 'student';
+        if (email.endsWith('@ifpr.edu.br')) return 'teacher';
+        if (email === 'paulocauan39@gmail.com') return 'admin';
+        return 'student'; // default
+      };
+
+      const userType = getUserTypeFromEmail(email);
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             name: name.trim(),
+            role: userType,
           },
         },
       });
@@ -40,6 +53,26 @@ export function useAuthActions() {
       if (error) {
         console.error('Erro no cadastro:', error);
         return { error };
+      }
+
+      // Se o usuário foi criado com sucesso, criar o perfil
+      if (data.user && !error) {
+        console.log('Usuário criado, criando perfil...');
+        
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            email: email.trim().toLowerCase(),
+            name: name.trim(),
+            role: userType,
+            coins: 100, // moedas iniciais
+          });
+
+        if (profileError) {
+          console.error('Erro ao criar perfil:', profileError);
+          // Não retornar erro aqui pois o usuário já foi criado
+        }
       }
       
       return { error: null };
