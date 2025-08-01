@@ -72,7 +72,7 @@ export function RegistrationForm() {
 
     try {
       const userType = getUserTypeFromEmail(form.email);
-      const { error } = await signUp(form.email, form.password, form.name /* , userType */);
+      const { error } = await signUp(form.email, form.password, form.name);
 
       if (error) {
         console.error('Erro no cadastro:', error);
@@ -137,11 +137,11 @@ export function RegistrationForm() {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
         <div className="flex justify-center mb-4">
-          <div className="bg-blue-600 text-white rounded-full p-4">
+          <div className="bg-accent text-accent-foreground rounded-full p-4">
             <Coins className="h-8 w-8" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold text-blue-600">
+        <CardTitle className="text-2xl font-bold text-accent">
           Cadastro - IFCoins
         </CardTitle>
         <CardDescription>
@@ -158,10 +158,10 @@ export function RegistrationForm() {
               onChange={(e) => updateField('name', e.target.value)}
               placeholder="João da Silva"
               disabled={isLoading}
-              className={errors.name ? 'border-red-500' : ''}
+              className={errors.name ? 'border-destructive' : ''}
             />
             {errors.name && (
-              <p className="text-sm text-red-500 flex items-center gap-1">
+              <p className="text-sm text-destructive flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" />
                 {errors.name}
               </p>
@@ -177,10 +177,10 @@ export function RegistrationForm() {
               onChange={(e) => updateField('email', e.target.value)}
               placeholder="seu.email@ifpr.edu.br"
               disabled={isLoading}
-              className={errors.email ? 'border-red-500' : ''}
+              className={errors.email ? 'border-destructive' : ''}
             />
             {errors.email && (
-              <p className="text-sm text-red-500 flex items-center gap-1">
+              <p className="text-sm text-destructive flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" />
                 {errors.email}
               </p>
@@ -196,10 +196,10 @@ export function RegistrationForm() {
               onChange={(e) => updateField('password', e.target.value)}
               placeholder="Mínimo 6 caracteres"
               disabled={isLoading}
-              className={errors.password ? 'border-red-500' : ''}
+              className={errors.password ? 'border-destructive' : ''}
             />
             {errors.password && (
-              <p className="text-sm text-red-500 flex items-center gap-1">
+              <p className="text-sm text-destructive flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" />
                 {errors.password}
               </p>
@@ -215,10 +215,10 @@ export function RegistrationForm() {
               onChange={(e) => updateField('confirmPassword', e.target.value)}
               placeholder="Confirme sua senha"
               disabled={isLoading}
-              className={errors.confirmPassword ? 'border-red-500' : ''}
+              className={errors.confirmPassword ? 'border-destructive' : ''}
             />
             {errors.confirmPassword && (
-              <p className="text-sm text-red-500 flex items-center gap-1">
+              <p className="text-sm text-destructive flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" />
                 {errors.confirmPassword}
               </p>
@@ -227,7 +227,7 @@ export function RegistrationForm() {
 
           <Button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700"
+            className="w-full bg-accent hover:bg-accent/90"
             disabled={isLoading}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -235,15 +235,15 @@ export function RegistrationForm() {
           </Button>
         </form>
 
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <div className="text-sm text-gray-600 space-y-2">
-            <h4 className="font-medium text-gray-800">Tipos de conta:</h4>
+        <div className="mt-6 p-4 bg-muted rounded-lg">
+          <div className="text-sm text-muted-foreground space-y-2">
+            <h4 className="font-medium text-foreground">Tipos de conta:</h4>
             <ul className="space-y-1 text-xs">
               <li><strong>Estudante:</strong> @estudantes.ifpr.edu.br</li>
               <li><strong>Professor:</strong> @ifpr.edu.br</li>
               <li><strong>Admin:</strong> paulocauan39@gmail.com</li>
             </ul>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               O tipo de conta é definido automaticamente pelo email.
             </p>
           </div>

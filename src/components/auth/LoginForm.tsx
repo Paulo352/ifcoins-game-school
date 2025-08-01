@@ -103,10 +103,10 @@ export function LoginForm() {
           }}
           placeholder="seu.email@ifpr.edu.br"
           disabled={isLoading}
-          className={formErrors.email ? 'border-red-500' : ''}
+          className={formErrors.email ? 'border-destructive' : ''}
         />
         {formErrors.email && (
-          <p className="text-sm text-red-500 flex items-center gap-1">
+          <p className="text-sm text-destructive flex items-center gap-1">
             <AlertCircle className="h-3 w-3" />
             {formErrors.email}
           </p>
@@ -126,10 +126,10 @@ export function LoginForm() {
           }}
           placeholder="••••••••"
           disabled={isLoading}
-          className={formErrors.password ? 'border-red-500' : ''}
+          className={formErrors.password ? 'border-destructive' : ''}
         />
         {formErrors.password && (
-          <p className="text-sm text-red-500 flex items-center gap-1">
+          <p className="text-sm text-destructive flex items-center gap-1">
             <AlertCircle className="h-3 w-3" />
             {formErrors.password}
           </p>
@@ -137,7 +137,7 @@ export function LoginForm() {
       </div>
       <Button 
         type="submit" 
-        className="w-full bg-green-600 hover:bg-green-700"
+        className="w-full bg-primary hover:bg-primary/90"
         disabled={isLoading}
       >
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -94,7 +94,7 @@ export function CardShop() {
 
       {isLoading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-ifpr-green" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -121,7 +121,7 @@ export function CardShop() {
                 </CardDescription>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-ifpr-green">
+                    <span className="font-bold text-primary">
                       {card.price} IFCoins
                     </span>
                     <span className="text-sm text-gray-500">
@@ -131,7 +131,7 @@ export function CardShop() {
                   <Button
                     onClick={() => handleBuyCard(card.id, card.name, card.price)}
                     disabled={loading === card.id || (card.copies_available || 0) <= 0 || profile.coins < card.price}
-                    className="w-full bg-ifpr-green hover:bg-ifpr-green-dark"
+                    className="w-full bg-primary hover:bg-primary/90"
                   >
                     {loading === card.id ? (
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />

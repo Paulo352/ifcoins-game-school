@@ -14,17 +14,17 @@ export function AuthPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 to-blue-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-          <p className="text-green-600">Carregando...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-primary">Carregando...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg">
         <AuthHeader />
         <CardContent>
