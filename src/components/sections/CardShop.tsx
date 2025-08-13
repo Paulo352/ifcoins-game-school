@@ -125,12 +125,16 @@ export function CardShop() {
                       {card.price} IFCoins
                     </span>
                     <span className="text-sm text-gray-500">
-                      {card.copies_available || 0} disponíveis
+                      {(card.copies_available ?? 'ilimitadas')} disponíveis
                     </span>
                   </div>
                   <Button
                     onClick={() => handleBuyCard(card.id, card.name, card.price)}
-                    disabled={loading === card.id || (card.copies_available || 0) <= 0 || profile.coins < card.price}
+                    disabled={
+                      loading === card.id ||
+                      (card.copies_available !== null && card.copies_available !== undefined && card.copies_available <= 0) ||
+                      profile.coins < card.price
+                    }
                     className="w-full bg-primary hover:bg-primary/90"
                   >
                     {loading === card.id ? (
