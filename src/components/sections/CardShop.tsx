@@ -9,6 +9,7 @@ import { CollectibleCard } from '@/components/ui/collectible-card';
 import { CoinBalance } from '@/components/ui/coin-balance';
 import { toast } from '@/hooks/use-toast';
 import { ShoppingCart, Loader2 } from 'lucide-react';
+import { comprarCarta } from '@/hooks/useComprarCarta';
 
 export function CardShop() {
   const { profile, refreshProfile } = useAuth();
@@ -31,28 +32,12 @@ export function CardShop() {
   const handleBuyCard = async (cardId: string, cardName: string, price: number) => {
     if (!profile) return;
 
-    if (profile.coins < price) {
-      toast({
-        title: "Moedas insuficientes",
-        description: `Você precisa de ${price} IFCoins para comprar esta carta`,
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(cardId);
 
     try {
-      const { data, error } = await supabase.rpc('buy_card', {
-        card_id: cardId,
-        user_id: profile.id,
-      });
+      const resultado = await comprarCarta(profile.id, cardId);
 
-      if (error) throw error;
-
-      const result = data as { success: boolean; error?: string; message?: string };
-
-      if (result.success) {
+      if (resultado.sucesso) {
         toast({
           title: "Carta comprada!",
           description: `Você adquiriu: ${cardName}`,
@@ -62,7 +47,7 @@ export function CardShop() {
       } else {
         toast({
           title: "Erro na compra",
-          description: result.error || "Não foi possível comprar a carta",
+          description: resultado.mensagem,
           variant: "destructive",
         });
       }
