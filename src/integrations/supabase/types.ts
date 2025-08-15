@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -351,11 +351,11 @@ export type Database = {
       }
       create_event: {
         Args: {
-          name: string
-          description: string
-          start_date: string
-          end_date: string
           bonus_multiplier: number
+          description: string
+          end_date: string
+          name: string
+          start_date: string
         }
         Returns: string
       }
@@ -369,17 +369,17 @@ export type Database = {
       }
       update_event: {
         Args: {
+          bonus_multiplier: number
+          description: string
+          end_date: string
           event_id: string
           name: string
-          description: string
           start_date: string
-          end_date: string
-          bonus_multiplier: number
         }
         Returns: boolean
       }
       update_user_coins: {
-        Args: { user_id: string; amount: number }
+        Args: { amount: number; user_id: string }
         Returns: undefined
       }
     }
