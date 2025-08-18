@@ -34,10 +34,10 @@ export function GiveCoinsForm({ users, teacherId, onSuccess }: GiveCoinsFormProp
     }
 
     const amount = parseInt(coinsAmount);
-    if (amount <= 0 || amount > 1000) {
+    if (amount === 0) {
       toast({
         title: "Quantidade inválida",
-        description: "Você pode dar entre 1 e 1000 moedas",
+        description: "A quantidade deve ser diferente de zero",
         variant: "destructive"
       });
       return;
@@ -88,12 +88,13 @@ export function GiveCoinsForm({ users, teacherId, onSuccess }: GiveCoinsFormProp
             <Input
               id="coins"
               type="number"
-              min="1"
-              max="1000"
-              placeholder="100"
+              placeholder="100 (use valores negativos para retirar)"
               value={coinsAmount}
               onChange={(e) => setCoinsAmount(e.target.value)}
             />
+            <p className="text-xs text-gray-500">
+              Como admin, você pode dar qualquer quantidade ou usar valores negativos para retirar moedas
+            </p>
           </div>
         </div>
         <div className="space-y-2">

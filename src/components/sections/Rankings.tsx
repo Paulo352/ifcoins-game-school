@@ -13,6 +13,7 @@ export function Rankings() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
+        .eq('role', 'student')
         .order('coins', { ascending: false })
         .limit(50);
       
@@ -112,7 +113,7 @@ export function Rankings() {
               Ranking por IFCoins
             </CardTitle>
             <CardDescription>
-              Usuários com mais moedas acumuladas
+              Estudantes com mais moedas acumuladas
             </CardDescription>
           </CardHeader>
           <CardContent>
