@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Coins, UserCog, Minus } from 'lucide-react';
+import { Coins, UserCog, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateCoins } from '@/hooks/useUpdateCoins';
 import { Profile } from '@/types/supabase';
 import { supabase } from '@/integrations/supabase/client';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface AdminManageUsersProps {
   users: Profile[] | undefined;
@@ -22,7 +23,10 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
   const [coinsAmount, setCoinsAmount] = useState('');
   const [reason, setReason] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
+  const [selectedUserForRole, setSelectedUserForRole] = useState('');
+  const [selectedUserForDelete, setSelectedUserForDelete] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { giveCoins, loading } = useUpdateCoins();
 
   const handleGiveCoins = async () => {
@@ -58,7 +62,7 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
   };
 
   const handleUpdateRole = async () => {
-    if (!selectedUser || !selectedRole) {
+    if (!selectedUserForRole || !selectedRole) {
       toast({
         title: "Campos obrigatórios",
         description: "Selecione um usuário e o novo papel",
@@ -72,18 +76,18 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
       const { error } = await supabase
         .from('profiles')
         .update({ role: selectedRole as 'student' | 'teacher' | 'admin' })
-        .eq('id', selectedUser);
+        .eq('id', selectedUserForRole);
 
       if (error) throw error;
 
-      const selectedUserName = users?.find(u => u.id === selectedUser)?.name || 'Usuário';
+      const selectedUserName = users?.find(u => u.id === selectedUserForRole)?.name || 'Usuário';
       
       toast({
         title: "Papel atualizado!",
         description: `${selectedUserName} agora é ${selectedRole === 'admin' ? 'Administrador' : selectedRole === 'teacher' ? 'Professor' : 'Estudante'}`,
       });
       
-      setSelectedUser('');
+      setSelectedUserForRole('');
       setSelectedRole('');
       onSuccess();
     } catch (error) {
@@ -95,6 +99,39 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
       });
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUserForDelete) return;
+
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', selectedUserForDelete);
+
+      if (error) throw error;
+
+      const deletedUserName = users?.find(u => u.id === selectedUserForDelete)?.name || 'Usuário';
+      
+      toast({
+        title: "Usuário removido!",
+        description: `${deletedUserName} foi removido do sistema`,
+      });
+      
+      setSelectedUserForDelete('');
+      onSuccess();
+    } catch (error) {
+      console.error('Erro ao remover usuário:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o usuário",
+        variant: "destructive"
+      });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -178,7 +215,7 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="role-user">Usuário</Label>
-              <Select value={selectedUser} onValueChange={setSelectedUser}>
+              <Select value={selectedUserForRole} onValueChange={setSelectedUserForRole}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um usuário" />
                 </SelectTrigger>
@@ -213,6 +250,63 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
             <UserCog className="h-4 w-4 mr-2" />
             {updating ? 'Atualizando...' : 'Atualizar Papel'}
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trash2 className="h-5 w-5" />
+            Remover Usuário
+          </CardTitle>
+          <CardDescription>
+            Remove permanentemente um usuário do sistema
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="delete-user">Usuário</Label>
+            <Select value={selectedUserForDelete} onValueChange={setSelectedUserForDelete}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um usuário para remover" />
+              </SelectTrigger>
+              <SelectContent>
+                {users?.filter(user => user.id !== adminId).map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.name} - {user.role} ({user.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="destructive"
+                disabled={!selectedUserForDelete || deleting}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {deleting ? 'Removendo...' : 'Remover Usuário'}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar Remoção</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja remover este usuário? Esta ação é irreversível e todos os dados do usuário serão perdidos.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDeleteUser}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Remover
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </div>
