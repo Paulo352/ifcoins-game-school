@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CoinBalance } from '@/components/ui/coin-balance';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CollectibleCard } from '@/components/ui/collectible-card';
+import { CardDisplay } from '@/components/cards/CardDisplay';
 import { Gift, BookOpen, Users, Trophy, Calendar, Loader2 } from 'lucide-react';
 
 interface StudentDashboardProps {
@@ -167,17 +167,18 @@ export function StudentDashboard({ onSectionChange }: StudentDashboardProps) {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {userCards.map((userCard) => (
                   <div key={userCard.id} className="relative">
-                    <CollectibleCard
+                    <CardDisplay
                       card={{
                         id: userCard.card.id,
                         name: userCard.card.name,
                         rarity: userCard.card.rarity,
-                        imageUrl: userCard.card.image_url || '',
+                        imageUrl: userCard.card.image_url || '/placeholder.svg',
                         available: userCard.card.available,
                         price: userCard.card.price,
-                        description: userCard.card.description
+                        description: userCard.card.description || '',
+                        quantity: userCard.quantity
                       }}
-                      quantity={userCard.quantity}
+                      showQuantity
                       className="h-32"
                     />
                   </div>

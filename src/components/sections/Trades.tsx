@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CollectibleCard } from '@/components/ui/collectible-card';
+import { CardDisplay } from '@/components/cards/CardDisplay';
 import { CoinBalance } from '@/components/ui/coin-balance';
 import { Plus, Send, Check, X, Clock, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
