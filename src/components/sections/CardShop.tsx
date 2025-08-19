@@ -69,8 +69,8 @@ export function CardShop() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Loja IFCoins</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-foreground">Loja IFCoins</h1>
+          <p className="text-muted-foreground mt-1">
             Compre cartas colecionáveis do IFPR
           </p>
         </div>
@@ -109,8 +109,8 @@ export function CardShop() {
                     <span className="font-bold text-primary">
                       {card.price} IFCoins
                     </span>
-                    <span className="text-sm text-gray-500">
-                      {(card.copies_available ?? 'ilimitadas')} disponíveis
+                    <span className="text-sm text-muted-foreground">
+                      {card.copies_available === null ? 'ilimitadas' : card.copies_available} disponíveis
                     </span>
                   </div>
                   <Button

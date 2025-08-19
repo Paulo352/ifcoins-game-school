@@ -107,10 +107,10 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
 
     setDeleting(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', selectedUserForDelete);
+      // Call edge function to delete user from auth and profiles
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId: selectedUserForDelete }
+      });
 
       if (error) throw error;
 
@@ -118,7 +118,7 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
       
       toast({
         title: "Usuário removido!",
-        description: `${deletedUserName} foi removido do sistema`,
+        description: `${deletedUserName} foi removido completamente do sistema`,
       });
       
       setSelectedUserForDelete('');
