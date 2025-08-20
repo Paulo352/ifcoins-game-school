@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -9,6 +10,7 @@ interface PurchaseResult {
 
 export function useCardPurchase() {
   const [loading, setLoading] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const purchaseCard = async (userId: string, cardId: string): Promise<PurchaseResult> => {
     try {
@@ -97,6 +99,9 @@ export function useCardPurchase() {
           description: `Você adquiriu: ${cardName}`,
         });
         onSuccess();
+        await queryClient.invalidateQueries({ queryKey: ['available-cards'] });
+        await queryClient.invalidateQueries({ queryKey: ['user-cards', userId] });
+        await queryClient.invalidateQueries({ queryKey: ['cards'] });
       } else {
         toast({
           title: "Erro na compra",
