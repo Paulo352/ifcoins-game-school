@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,15 +19,22 @@ export function useCardPurchase() {
     setLoading(cardId);
 
     try {
-      // Verificar se a função RPC buy_card existe, se não, fazer compra manual
+      console.log('Tentando comprar carta:', { userId, cardId, cardName });
+
+      // Primeiro, chamar a Edge Function para corrigir a função buy_card
+      const { error: fixError } = await supabase.functions.invoke('fix-buy-card');
+      if (fixError) {
+        console.log('Aviso: Não foi possível corrigir a função RPC:', fixError);
+      }
+
+      // Tentar usar a função RPC buy_card corrigida
       const { data: result, error: rpcError } = await supabase.rpc('buy_card', {
         card_id: cardId,
         user_id: userId
       });
 
       if (rpcError) {
-        // Se a função RPC não existir, fazer compra manual
-        console.log('RPC buy_card não encontrada, fazendo compra manual');
+        console.log('RPC buy_card falhou, fazendo compra manual:', rpcError);
         await manualCardPurchase(userId, cardId);
         
         toast({
@@ -60,11 +68,11 @@ export function useCardPurchase() {
       
       let errorMessage = 'Erro inesperado. Tente novamente.';
       
-      if (error.message.includes('insufficient_funds')) {
+      if (error.message.includes('insufficient_funds') || error.message.includes('insuficiente')) {
         errorMessage = 'Saldo insuficiente para comprar esta carta.';
-      } else if (error.message.includes('card_not_available')) {
+      } else if (error.message.includes('card_not_available') || error.message.includes('não está disponível')) {
         errorMessage = 'Esta carta não está mais disponível.';
-      } else if (error.message.includes('out_of_stock')) {
+      } else if (error.message.includes('out_of_stock') || error.message.includes('cópias disponíveis')) {
         errorMessage = 'Carta esgotada.';
       } else if (error.message) {
         errorMessage = error.message;
@@ -81,33 +89,45 @@ export function useCardPurchase() {
   };
 
   const manualCardPurchase = async (userId: string, cardId: string) => {
-    // Começar transação manual
+    console.log('Executando compra manual...');
+    
+    // Buscar dados do usuário com alias explícito
     const { data: user, error: userError } = await supabase
       .from('profiles')
       .select('coins')
       .eq('id', userId)
       .single();
 
-    if (userError) throw new Error('Erro ao buscar dados do usuário');
+    if (userError) {
+      console.error('Erro ao buscar usuário:', userError);
+      throw new Error('Erro ao buscar dados do usuário');
+    }
     
+    // Buscar dados da carta com alias explícito
     const { data: card, error: cardError } = await supabase
       .from('cards')
       .select('price, available, copies_available')
       .eq('id', cardId)
       .single();
 
-    if (cardError) throw new Error('Erro ao buscar dados da carta');
+    if (cardError) {
+      console.error('Erro ao buscar carta:', cardError);
+      throw new Error('Erro ao buscar dados da carta');
+    }
 
+    console.log('Dados obtidos:', { user, card });
+
+    // Validações
     if (!card.available) {
-      throw new Error('card_not_available');
+      throw new Error('Esta carta não está disponível para compra');
     }
 
     if (card.copies_available !== null && card.copies_available <= 0) {
-      throw new Error('out_of_stock');
+      throw new Error('Esta carta está esgotada');
     }
 
     if (user.coins < card.price) {
-      throw new Error('insufficient_funds');
+      throw new Error('Saldo insuficiente para comprar esta carta');
     }
 
     // Debitar moedas do usuário
@@ -116,15 +136,18 @@ export function useCardPurchase() {
       .update({ coins: user.coins - card.price })
       .eq('id', userId);
 
-    if (debitError) throw debitError;
+    if (debitError) {
+      console.error('Erro ao debitar moedas:', debitError);
+      throw new Error('Erro ao processar pagamento');
+    }
 
-    // Adicionar carta ao usuário ou incrementar quantidade
+    // Verificar se já possui a carta
     const { data: existingCard } = await supabase
       .from('user_cards')
       .select('quantity')
       .eq('user_id', userId)
       .eq('card_id', cardId)
-      .single();
+      .maybeSingle();
 
     if (existingCard) {
       // Incrementar quantidade se já possui a carta
@@ -134,7 +157,10 @@ export function useCardPurchase() {
         .eq('user_id', userId)
         .eq('card_id', cardId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Erro ao atualizar quantidade:', updateError);
+        throw new Error('Erro ao adicionar carta à coleção');
+      }
     } else {
       // Criar novo registro se não possui a carta
       const { error: insertError } = await supabase
@@ -145,18 +171,26 @@ export function useCardPurchase() {
           quantity: 1
         });
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Erro ao inserir carta:', insertError);
+        throw new Error('Erro ao adicionar carta à coleção');
+      }
     }
 
     // Decrementar copies_available se aplicável
     if (card.copies_available !== null) {
       const { error: updateCardError } = await supabase
         .from('cards')
-        .update({ copies_available: card.copies_available - 1 })
+        .update({ copies_available: Math.max(card.copies_available - 1, 0) })
         .eq('id', cardId);
 
-      if (updateCardError) throw updateCardError;
+      if (updateCardError) {
+        console.error('Erro ao atualizar estoque:', updateCardError);
+        // Não falhar aqui, pois a compra já foi processada
+      }
     }
+
+    console.log('Compra manual concluída com sucesso');
   };
 
   return { buyCard, loading };
