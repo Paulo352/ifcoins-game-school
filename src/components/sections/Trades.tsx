@@ -5,26 +5,31 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CardDisplay } from '@/components/cards/CardDisplay';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CoinBalance } from '@/components/ui/coin-balance';
-import { Plus, Send, Check, X, Clock, Search } from 'lucide-react';
+import { Plus, Send, Clock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { Trade } from '@/types';
-import { mockTrades, mockCards } from '@/data/mockData';
+import { useTrades, useCreateTrade, useUpdateTradeStatus, useStudents } from '@/hooks/trades/useTrades';
+import { useUserCards } from '@/hooks/cards/useCards';
+import { CardSelector } from '@/components/trades/CardSelector';
+import { TradeCard } from '@/components/trades/TradeCard';
 
 export function Trades() {
-  const { profile } = useAuth();
-  const [trades, setTrades] = useState(mockTrades);
+  const { profile, user } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [newTrade, setNewTrade] = useState({
-    to: '',
+    to_user_id: '',
     offeredCards: {} as Record<string, number>,
     offeredCoins: 0,
     requestedCards: {} as Record<string, number>,
     requestedCoins: 0
   });
+
+  const { data: trades = [], isLoading: tradesLoading } = useTrades();
+  const { data: userCards = [] } = useUserCards(user?.id);
+  const { data: students = [] } = useStudents();
+  const createTradeMutation = useCreateTrade();
+  const updateTradeStatusMutation = useUpdateTradeStatus();
 
   if (!profile || profile.role !== 'student') {
     return (
@@ -35,8 +40,8 @@ export function Trades() {
     );
   }
 
-  const handleCreateTrade = () => {
-    if (!newTrade.to) {
+  const handleCreateTrade = async () => {
+    if (!newTrade.to_user_id) {
       toast({
         title: "Erro",
         description: "Selecione um estudante para trocar",
@@ -45,86 +50,85 @@ export function Trades() {
       return;
     }
 
-    const trade: Trade = {
-      id: Date.now().toString(),
-      from: profile.id,
-      to: newTrade.to,
-      offered: {
-        cards: newTrade.offeredCards,
-        coins: newTrade.offeredCoins
-      },
-      requested: {
-        cards: newTrade.requestedCards,
-        coins: newTrade.requestedCoins
-      },
-      status: 'pending',
-      timestamp: Date.now()
-    };
-
-    setTrades([...trades, trade]);
-    setNewTrade({
-      to: '',
-      offeredCards: {},
-      offeredCoins: 0,
-      requestedCards: {},
-      requestedCoins: 0
-    });
-    setIsCreating(false);
+    // Verificar se há algo para trocar
+    const hasOfferedCards = Object.values(newTrade.offeredCards).some(q => q > 0);
+    const hasRequestedCards = Object.values(newTrade.requestedCards).some(q => q > 0);
     
-    toast({
-      title: "Sucesso",
-      description: "Proposta de troca enviada!",
-    });
+    if (!hasOfferedCards && !hasRequestedCards && newTrade.offeredCoins === 0 && newTrade.requestedCoins === 0) {
+      toast({
+        title: "Erro",
+        description: "Você deve oferecer ou solicitar algo na troca",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await createTradeMutation.mutateAsync({
+        to_user_id: newTrade.to_user_id,
+        offered_cards: newTrade.offeredCards,
+        offered_coins: newTrade.offeredCoins,
+        requested_cards: newTrade.requestedCards,
+        requested_coins: newTrade.requestedCoins,
+      });
+
+      setNewTrade({
+        to_user_id: '',
+        offeredCards: {},
+        offeredCoins: 0,
+        requestedCards: {},
+        requestedCoins: 0
+      });
+      setIsCreating(false);
+    } catch (error) {
+      // Erro já tratado no hook
+    }
   };
 
   const handleAcceptTrade = (tradeId: string) => {
-    setTrades(trades.map(trade => 
-      trade.id === tradeId 
-        ? { ...trade, status: 'accepted' as const }
-        : trade
-    ));
-    toast({
-      title: "Sucesso",
-      description: "Troca aceita com sucesso!",
-    });
+    updateTradeStatusMutation.mutate({ tradeId, status: 'accepted' });
   };
 
   const handleRejectTrade = (tradeId: string) => {
-    setTrades(trades.map(trade => 
-      trade.id === tradeId 
-        ? { ...trade, status: 'rejected' as const }
-        : trade
-    ));
-    toast({
-      title: "Troca rejeitada",
-      description: "A proposta de troca foi recusada.",
-    });
+    updateTradeStatusMutation.mutate({ tradeId, status: 'rejected' });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'accepted': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleCardChange = (type: 'offered' | 'requested', cardId: string, quantity: number) => {
+    if (type === 'offered') {
+      setNewTrade(prev => ({
+        ...prev,
+        offeredCards: {
+          ...prev.offeredCards,
+          [cardId]: quantity
+        }
+      }));
+    } else {
+      setNewTrade(prev => ({
+        ...prev,
+        requestedCards: {
+          ...prev.requestedCards,
+          [cardId]: quantity
+        }
+      }));
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending': return 'Pendente';
-      case 'accepted': return 'Aceita';
-      case 'rejected': return 'Rejeitada';
-      default: return status;
-    }
-  };
+  // Criar mapa de profiles para exibição
+  const profilesMap = students.reduce((map, student) => {
+    map[student.id] = { name: student.name, email: student.email };
+    return map;
+  }, {} as Record<string, { name: string; email: string }>);
 
-  const filteredTrades = trades.filter(trade =>
-    trade.from === profile.id || trade.to === profile.id
-  );
+  const myTrades = trades.filter(trade => trade.from_user_id === user?.id);
+  const receivedTrades = trades.filter(trade => trade.to_user_id === user?.id);
 
-  const myTrades = filteredTrades.filter(trade => trade.from === profile.id);
-  const receivedTrades = filteredTrades.filter(trade => trade.to === profile.id);
+  if (tradesLoading) {
+    return (
+      <div className="text-center py-12">
+        <p>Carregando trocas...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -147,53 +151,53 @@ export function Trades() {
           <CardHeader>
             <CardTitle>Criar Nova Proposta de Troca</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div>
-              <Label htmlFor="tradeTo">Trocar com (Email do estudante)</Label>
-              <Input
-                id="tradeTo"
-                value={newTrade.to}
-                onChange={(e) => setNewTrade({...newTrade, to: e.target.value})}
-                placeholder="estudante@estudantes.ifpr.edu.br"
-              />
+              <Label htmlFor="tradeTo">Trocar com</Label>
+              <Select value={newTrade.to_user_id} onValueChange={(value) => setNewTrade({...newTrade, to_user_id: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um estudante" />
+                </SelectTrigger>
+                <SelectContent>
+                  {students.filter(student => student.id !== user?.id).map((student) => (
+                    <SelectItem key={student.id} value={student.id}>
+                      {student.name} ({student.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <h3 className="font-bold text-lg text-green-600">Você Oferece</h3>
                 <div>
-                  <Label htmlFor="offeredCoins">Moedas</Label>
+                  <Label htmlFor="offeredCoins">Moedas que você oferece</Label>
                   <Input
                     id="offeredCoins"
                     type="number"
                     min="0"
+                    max={profile?.coins || 0}
                     value={newTrade.offeredCoins}
-                    onChange={(e) => setNewTrade({...newTrade, offeredCoins: parseInt(e.target.value) || 0})}
+                    onChange={(e) => setNewTrade({...newTrade, offeredCoins: Math.min(parseInt(e.target.value) || 0, profile?.coins || 0)})}
                     placeholder="0"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Você possui: {profile?.coins || 0} moedas
+                  </p>
                 </div>
-                <div>
-                  <Label>Cartas (formato: card1:2, card2:1)</Label>
-                  <Input
-                    placeholder="Ex: card1:2, card2:1"
-                    onChange={(e) => {
-                      const cards: Record<string, number> = {};
-                      e.target.value.split(',').forEach(item => {
-                        const [cardId, quantity] = item.trim().split(':');
-                        if (cardId && quantity) {
-                          cards[cardId] = parseInt(quantity) || 1;
-                        }
-                      });
-                      setNewTrade({...newTrade, offeredCards: cards});
-                    }}
-                  />
-                </div>
+                
+                <CardSelector
+                  userCards={userCards}
+                  selectedCards={newTrade.offeredCards}
+                  onCardChange={(cardId, quantity) => handleCardChange('offered', cardId, quantity)}
+                  title="Cartas que você oferece"
+                  variant="offer"
+                />
               </div>
 
               <div className="space-y-4">
-                <h3 className="font-bold text-lg text-blue-600">Você Solicita</h3>
                 <div>
-                  <Label htmlFor="requestedCoins">Moedas</Label>
+                  <Label htmlFor="requestedCoins">Moedas que você solicita</Label>
                   <Input
                     id="requestedCoins"
                     type="number"
@@ -203,29 +207,24 @@ export function Trades() {
                     placeholder="0"
                   />
                 </div>
-                <div>
-                  <Label>Cartas (formato: card1:2, card2:1)</Label>
-                  <Input
-                    placeholder="Ex: card1:2, card2:1"
-                    onChange={(e) => {
-                      const cards: Record<string, number> = {};
-                      e.target.value.split(',').forEach(item => {
-                        const [cardId, quantity] = item.trim().split(':');
-                        if (cardId && quantity) {
-                          cards[cardId] = parseInt(quantity) || 1;
-                        }
-                      });
-                      setNewTrade({...newTrade, requestedCards: cards});
-                    }}
-                  />
-                </div>
+                
+                <CardSelector
+                  userCards={userCards}
+                  selectedCards={newTrade.requestedCards}
+                  onCardChange={(cardId, quantity) => handleCardChange('requested', cardId, quantity)}
+                  title="Cartas que você solicita"
+                  variant="request"
+                />
               </div>
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={handleCreateTrade}>
+              <Button 
+                onClick={handleCreateTrade}
+                disabled={createTradeMutation.isPending}
+              >
                 <Send className="h-4 w-4 mr-2" />
-                Enviar Proposta
+                {createTradeMutation.isPending ? 'Enviando...' : 'Enviar Proposta'}
               </Button>
               <Button variant="outline" onClick={() => setIsCreating(false)}>Cancelar</Button>
             </div>
@@ -238,7 +237,7 @@ export function Trades() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Send className="h-5 w-5 text-green-600" />
-              Minhas Propostas
+              Minhas Propostas ({myTrades.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -247,23 +246,13 @@ export function Trades() {
                 <p className="text-gray-500 text-center py-4">Nenhuma proposta enviada</p>
               ) : (
                 myTrades.map((trade) => (
-                  <div key={trade.id} className="border rounded-lg p-3">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="text-sm">
-                        <p className="font-medium">Para: {trade.to}</p>
-                        <p className="text-gray-500">
-                          {new Date(trade.timestamp).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trade.status)}`}>
-                        {getStatusText(trade.status)}
-                      </span>
-                    </div>
-                    <div className="text-xs space-y-1">
-                      <p><strong>Ofereci:</strong> {trade.offered.coins} moedas</p>
-                      <p><strong>Solicitei:</strong> {trade.requested.coins} moedas</p>
-                    </div>
-                  </div>
+                  <TradeCard
+                    key={trade.id}
+                    trade={trade}
+                    isReceived={false}
+                    userCards={userCards}
+                    profilesMap={profilesMap}
+                  />
                 ))
               )}
             </div>
@@ -274,7 +263,7 @@ export function Trades() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-blue-600" />
-              Propostas Recebidas
+              Propostas Recebidas ({receivedTrades.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -283,43 +272,15 @@ export function Trades() {
                 <p className="text-gray-500 text-center py-4">Nenhuma proposta recebida</p>
               ) : (
                 receivedTrades.map((trade) => (
-                  <div key={trade.id} className="border rounded-lg p-3">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="text-sm">
-                        <p className="font-medium">De: {trade.from}</p>
-                        <p className="text-gray-500">
-                          {new Date(trade.timestamp).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trade.status)}`}>
-                        {getStatusText(trade.status)}
-                      </span>
-                    </div>
-                    <div className="text-xs space-y-1 mb-3">
-                      <p><strong>Oferece:</strong> {trade.offered.coins} moedas</p>
-                      <p><strong>Solicita:</strong> {trade.requested.coins} moedas</p>
-                    </div>
-                    {trade.status === 'pending' && (
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleAcceptTrade(trade.id)}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <Check className="h-3 w-3 mr-1" />
-                          Aceitar
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleRejectTrade(trade.id)}
-                        >
-                          <X className="h-3 w-3 mr-1" />
-                          Rejeitar
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                  <TradeCard
+                    key={trade.id}
+                    trade={trade}
+                    isReceived={true}
+                    userCards={userCards}
+                    onAccept={handleAcceptTrade}
+                    onReject={handleRejectTrade}
+                    profilesMap={profilesMap}
+                  />
                 ))
               )}
             </div>
