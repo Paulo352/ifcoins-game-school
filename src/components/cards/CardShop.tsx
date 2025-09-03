@@ -123,15 +123,19 @@ export function CardShop() {
                   <Card key={card.id} className="flex flex-col">
                     <CardHeader className="pb-2">
                       <div className="aspect-[3/4] bg-muted rounded-md mb-3 flex items-center justify-center overflow-hidden">
-                        {card.image_url ? (
-                          <img
-                            src={card.image_url}
-                            alt={card.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.src = '/placeholder.svg';
-                            }}
-                          />
+                         {card.image_url ? (
+                           <img
+                             src={card.image_url}
+                             alt={card.name}
+                             className="w-full h-full object-cover"
+                             onError={(e) => {
+                               console.error('Erro ao carregar imagem no shop:', card.image_url);
+                               e.currentTarget.src = '/placeholder.svg';
+                             }}
+                             onLoad={() => {
+                               console.log('Imagem do shop carregada:', card.image_url);
+                             }}
+                           />
                         ) : (
                           <div className="text-muted-foreground text-sm">Sem imagem</div>
                         )}

@@ -36,6 +36,12 @@ const rarityLabels = {
 };
 
 export function CardDisplay({ card, className, showPrice = false, showQuantity = false }: CardDisplayProps) {
+  console.log('CardDisplay - card data:', { 
+    name: card.name, 
+    imageUrl: card.imageUrl,
+    hasImage: !!card.imageUrl 
+  });
+  
   return (
     <Card className={cn('relative overflow-hidden', className)}>
       <CardHeader className="p-0">
@@ -45,7 +51,11 @@ export function CardDisplay({ card, className, showPrice = false, showQuantity =
             alt={card.name}
             className="w-full h-48 object-cover"
             onError={(e) => {
+              console.error('Erro ao carregar imagem:', card.imageUrl);
               e.currentTarget.src = '/placeholder.svg';
+            }}
+            onLoad={() => {
+              console.log('Imagem carregada com sucesso:', card.imageUrl);
             }}
           />
           <div className="absolute top-2 right-2">
