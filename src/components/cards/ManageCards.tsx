@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Eye, EyeOff, Search } from 'lucide-react';
 import { useCards, useCreateCard, useUpdateCard, useDeleteCard, type Card as CardType } from '@/hooks/cards/useCards';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ImageSelector } from '@/components/cards/ImageSelector';
 
 interface CardFormData {
   name: string;
@@ -19,6 +20,7 @@ interface CardFormData {
   price: number;
   copies_available: number | null;
   image_url: string;
+  image_path?: string;
 }
 
 const rarityLabels = {
@@ -46,7 +48,8 @@ export function ManageCards() {
     rarity: 'common',
     price: 10,
     copies_available: null,
-    image_url: ''
+    image_url: '',
+    image_path: ''
   });
 
   const { data: cards, isLoading } = useCards();
@@ -70,7 +73,8 @@ export function ManageCards() {
       rarity: 'common',
       price: 10,
       copies_available: null,
-      image_url: ''
+      image_url: '',
+      image_path: ''
     });
     setIsEditing(false);
     setEditingCard(null);
@@ -100,7 +104,8 @@ export function ManageCards() {
       rarity: card.rarity,
       price: card.price,
       copies_available: card.copies_available,
-      image_url: card.image_url || ''
+      image_url: card.image_url || '',
+      image_path: ''
     });
     setEditingCard(card);
     setIsEditing(true);
@@ -236,16 +241,13 @@ export function ManageCards() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="image_url">URL da Imagem</Label>
-              <Input
-                id="image_url"
-                type="url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                placeholder="https://exemplo.com/imagem.jpg"
-              />
-            </div>
+            <ImageSelector
+              value={formData.image_url}
+              onChange={(url) => setFormData({...formData, image_url: url})}
+              onPathChange={(path) => setFormData({...formData, image_path: path})}
+              label="Imagem da Carta"
+              placeholder="URL da imagem ou faça upload do seu dispositivo"
+            />
 
             <div className="space-y-2">
               <Label htmlFor="description">Descrição</Label>
