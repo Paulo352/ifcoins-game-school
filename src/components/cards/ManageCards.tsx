@@ -83,9 +83,11 @@ export function ManageCards() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Não enviar image_path para o banco (a coluna não existe)
+    const { image_path, ...cleanForm } = formData;
     const cardData = {
-      ...formData,
-      available: true
+      ...cleanForm,
+      available: true,
     };
 
     if (isEditing && editingCard) {
