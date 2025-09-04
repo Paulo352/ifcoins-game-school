@@ -162,6 +162,9 @@ export function ImageSelector({
               src={value}
               alt="Preview"
               className="w-full h-32 object-cover rounded border"
+              loading="lazy"
+              decoding="async"
+              referrerPolicy="no-referrer"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = '/placeholder.svg';

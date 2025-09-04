@@ -50,6 +50,9 @@ export function CardDisplay({ card, className, showPrice = false, showQuantity =
             src={card.imageUrl}
             alt={card.name}
             className="w-full h-48 object-cover"
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
             onError={(e) => {
               console.error('Erro ao carregar imagem:', card.imageUrl);
               e.currentTarget.src = '/placeholder.svg';
