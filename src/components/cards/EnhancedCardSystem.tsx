@@ -18,12 +18,18 @@ export function EnhancedCardImage({
 }: EnhancedCardImageProps) {
   const imageLoader = useImageLoader(src || '');
 
-  if (!src) {
+  const normalizedSrc = (src || '').trim();
+  if (!normalizedSrc) {
     return (
-      <ImageFallback 
-        className={cn('w-full h-48 rounded-md', className)}
-        text={fallbackText}
-      />
+      <div className={cn('relative w-full h-48 rounded-md overflow-hidden bg-muted', className)}>
+        <img
+          src="/placeholder.svg"
+          alt={`Sem imagem: ${alt}`}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
     );
   }
 
