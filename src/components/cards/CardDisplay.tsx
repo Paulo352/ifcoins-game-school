@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -36,30 +36,49 @@ const rarityLabels = {
 };
 
 export function CardDisplay({ card, className, showPrice = false, showQuantity = false }: CardDisplayProps) {
-  console.log('CardDisplay - card data:', { 
-    name: card.name, 
-    imageUrl: card.imageUrl,
-    hasImage: !!card.imageUrl 
-  });
+  const [imageSrc, setImageSrc] = useState(card.imageUrl);
+  const [hasError, setHasError] = useState(false);
+  
+  // Determinar se é uma URL externa ou do Supabase
+  const isExternalUrl = imageSrc && !imageSrc.includes('supabase.co');
+  
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (!hasError) {
+      console.error('Erro ao carregar imagem:', imageSrc);
+      setHasError(true);
+      
+      // Se for uma URL externa, tentar sem referrer
+      if (isExternalUrl && e.currentTarget.getAttribute('crossorigin') !== 'anonymous') {
+        console.log('Tentando carregar imagem externa com crossorigin...');
+        e.currentTarget.crossOrigin = 'anonymous';
+        e.currentTarget.src = imageSrc;
+        return;
+      }
+      
+      // Fallback para placeholder
+      e.currentTarget.src = '/placeholder.svg';
+    }
+  };
+  
+  const handleImageLoad = () => {
+    console.log('Imagem carregada com sucesso:', imageSrc);
+    setHasError(false);
+  };
   
   return (
     <Card className={cn('relative overflow-hidden', className)}>
       <CardHeader className="p-0">
         <div className="relative">
           <img
-            src={card.imageUrl}
+            src={imageSrc}
             alt={card.name}
             className="w-full h-48 object-cover"
             loading="lazy"
             decoding="async"
-            referrerPolicy="no-referrer"
-            onError={(e) => {
-              console.error('Erro ao carregar imagem:', card.imageUrl);
-              e.currentTarget.src = '/placeholder.svg';
-            }}
-            onLoad={() => {
-              console.log('Imagem carregada com sucesso:', card.imageUrl);
-            }}
+            referrerPolicy={isExternalUrl ? "no-referrer" : undefined}
+            crossOrigin={isExternalUrl ? "anonymous" : undefined}
+            onError={handleImageError}
+            onLoad={handleImageLoad}
           />
           <div className="absolute top-2 right-2">
             <Badge className={cn('text-xs font-medium', rarityStyles[card.rarity])}>
