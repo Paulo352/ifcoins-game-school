@@ -25,8 +25,8 @@ export function RegistrationForm() {
   const getUserTypeFromEmail = (email: string) => {
     if (email.endsWith('@estudantes.ifpr.edu.br')) return 'estudante';
     if (email.endsWith('@ifpr.edu.br')) return 'professor';
-    if (email === 'paulocauan39@gmail.com') return 'admin';
-    return null;
+    // Tipo admin será determinado automaticamente no backend
+    return 'usuário válido';
   };
 
   const validateForm = (): boolean => {
@@ -241,7 +241,7 @@ export function RegistrationForm() {
             <ul className="space-y-1 text-xs">
               <li><strong>Estudante:</strong> @estudantes.ifpr.edu.br</li>
               <li><strong>Professor:</strong> @ifpr.edu.br</li>
-              <li><strong>Admin:</strong> paulocauan39@gmail.com</li>
+              <li><strong>Admin:</strong> Configurado no sistema</li>
             </ul>
             <p className="text-xs text-muted-foreground mt-2">
               O tipo de conta é definido automaticamente pelo email.

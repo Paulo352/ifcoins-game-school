@@ -27,11 +27,12 @@ export function useAuthActions() {
     try {
       console.log('Tentando cadastro para:', email, 'nome:', name);
       
-      // Determinar tipo de usuário baseado no email
+      // Tipo de usuário é determinado automaticamente no backend
+      // baseado em configuração segura na tabela admin_config
       const getUserTypeFromEmail = (email: string) => {
         if (email.endsWith('@estudantes.ifpr.edu.br')) return 'student';
         if (email.endsWith('@ifpr.edu.br')) return 'teacher';
-        if (email === 'paulocauan39@gmail.com') return 'admin';
+        // Admin será determinado no backend via configuração segura
         return 'student'; // default
       };
 

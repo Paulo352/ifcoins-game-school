@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_config: {
+        Row: {
+          config_key: string
+          config_value: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       cards: {
         Row: {
           available: boolean
@@ -478,6 +502,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: string
       }
+      is_admin_email: {
+        Args: { email_to_check: string }
+        Returns: boolean
+      }
       update_event: {
         Args: {
           bonus_multiplier: number
@@ -492,6 +520,14 @@ export type Database = {
       update_user_coins: {
         Args: { amount: number; user_id: string }
         Returns: undefined
+      }
+      update_user_role_secure: {
+        Args: {
+          new_role: Database["public"]["Enums"]["user_role"]
+          reason?: string
+          target_user_id: string
+        }
+        Returns: boolean
       }
     }
     Enums: {

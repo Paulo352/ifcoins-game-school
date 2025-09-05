@@ -73,17 +73,19 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
 
     setUpdating(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: selectedRole as 'student' | 'teacher' | 'admin' })
-        .eq('id', selectedUserForRole);
+      // Use the secure role update function
+      const { data, error } = await supabase.rpc('update_user_role_secure', {
+        target_user_id: selectedUserForRole,
+        new_role: selectedRole as 'student' | 'teacher' | 'admin',
+        reason: 'Role updated by admin via management interface'
+      });
 
       if (error) throw error;
 
       const selectedUserName = users?.find(u => u.id === selectedUserForRole)?.name || 'Usuário';
       
       toast({
-        title: "Papel atualizado!",
+        title: "Papel atualizado com segurança!",
         description: `${selectedUserName} agora é ${selectedRole === 'admin' ? 'Administrador' : selectedRole === 'teacher' ? 'Professor' : 'Estudante'}`,
       });
       
@@ -94,7 +96,7 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
       console.error('Erro ao atualizar papel:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o papel do usuário",
+        description: error.message || "Não foi possível atualizar o papel do usuário",
         variant: "destructive"
       });
     } finally {
