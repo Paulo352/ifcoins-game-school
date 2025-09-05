@@ -35,7 +35,13 @@ function CardShopImage({ card }: { card: { image_url: string | null; name: strin
           className="w-full h-full object-cover"
         />
       ) : (
-        <div className="text-muted-foreground text-sm">Sem imagem</div>
+        <img
+          src="/placeholder.svg"
+          alt={`Sem imagem: ${card.name}`}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
       )}
     </div>
   );
