@@ -5,7 +5,10 @@ import { useEventManagement } from '@/hooks/useEventManagement';
 import { EventForm } from '@/components/events/EventForm';
 import { EventsList } from '@/components/events/EventsList';
 import { EventsHeader } from '@/components/events/EventsHeader';
+import { Polls } from '@/components/sections/Polls';
+import { PollIndicator } from '@/components/events/PollIndicator';
 import { Event } from '@/types/supabase';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function Events() {
   const { profile } = useAuth();
@@ -71,28 +74,51 @@ export function Events() {
 
   return (
     <div className="space-y-6">
-      <EventsHeader
-        isAdmin={isAdmin}
-        onCreateEvent={() => setIsCreating(true)}
-        disabled={isCreating || editingEvent !== null}
-      />
+      <div>
+        <h1 className="text-3xl font-bold text-foreground mb-1">Eventos e Votações</h1>
+        <p className="text-muted-foreground">
+          Gerencie eventos e participe das votações da comunidade
+        </p>
+      </div>
 
-      {(isCreating || editingEvent) && isAdmin && (
-        <EventForm
-          event={editingEvent}
-          onSubmit={editingEvent ? handleUpdateEvent : handleCreateEvent}
-          onCancel={handleCancelForm}
-          loading={loading}
-        />
-      )}
+      <Tabs defaultValue="events" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="events">Eventos</TabsTrigger>
+          <TabsTrigger value="polls" className="flex items-center gap-2">
+            Votações
+            <PollIndicator />
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="events" className="space-y-6">
+          <EventsHeader
+            isAdmin={isAdmin}
+            onCreateEvent={() => setIsCreating(true)}
+            disabled={isCreating || editingEvent !== null}
+          />
 
-      <EventsList
-        events={events}
-        isLoading={isLoading}
-        isAdmin={isAdmin}
-        onEdit={handleEditEvent}
-        onDelete={handleDeleteEvent}
-      />
+          {(isCreating || editingEvent) && isAdmin && (
+            <EventForm
+              event={editingEvent}
+              onSubmit={editingEvent ? handleUpdateEvent : handleCreateEvent}
+              onCancel={handleCancelForm}
+              loading={loading}
+            />
+          )}
+
+          <EventsList
+            events={events}
+            isLoading={isLoading}
+            isAdmin={isAdmin}
+            onEdit={handleEditEvent}
+            onDelete={handleDeleteEvent}
+          />
+        </TabsContent>
+        
+        <TabsContent value="polls">
+          <Polls />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -2,50 +2,12 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Coins, ShoppingCart, Loader2, RefreshCw } from 'lucide-react';
 import { useAvailableCards } from '@/hooks/cards/useCards';
 import { useCardPurchase } from '@/hooks/cards/useCardPurchase';
 import { toast } from '@/hooks/use-toast';
-import { useImageLoader } from '@/hooks/useImageLoader';
+import { EnhancedCard } from './EnhancedCardSystem';
 
-const rarityColors = {
-  common: 'bg-gray-500',
-  rare: 'bg-blue-500',
-  legendary: 'bg-purple-500',
-  mythic: 'bg-yellow-500'
-};
-
-const rarityLabels = {
-  common: 'Comum',
-  rare: 'Rara',
-  legendary: 'Lendária',
-  mythic: 'Mítica'
-};
-
-function CardShopImage({ card }: { card: { image_url: string | null; name: string } }) {
-  const imageLoader = useImageLoader(card.image_url || '');
-  
-  return (
-    <div className="aspect-[3/4] bg-muted rounded-md mb-3 flex items-center justify-center overflow-hidden">
-      {card.image_url ? (
-        <img
-          {...imageLoader.getImageProps()}
-          alt={card.name}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <img
-          src="/placeholder.svg"
-          alt={`Sem imagem: ${card.name}`}
-          className="w-full h-full object-cover"
-          loading="lazy"
-          decoding="async"
-        />
-      )}
-    </div>
-  );
-}
 
 export function CardShop() {
   const { profile, refreshProfile } = useAuth();
@@ -145,39 +107,22 @@ export function CardShop() {
                 const isLoadingThisCard = loading === card.id;
                 
                 return (
-                  <Card key={card.id} className="flex flex-col">
-                    <CardHeader className="pb-2">
-                      <CardShopImage card={card} />
-                      
-                      <div className="space-y-2">
-                        <Badge 
-                          className={`${rarityColors[card.rarity]} text-white`}
-                        >
-                          {rarityLabels[card.rarity]}
-                        </Badge>
-                        <CardTitle className="text-lg">{card.name}</CardTitle>
-                        {card.description && (
-                          <CardDescription className="line-clamp-3">
-                            {card.description}
-                          </CardDescription>
-                        )}
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="flex-1 pt-0">
+                  <EnhancedCard
+                    key={card.id}
+                    id={card.id}
+                    name={card.name}
+                    description={card.description}
+                    image_url={card.image_url}
+                    rarity={card.rarity}
+                    price={card.price}
+                    available={card.available}
+                    showPrice={true}
+                  >
+                    <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>Disponíveis:</span>
                         <span>
                           {card.copies_available === null ? 'Ilimitadas' : card.copies_available}
-                        </span>
-                      </div>
-                    </CardContent>
-
-                    <CardFooter className="pt-0 flex flex-col gap-3">
-                      <div className="flex items-center justify-between w-full">
-                        <span className="text-lg font-bold flex items-center gap-1">
-                          <Coins className="h-4 w-4 text-primary" />
-                          {card.price.toLocaleString('pt-BR')}
                         </span>
                       </div>
                       
@@ -203,8 +148,8 @@ export function CardShop() {
                           </>
                         )}
                       </Button>
-                    </CardFooter>
-                  </Card>
+                    </div>
+                  </EnhancedCard>
                 );
               })}
             </div>

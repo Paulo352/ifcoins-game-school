@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { useImageLoader } from '@/hooks/useImageLoader';
+import { EnhancedCardImage } from './EnhancedCardSystem';
 
 interface CardData {
   id: string;
@@ -37,16 +37,14 @@ const rarityLabels = {
 };
 
 export function CardDisplay({ card, className, showPrice = false, showQuantity = false }: CardDisplayProps) {
-  const imageLoader = useImageLoader(card.imageUrl);
-  
   return (
     <Card className={cn('relative overflow-hidden', className)}>
       <CardHeader className="p-0">
         <div className="relative">
-          <img
-            {...imageLoader.getImageProps()}
+          <EnhancedCardImage
+            src={card.imageUrl}
             alt={card.name}
-            className="w-full h-48 object-cover"
+            className="w-full h-48"
           />
           <div className="absolute top-2 right-2">
             <Badge className={cn('text-xs font-medium', rarityStyles[card.rarity])}>

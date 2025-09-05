@@ -193,6 +193,127 @@ export type Database = {
         }
         Relationships: []
       }
+      poll_options: {
+        Row: {
+          created_at: string
+          id: string
+          option_order: number
+          option_text: string
+          poll_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_order?: number
+          option_text: string
+          poll_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_order?: number
+          option_text?: string
+          poll_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_votes: {
+        Row: {
+          created_at: string
+          id: string
+          option_id: string
+          poll_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_id: string
+          poll_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_id?: string
+          poll_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      polls: {
+        Row: {
+          allow_multiple_votes: boolean
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string
+          event_id: string | null
+          id: string
+          is_active: boolean
+          start_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          allow_multiple_votes?: boolean
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date: string
+          event_id?: string | null
+          id?: string
+          is_active?: boolean
+          start_date?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          allow_multiple_votes?: boolean
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string
+          event_id?: string | null
+          id?: string
+          is_active?: boolean
+          start_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "polls_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           class: string | null
@@ -490,6 +611,17 @@ export type Database = {
         }
         Returns: string
       }
+      create_poll_with_options: {
+        Args: {
+          allow_multiple: boolean
+          end_date: string
+          options: string[]
+          poll_description: string
+          poll_event_id: string
+          poll_title: string
+        }
+        Returns: string
+      }
       delete_event: {
         Args: { event_id: string }
         Returns: boolean
@@ -527,6 +659,10 @@ export type Database = {
           reason?: string
           target_user_id: string
         }
+        Returns: boolean
+      }
+      vote_in_poll: {
+        Args: { option_ids: string[]; poll_id: string }
         Returns: boolean
       }
     }
