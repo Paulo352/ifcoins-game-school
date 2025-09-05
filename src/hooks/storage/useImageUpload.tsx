@@ -21,10 +21,11 @@ export function useImageUpload() {
     }
 
     // Validar tipo de arquivo
-    if (!file.type.startsWith('image/')) {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
       toast({
         title: "Erro",
-        description: "Por favor, selecione apenas arquivos de imagem",
+        description: "Tipo de arquivo não suportado. Use JPEG, PNG, WebP ou GIF.",
         variant: "destructive",
       });
       return null;
@@ -45,14 +46,19 @@ export function useImageUpload() {
 
     try {
       // Gerar nome único para o arquivo
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = fileName;
+
+      console.log(`Iniciando upload: ${fileName}`);
 
       // Fazer upload do arquivo
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from(bucket)
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         console.error('Erro no upload:', uploadError);
@@ -64,10 +70,14 @@ export function useImageUpload() {
         return null;
       }
 
+      console.log('Upload concluído:', uploadData.path);
+
       // Obter URL pública do arquivo
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
+
+      console.log('URL pública gerada:', publicUrl);
 
       toast({
         title: "Upload concluído!",

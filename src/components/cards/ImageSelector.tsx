@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Link, X, Loader2 } from 'lucide-react';
 import { useImageUpload } from '@/hooks/storage/useImageUpload';
+import { useImageLoader } from '@/hooks/useImageLoader';
 
 interface ImageSelectorProps {
   value: string;
@@ -28,6 +29,11 @@ export function ImageSelector({
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { uploadImage, deleteImage, isUploading } = useImageUpload();
+  const imageLoader = useImageLoader(value);
+
+  useEffect(() => {
+    imageLoader.updateSrc(value);
+  }, [value]);
 
   const handleUrlChange = (newUrl: string) => {
     setUrlInput(newUrl);
@@ -158,21 +164,26 @@ export function ImageSelector({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <img
-              src={value}
-              alt="Preview"
-              className="w-full h-32 object-cover rounded border"
-              loading="lazy"
-              decoding="async"
-              referrerPolicy="no-referrer"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = '/placeholder.svg';
-              }}
-            />
+            <div className="relative">
+              <img
+                {...imageLoader.getImageProps()}
+                alt="Preview"
+                className="w-full h-32 object-cover rounded border"
+              />
+              {imageLoader.isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-muted/50 rounded border">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground mt-2 break-all">
               {uploadedPath ? `Arquivo: ${uploadedPath}` : `URL: ${value}`}
             </p>
+            {imageLoader.hasError && (
+              <p className="text-xs text-destructive mt-1">
+                Erro ao carregar imagem. Usando placeholder.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

@@ -7,6 +7,7 @@ import { Coins, ShoppingCart, Loader2, RefreshCw } from 'lucide-react';
 import { useAvailableCards } from '@/hooks/cards/useCards';
 import { useCardPurchase } from '@/hooks/cards/useCardPurchase';
 import { toast } from '@/hooks/use-toast';
+import { useImageLoader } from '@/hooks/useImageLoader';
 
 const rarityColors = {
   common: 'bg-gray-500',
@@ -21,6 +22,24 @@ const rarityLabels = {
   legendary: 'Lendária',
   mythic: 'Mítica'
 };
+
+function CardShopImage({ card }: { card: { image_url: string | null; name: string } }) {
+  const imageLoader = useImageLoader(card.image_url || '');
+  
+  return (
+    <div className="aspect-[3/4] bg-muted rounded-md mb-3 flex items-center justify-center overflow-hidden">
+      {card.image_url ? (
+        <img
+          {...imageLoader.getImageProps()}
+          alt={card.name}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="text-muted-foreground text-sm">Sem imagem</div>
+      )}
+    </div>
+  );
+}
 
 export function CardShop() {
   const { profile, refreshProfile } = useAuth();
@@ -122,27 +141,8 @@ export function CardShop() {
                 return (
                   <Card key={card.id} className="flex flex-col">
                     <CardHeader className="pb-2">
-                      <div className="aspect-[3/4] bg-muted rounded-md mb-3 flex items-center justify-center overflow-hidden">
-                         {card.image_url ? (
-                            <img
-                              src={card.image_url}
-                              alt={card.name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              decoding="async"
-                              referrerPolicy="no-referrer"
-                              onError={(e) => {
-                                console.error('Erro ao carregar imagem no shop:', card.image_url);
-                                e.currentTarget.src = '/placeholder.svg';
-                              }}
-                              onLoad={() => {
-                                console.log('Imagem do shop carregada:', card.image_url);
-                              }}
-                            />
-                        ) : (
-                          <div className="text-muted-foreground text-sm">Sem imagem</div>
-                        )}
-                      </div>
+                      <CardShopImage card={card} />
+                      
                       <div className="space-y-2">
                         <Badge 
                           className={`${rarityColors[card.rarity]} text-white`}

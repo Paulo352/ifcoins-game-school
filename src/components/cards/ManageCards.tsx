@@ -12,6 +12,7 @@ import { Plus, Edit, Trash2, Eye, EyeOff, Search } from 'lucide-react';
 import { useCards, useCreateCard, useUpdateCard, useDeleteCard, type Card as CardType } from '@/hooks/cards/useCards';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ImageSelector } from '@/components/cards/ImageSelector';
+import { ImagePreview } from '@/components/ui/image-preview';
 
 interface CardFormData {
   name: string;
@@ -297,6 +298,7 @@ export function ManageCards() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Imagem</TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Raridade</TableHead>
                 <TableHead>Preço</TableHead>
@@ -308,6 +310,13 @@ export function ManageCards() {
             <TableBody>
               {filteredCards?.map((card) => (
                 <TableRow key={card.id}>
+                  <TableCell>
+                    <ImagePreview 
+                      src={card.image_url || ''}
+                      alt={card.name}
+                      size="sm"
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{card.name}</TableCell>
                   <TableCell>
                     <Badge className={rarityColors[card.rarity]}>

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useImageLoader } from '@/hooks/useImageLoader';
 
 interface CardData {
   id: string;
@@ -36,49 +37,16 @@ const rarityLabels = {
 };
 
 export function CardDisplay({ card, className, showPrice = false, showQuantity = false }: CardDisplayProps) {
-  const [imageSrc, setImageSrc] = useState(card.imageUrl);
-  const [hasError, setHasError] = useState(false);
-  
-  // Determinar se é uma URL externa ou do Supabase
-  const isExternalUrl = imageSrc && !imageSrc.includes('supabase.co');
-  
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    if (!hasError) {
-      console.error('Erro ao carregar imagem:', imageSrc);
-      setHasError(true);
-      
-      // Se for uma URL externa, tentar sem referrer
-      if (isExternalUrl && e.currentTarget.getAttribute('crossorigin') !== 'anonymous') {
-        console.log('Tentando carregar imagem externa com crossorigin...');
-        e.currentTarget.crossOrigin = 'anonymous';
-        e.currentTarget.src = imageSrc;
-        return;
-      }
-      
-      // Fallback para placeholder
-      e.currentTarget.src = '/placeholder.svg';
-    }
-  };
-  
-  const handleImageLoad = () => {
-    console.log('Imagem carregada com sucesso:', imageSrc);
-    setHasError(false);
-  };
+  const imageLoader = useImageLoader(card.imageUrl);
   
   return (
     <Card className={cn('relative overflow-hidden', className)}>
       <CardHeader className="p-0">
         <div className="relative">
           <img
-            src={imageSrc}
+            {...imageLoader.getImageProps()}
             alt={card.name}
             className="w-full h-48 object-cover"
-            loading="lazy"
-            decoding="async"
-            referrerPolicy={isExternalUrl ? "no-referrer" : undefined}
-            crossOrigin={isExternalUrl ? "anonymous" : undefined}
-            onError={handleImageError}
-            onLoad={handleImageLoad}
           />
           <div className="absolute top-2 right-2">
             <Badge className={cn('text-xs font-medium', rarityStyles[card.rarity])}>
