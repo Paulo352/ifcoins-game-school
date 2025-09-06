@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/supabase';
 import { AdminStats } from '@/components/admin/AdminStats';
-import { AdminManageUsers } from '@/components/admin/AdminManageUsers';
+import { GiveCoinsForm } from '@/components/admin/GiveCoinsForm';
 import { RecentRewards } from '@/components/admin/RecentRewards';
 
 export function AdminGiveCoins() {
@@ -66,9 +66,8 @@ export function AdminGiveCoins() {
 
       <AdminStats users={users} recentRewards={recentRewards} />
       
-      <AdminManageUsers 
+      <GiveCoinsForm 
         users={users} 
-        adminId={profile.id}
         onSuccess={refetchUsers}
       />
       

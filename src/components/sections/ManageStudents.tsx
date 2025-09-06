@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,9 +6,12 @@ import { Profile } from '@/types/supabase';
 import { UserStats } from '@/components/manage/UserStats';
 import { TeacherGiveCoinsSection } from '@/components/manage/TeacherGiveCoinsSection';
 import { UsersTable } from '@/components/manage/UsersTable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AdminUserManagement } from '@/components/manage/AdminUserManagement';
 
 export function ManageStudents() {
   const { profile } = useAuth();
+  const [activeTab, setActiveTab] = useState('students');
 
   const { data: users, refetch } = useQuery({
     queryKey: ['manage-users'],
@@ -34,12 +36,16 @@ export function ManageStudents() {
     );
   }
 
+  const studentUsers = users?.filter(user => user.role === 'student') || [];
+  const teacherUsers = users?.filter(user => user.role === 'teacher') || [];
+  const adminUsers = users?.filter(user => user.role === 'admin') || [];
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Gerenciar Usuários</h1>
         <p className="text-gray-600 mt-1">
-          Visualize e gerencie usuários do sistema
+          Visualize e gerencie usuários do sistema por categoria
         </p>
       </div>
 
@@ -53,7 +59,67 @@ export function ManageStudents() {
         />
       )}
 
-      <UsersTable users={users} />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="students">
+            Alunos ({studentUsers.length})
+          </TabsTrigger>
+          <TabsTrigger value="teachers">
+            Professores ({teacherUsers.length})
+          </TabsTrigger>
+          <TabsTrigger value="admins">
+            Administradores ({adminUsers.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="students" className="space-y-6">
+          <div>
+            <h3 className="text-xl font-semibold mb-4">Estudantes ({studentUsers.length})</h3>
+            <UsersTable users={studentUsers} />
+            
+            {profile.role === 'admin' && (
+              <AdminUserManagement 
+                users={studentUsers}
+                adminId={profile.id}
+                onSuccess={refetch}
+                userType="student"
+              />
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="teachers" className="space-y-6">
+          <div>
+            <h3 className="text-xl font-semibold mb-4">Professores ({teacherUsers.length})</h3>
+            <UsersTable users={teacherUsers} />
+            
+            {profile.role === 'admin' && (
+              <AdminUserManagement 
+                users={teacherUsers}
+                adminId={profile.id}
+                onSuccess={refetch}
+                userType="teacher"
+              />
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="admins" className="space-y-6">
+          <div>
+            <h3 className="text-xl font-semibold mb-4">Administradores ({adminUsers.length})</h3>
+            <UsersTable users={adminUsers} />
+            
+            {profile.role === 'admin' && (
+              <AdminUserManagement 
+                users={adminUsers}
+                adminId={profile.id}
+                onSuccess={refetch}
+                userType="admin"
+              />
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

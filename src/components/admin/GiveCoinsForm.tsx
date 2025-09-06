@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,11 +12,10 @@ import { Profile } from '@/types/supabase';
 
 interface GiveCoinsFormProps {
   users: Profile[] | undefined;
-  teacherId: string;
   onSuccess: () => void;
 }
 
-export function GiveCoinsForm({ users, teacherId, onSuccess }: GiveCoinsFormProps) {
+export function GiveCoinsForm({ users, onSuccess }: GiveCoinsFormProps) {
   const [selectedUser, setSelectedUser] = useState('');
   const [coinsAmount, setCoinsAmount] = useState('');
   const [reason, setReason] = useState('');
@@ -27,7 +25,7 @@ export function GiveCoinsForm({ users, teacherId, onSuccess }: GiveCoinsFormProp
     if (!selectedUser || !coinsAmount || !reason) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha todos os campos para dar moedas",
+        description: "Preencha todos os campos para dar/retirar moedas",
         variant: "destructive"
       });
       return;
@@ -45,7 +43,7 @@ export function GiveCoinsForm({ users, teacherId, onSuccess }: GiveCoinsFormProp
 
     const selectedUserName = users?.find(u => u.id === selectedUser)?.name || 'Usuário';
     
-    const success = await giveCoins(selectedUser, amount, reason, teacherId, selectedUserName);
+    const success = await giveCoins(selectedUser, amount, reason, 'admin', selectedUserName);
     
     if (success) {
       setSelectedUser('');
@@ -63,7 +61,7 @@ export function GiveCoinsForm({ users, teacherId, onSuccess }: GiveCoinsFormProp
           Dar Moedas IFCoins
         </CardTitle>
         <CardDescription>
-          Recompense estudantes e professores por bom desempenho
+          Recompense usuários com moedas IFCoins
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -93,15 +91,15 @@ export function GiveCoinsForm({ users, teacherId, onSuccess }: GiveCoinsFormProp
               onChange={(e) => setCoinsAmount(e.target.value)}
             />
             <p className="text-xs text-gray-500">
-              Como admin, você pode dar qualquer quantidade ou usar valores negativos para retirar moedas
+              Use valores positivos para dar moedas ou negativos para retirar
             </p>
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="reason">Motivo da Recompensa</Label>
+          <Label htmlFor="reason">Motivo</Label>
           <Textarea
             id="reason"
-            placeholder="Ex: Excelente participação no projeto de pesquisa"
+            placeholder="Ex: Recompensa por projeto especial ou Remoção por violação das regras"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={3}
@@ -109,11 +107,11 @@ export function GiveCoinsForm({ users, teacherId, onSuccess }: GiveCoinsFormProp
         </div>
         <Button 
           onClick={handleGiveCoins}
-          className="bg-ifpr-green hover:bg-ifpr-green-dark"
+          className="bg-primary hover:bg-primary/90"
           disabled={loading}
         >
           <Coins className="h-4 w-4 mr-2" />
-          {loading ? 'Dando Moedas...' : 'Dar Moedas'}
+          {loading ? 'Processando...' : 'Dar Moedas'}
         </Button>
       </CardContent>
     </Card>

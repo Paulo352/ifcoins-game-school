@@ -15,6 +15,8 @@ export function useImageLoader(initialSrc: string = '') {
     attemptedCors: false,
   });
 
+  console.log('🖼️ ImageLoader - Initial src:', initialSrc, 'State:', state);
+
   const isExternalUrl = (url: string) => 
     url && !url.includes('supabase.co') && !url.startsWith('/') && !url.startsWith('data:');
 
@@ -53,6 +55,7 @@ export function useImageLoader(initialSrc: string = '') {
   }, []);
 
   const updateSrc = useCallback((newSrc: string) => {
+    console.log('🖼️ ImageLoader - Updating src to:', newSrc);
     setState({
       src: newSrc,
       isLoading: !!newSrc,

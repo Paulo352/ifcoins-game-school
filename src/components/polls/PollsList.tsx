@@ -2,6 +2,7 @@ import React from 'react';
 import { PollCard } from './PollCard';
 import { PollWithOptions, PollVote } from '@/hooks/usePolls';
 import { Loader2 } from 'lucide-react';
+import { VotingStats } from './VotingStats';
 
 interface PollsListProps {
   polls: PollWithOptions[] | undefined;
@@ -44,17 +45,21 @@ export function PollsList({
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="space-y-6">
       {polls.map((poll) => (
-        <PollCard
-          key={poll.id}
-          poll={poll}
-          userVotes={userVotes.filter(vote => vote.poll_id === poll.id)}
-          onVote={onVote}
-          onDeactivate={onDeactivate}
-          showResults={showResults}
-          voteLoading={voteLoading}
-        />
+        <div key={poll.id} className="space-y-4">
+          <VotingStats pollId={poll.id} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <PollCard
+              poll={poll}
+              userVotes={userVotes.filter(vote => vote.poll_id === poll.id)}
+              onVote={onVote}
+              onDeactivate={onDeactivate}
+              showResults={showResults}
+              voteLoading={voteLoading}
+            />
+          </div>
+        </div>
       ))}
     </div>
   );
