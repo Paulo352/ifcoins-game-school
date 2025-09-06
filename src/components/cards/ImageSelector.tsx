@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Link, X, Loader2 } from 'lucide-react';
+import { Upload, Link, X, Loader2, Check } from 'lucide-react';
 import { useImageUpload } from '@/hooks/storage/useImageUpload';
 import { useImageLoader } from '@/hooks/useImageLoader';
 
@@ -25,22 +25,23 @@ export function ImageSelector({
 }: ImageSelectorProps) {
   const [activeTab, setActiveTab] = useState<'url' | 'upload'>('url');
   const [urlInput, setUrlInput] = useState(value || '');
-  const [uploadedPath, setUploadedPath] = useState('');
+  const [uploadedPath, setUploadedPath] = useState(''); // último caminho confirmado
+  const [draftUrl, setDraftUrl] = useState(''); // URL aguardando confirmação
+  const [draftPath, setDraftPath] = useState(''); // caminho aguardando confirmação
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { uploadImage, deleteImage, isUploading } = useImageUpload();
-  const imageLoader = useImageLoader(value);
+  const previewSrc = draftUrl || value;
+  const imageLoader = useImageLoader(previewSrc);
 
   useEffect(() => {
-    imageLoader.updateSrc(value);
-  }, [value]);
+    imageLoader.updateSrc(previewSrc);
+  }, [previewSrc]);
 
   const handleUrlChange = (newUrl: string) => {
     setUrlInput(newUrl);
-    onChange(newUrl);
-    if (onPathChange) {
-      onPathChange(''); // Limpar path quando usar URL
-    }
+    setDraftUrl(newUrl);
+    setDraftPath('');
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,26 +50,27 @@ export function ImageSelector({
 
     const result = await uploadImage(file);
     if (result) {
-      onChange(result.url);
-      setUploadedPath(result.path);
-      if (onPathChange) {
-        onPathChange(result.path);
-      }
+      setDraftUrl(result.url);
+      setDraftPath(result.path);
       setUrlInput(''); // Limpar URL quando fazer upload
     }
   };
 
   const handleRemoveImage = async () => {
-    if (uploadedPath) {
-      const success = await deleteImage(uploadedPath);
-      if (success) {
-        setUploadedPath('');
-        if (onPathChange) {
-          onPathChange('');
-        }
-      }
+    // Deletar rascunho enviado
+    if (draftPath) {
+      await deleteImage(draftPath);
+      setDraftPath('');
     }
+    // Deletar imagem confirmada
+    if (uploadedPath) {
+      await deleteImage(uploadedPath);
+      setUploadedPath('');
+    }
+    // Limpar estados e notificar pai
     onChange('');
+    onPathChange?.('');
+    setDraftUrl('');
     setUrlInput('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -77,6 +79,31 @@ export function ImageSelector({
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
+  };
+
+  const confirmImage = async () => {
+    const finalUrl = draftUrl.trim();
+    if (!finalUrl || imageLoader.isLoading || imageLoader.hasError) return;
+    onChange(finalUrl);
+    if (draftPath) {
+      onPathChange?.(draftPath);
+      setUploadedPath(draftPath);
+    } else {
+      onPathChange?.('');
+      setUploadedPath('');
+    }
+    setDraftUrl('');
+    setDraftPath('');
+    setUrlInput(finalUrl);
+  };
+
+  const cancelDraft = async () => {
+    if (draftPath) {
+      await deleteImage(draftPath);
+    }
+    setDraftUrl('');
+    setDraftPath('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
@@ -147,11 +174,11 @@ export function ImageSelector({
       </Tabs>
 
       {/* Preview da imagem */}
-      {value && (
+      {previewSrc && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center justify-between">
-              Preview
+              Preview {draftUrl && '(aguardando confirmação)'}
               <Button
                 type="button"
                 variant="ghost"
@@ -177,12 +204,29 @@ export function ImageSelector({
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-2 break-all">
-              {uploadedPath ? `Arquivo: ${uploadedPath}` : `URL: ${value}`}
+              {draftPath ? `Arquivo (rascunho): ${draftPath}` : uploadedPath ? `Arquivo: ${uploadedPath}` : `URL: ${previewSrc}`}
             </p>
             {imageLoader.hasError && (
               <p className="text-xs text-destructive mt-1">
                 Erro ao carregar imagem. Usando placeholder.
               </p>
+            )}
+
+            {draftUrl && draftUrl !== value && (
+              <div className="flex gap-2 mt-3">
+                <Button
+                  type="button"
+                  onClick={confirmImage}
+                  disabled={imageLoader.isLoading || imageLoader.hasError}
+                  className="flex items-center gap-2"
+                >
+                  <Check className="h-4 w-4" />
+                  Confirmar imagem
+                </Button>
+                <Button type="button" variant="outline" onClick={cancelDraft}>
+                  Cancelar
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
