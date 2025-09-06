@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { StudentDashboard } from '@/components/dashboard/StudentDashboard';
 import { TeacherDashboard } from '@/components/dashboard/TeacherDashboard';
+import { TeacherGiveCoins } from '@/components/sections/TeacherGiveCoins';
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
 import { AdminGiveCoins } from '@/components/sections/AdminGiveCoins';
 import { NewCardShop } from '@/components/cards/NewCardShop';
@@ -46,7 +47,7 @@ const Index = () => {
       case 'collection':
         return <NewCollection />;
       case 'give-coins':
-        if (profile.role === 'teacher') return <TeacherDashboard />;
+        if (profile.role === 'teacher') return <TeacherGiveCoins />;
         if (profile.role === 'admin') return <AdminGiveCoins />;
         break;
       case 'rankings':

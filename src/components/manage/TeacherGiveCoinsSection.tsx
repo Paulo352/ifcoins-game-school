@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Coins } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Coins, CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateCoins } from '@/hooks/useUpdateCoins';
 import { Profile } from '@/types/supabase';
@@ -15,90 +14,159 @@ interface TeacherGiveCoinsSection {
   onSuccess: () => void;
 }
 
+const PREDEFINED_REASONS = [
+  { reason: 'Participação ativa na aula', coins: 10 },
+  { reason: 'Ajudou um colega', coins: 15 },
+  { reason: 'Entregou tarefa no prazo', coins: 5 },
+  { reason: 'Excelente comportamento', coins: 8 },
+  { reason: 'Criatividade na atividade', coins: 12 },
+  { reason: 'Liderança em grupo', coins: 20 },
+  { reason: 'Melhoria significativa', coins: 25 },
+  { reason: 'Presença perfeita na semana', coins: 30 },
+  { reason: 'Projeto excepcional', coins: 50 },
+  { reason: 'Representou bem a escola', coins: 40 },
+];
+
 export function TeacherGiveCoinsSection({ users, teacherId, onSuccess }: TeacherGiveCoinsSection) {
   const [selectedUserId, setSelectedUserId] = useState('');
-  const [coinsAmount, setCoinsAmount] = useState('');
-  const [reason, setReason] = useState('');
+  const [selectedReason, setSelectedReason] = useState<string>('');
   const { giveCoins, loading } = useUpdateCoins();
 
+  const studentUsers = users?.filter(u => u.role === 'student') || [];
+  const selectedReasonData = PREDEFINED_REASONS.find(r => r.reason === selectedReason);
+
   const handleGiveCoins = async () => {
-    if (!selectedUserId || !coinsAmount || !reason) {
+    if (!selectedUserId || !selectedReason || !selectedReasonData) {
       toast({
-        title: "Erro",
-        description: "Preencha todos os campos obrigatórios",
+        title: "Campos obrigatórios",
+        description: "Selecione um estudante e um motivo",
         variant: "destructive",
       });
       return;
     }
 
-    const amount = parseInt(coinsAmount);
-    if (amount <= 0 || amount > 50) {
-      toast({
-        title: "Quantidade inválida",
-        description: "Você pode dar entre 1 e 50 moedas",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const selectedUserName = users?.find(u => u.id === selectedUserId)?.name || 'Usuário';
+    const selectedUserName = studentUsers.find(u => u.id === selectedUserId)?.name || 'Estudante';
     
-    const success = await giveCoins(selectedUserId, amount, reason, teacherId, selectedUserName);
+    const success = await giveCoins(
+      selectedUserId, 
+      selectedReasonData.coins, 
+      selectedReasonData.reason, 
+      teacherId, 
+      selectedUserName
+    );
     
     if (success) {
       setSelectedUserId('');
-      setCoinsAmount('');
-      setReason('');
+      setSelectedReason('');
       onSuccess();
+      toast({
+        title: "Recompensa entregue!",
+        description: `${selectedUserName} recebeu ${selectedReasonData.coins} IFCoins por: ${selectedReasonData.reason}`,
+      });
     }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Dar Moedas para Estudante</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Coins className="h-5 w-5" />
+          Recompensar Estudante
+        </CardTitle>
+        <CardDescription>
+          Use motivos pré-definidos para recompensas rápidas e consistentes
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label>Estudante</Label>
-            <select 
-              className="w-full p-2 border rounded"
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-            >
-              <option value="">Selecione um estudante</option>
-              {users?.filter(u => u.role === 'student').map(user => (
-                <option key={user.id} value={user.id}>
-                  {user.name} - {user.email}
-                </option>
-              ))}
-            </select>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Estudante</label>
+            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um estudante" />
+              </SelectTrigger>
+              <SelectContent>
+                {studentUsers.map(user => (
+                  <SelectItem key={user.id} value={user.id}>
+                    <div className="flex items-center justify-between w-full">
+                      <span>{user.name}</span>
+                      <Badge variant="outline" className="ml-2">
+                        {user.coins} moedas
+                      </Badge>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div>
-            <Label>Quantidade (1-50)</Label>
-            <Input
-              type="number"
-              min="1"
-              max="50"
-              value={coinsAmount}
-              onChange={(e) => setCoinsAmount(e.target.value)}
-              placeholder="5"
-            />
-          </div>
-          <div>
-            <Label>Motivo</Label>
-            <Input
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Boa participação"
-            />
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Motivo da Recompensa</label>
+            <Select value={selectedReason} onValueChange={setSelectedReason}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um motivo" />
+              </SelectTrigger>
+              <SelectContent>
+                {PREDEFINED_REASONS.map((item, index) => (
+                  <SelectItem key={index} value={item.reason}>
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-sm">{item.reason}</span>
+                      <Badge variant="secondary" className="ml-2 text-green-600">
+                        +{item.coins}
+                      </Badge>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
-        <Button onClick={handleGiveCoins} disabled={loading} className="bg-ifpr-green">
-          <Coins className="h-4 w-4 mr-2" />
-          {loading ? 'Dando...' : 'Dar Moedas'}
-        </Button>
+
+        {/* Preview */}
+        {selectedUserId && selectedReasonData && (
+          <div className="p-4 bg-muted/30 rounded-lg border-l-4 border-green-500">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span className="font-medium text-sm">Resumo da Recompensa</span>
+            </div>
+            <p className="text-sm text-muted-foreground mb-1">
+              <strong>{studentUsers.find(u => u.id === selectedUserId)?.name}</strong> receberá{' '}
+              <strong className="text-green-600">{selectedReasonData.coins} IFCoins</strong> por:{' '}
+              <em>{selectedReasonData.reason}</em>
+            </p>
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleGiveCoins} 
+            disabled={loading || !selectedUserId || !selectedReason}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Coins className="h-4 w-4 mr-2" />
+            {loading ? 'Dando...' : 'Dar Recompensa'}
+          </Button>
+          
+          {(selectedUserId || selectedReason) && (
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSelectedUserId('');
+                setSelectedReason('');
+              }}
+            >
+              Limpar
+            </Button>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="p-3 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-700">
+            💡 <strong>Dica:</strong> Estes motivos cobrem as situações mais comuns. 
+            Para casos especiais, use a aba "Dar Moedas" no menu principal.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
