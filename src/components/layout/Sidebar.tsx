@@ -11,7 +11,8 @@ import {
   Trophy,
   Calendar,
   Settings,
-  Gift
+  Gift,
+  Vote
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -26,7 +27,7 @@ const sidebarItems: SidebarItem[] = [
   { icon: Coins, label: 'Dar Moedas', id: 'give-coins', roles: ['teacher', 'admin'] },
   { icon: Gift, label: 'Loja de Cartas', id: 'shop', roles: ['student'] },
   { icon: BookOpen, label: 'Minha Coleção', id: 'collection', roles: ['student'] },
-  { icon: ArrowLeftRight, label: 'Trocas', id: 'trades', roles: ['student'] },
+  { icon: Vote, label: 'Votações', id: 'polls', roles: ['student', 'teacher', 'admin'] },
   { icon: Trophy, label: 'Rankings', id: 'rankings', roles: ['student', 'teacher', 'admin'] },
   { icon: Calendar, label: 'Eventos', id: 'events', roles: ['student', 'teacher', 'admin'] },
   { icon: Users, label: 'Gerenciar Estudantes', id: 'manage-students', roles: ['teacher', 'admin'] },

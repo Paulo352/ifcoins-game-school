@@ -8,14 +8,14 @@ import { StudentDashboard } from '@/components/dashboard/StudentDashboard';
 import { TeacherDashboard } from '@/components/dashboard/TeacherDashboard';
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
 import { AdminGiveCoins } from '@/components/sections/AdminGiveCoins';
-import { CardShop } from '@/components/cards/CardShop';
-import { Collection } from '@/components/cards/Collection';
+import { NewCardShop } from '@/components/cards/NewCardShop';
+import { NewManageCards } from '@/components/cards/NewManageCards';
 import { Rankings } from '@/components/sections/Rankings';
 import { Events } from '@/components/sections/Events';
 import { ManageStudents } from '@/components/sections/ManageStudents';
-import { ManageCards } from '@/components/cards/ManageCards';
+import { NewCollection } from '@/components/cards/NewCollection';
 import { Settings } from '@/components/sections/Settings';
-import { Trades } from '@/components/sections/Trades';
+import { Polls } from '@/components/sections/Polls';
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
@@ -42,9 +42,9 @@ const Index = () => {
         if (profile.role === 'admin') return <AdminDashboard onSectionChange={setActiveSection} />;
         break;
       case 'shop':
-        return <CardShop />;
+        return <NewCardShop />;
       case 'collection':
-        return <Collection />;
+        return <NewCollection />;
       case 'give-coins':
         if (profile.role === 'teacher') return <TeacherDashboard />;
         if (profile.role === 'admin') return <AdminGiveCoins />;
@@ -56,11 +56,11 @@ const Index = () => {
       case 'manage-students':
         return <ManageStudents />;
       case 'manage-cards':
-        return <ManageCards />;
+        return <NewManageCards />;
       case 'settings':
         return <Settings />;
-      case 'trades':
-        return <Trades />;
+      case 'polls':
+        return <Polls />;
       default:
         return <StudentDashboard onSectionChange={setActiveSection} />;
     }
