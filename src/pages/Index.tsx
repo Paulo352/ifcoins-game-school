@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { AuthPage } from '@/components/auth/AuthPage';
+import { NewAuthPage } from '@/components/auth/NewAuthPage';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { StudentDashboard } from '@/components/dashboard/StudentDashboard';
@@ -32,7 +32,7 @@ const Index = () => {
   }
 
   if (!profile) {
-    return <AuthPage />;
+    return <NewAuthPage />;
   }
 
   const renderContent = () => {
