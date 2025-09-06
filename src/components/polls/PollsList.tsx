@@ -10,6 +10,7 @@ interface PollsListProps {
   isLoading: boolean;
   onVote: (pollId: string, optionIds: string[]) => void;
   onDeactivate?: (pollId: string) => void;
+  onDelete?: (pollId: string) => void;
   showResults?: boolean;
   voteLoading?: boolean;
 }
@@ -20,6 +21,7 @@ export function PollsList({
   isLoading, 
   onVote, 
   onDeactivate, 
+  onDelete,
   showResults = false,
   voteLoading = false
 }: PollsListProps) {
@@ -55,6 +57,7 @@ export function PollsList({
               userVotes={userVotes.filter(vote => vote.poll_id === poll.id)}
               onVote={onVote}
               onDeactivate={onDeactivate}
+              onDelete={onDelete}
               showResults={showResults}
               voteLoading={voteLoading}
             />

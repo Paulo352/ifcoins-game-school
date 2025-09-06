@@ -13,6 +13,7 @@ interface PollCardProps {
   userVotes: PollVote[];
   onVote: (pollId: string, optionIds: string[]) => void;
   onDeactivate?: (pollId: string) => void;
+  onDelete?: (pollId: string) => void;
   showResults?: boolean;
   voteLoading?: boolean;
 }
@@ -22,6 +23,7 @@ export function PollCard({
   userVotes, 
   onVote, 
   onDeactivate, 
+  onDelete,
   showResults = false,
   voteLoading = false 
 }: PollCardProps) {
@@ -88,14 +90,28 @@ export function PollCard({
           </div>
           <div className="flex items-center gap-2">
             {getStatusBadge()}
-            {isAdmin && poll.is_active && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDeactivate?.(poll.id)}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
+            {isAdmin && (
+              <div className="flex gap-1">
+                {poll.is_active && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDeactivate?.(poll.id)}
+                    title="Desativar votação"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDelete?.(poll.id)}
+                  className="text-destructive hover:text-destructive"
+                  title="Deletar votação permanentemente"
+                >
+                  🗑️
+                </Button>
+              </div>
             )}
           </div>
         </div>

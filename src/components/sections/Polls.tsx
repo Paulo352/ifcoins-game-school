@@ -11,6 +11,7 @@ import {
   useCreatePoll, 
   useVoteInPoll, 
   useDeactivatePoll,
+  useDeletePoll,
   CreatePollData 
 } from '@/hooks/usePolls';
 
@@ -27,6 +28,7 @@ export function Polls() {
   const createPollMutation = useCreatePoll();
   const voteMutation = useVoteInPoll();
   const deactivateMutation = useDeactivatePoll();
+  const deleteMutation = useDeletePoll();
 
   const handleCreatePoll = async (data: CreatePollData) => {
     await createPollMutation.mutateAsync(data);
@@ -40,6 +42,12 @@ export function Polls() {
   const handleDeactivate = (pollId: string) => {
     if (window.confirm('Tem certeza que deseja desativar esta votação?')) {
       deactivateMutation.mutate(pollId);
+    }
+  };
+
+  const handleDelete = (pollId: string) => {
+    if (window.confirm('⚠️ ATENÇÃO: Tem certeza que deseja DELETAR PERMANENTEMENTE esta votação? Esta ação não pode ser desfeita!')) {
+      deleteMutation.mutate(pollId);
     }
   };
 
@@ -96,6 +104,7 @@ export function Polls() {
         isLoading={isLoading}
         onVote={handleVote}
         onDeactivate={isAdmin ? handleDeactivate : undefined}
+        onDelete={isAdmin ? handleDelete : undefined}
         showResults={isAdmin}
         voteLoading={voteMutation.isPending}
       />

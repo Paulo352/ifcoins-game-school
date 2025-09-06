@@ -224,3 +224,51 @@ export function useDeactivatePoll() {
     },
   });
 }
+
+// Hook para deletar votação
+export function useDeletePoll() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (pollId: string) => {
+      // Primeiro deletar todos os votos relacionados
+      const { error: votesError } = await supabase
+        .from('poll_votes')
+        .delete()
+        .eq('poll_id', pollId);
+      
+      if (votesError) throw votesError;
+      
+      // Depois deletar as opções da votação
+      const { error: optionsError } = await supabase
+        .from('poll_options')
+        .delete()
+        .eq('poll_id', pollId);
+      
+      if (optionsError) throw optionsError;
+      
+      // Por fim, deletar a votação
+      const { error } = await supabase
+        .from('polls')
+        .delete()
+        .eq('id', pollId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-polls'] });
+      queryClient.invalidateQueries({ queryKey: ['all-polls'] });
+      toast({
+        title: "Sucesso",
+        description: "Votação deletada permanentemente!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao deletar votação",
+        variant: "destructive",
+      });
+    },
+  });
+}
