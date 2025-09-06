@@ -24,7 +24,7 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   { icon: Home, label: 'Início', id: 'dashboard', roles: ['student', 'teacher', 'admin'] },
-  { icon: Coins, label: 'Dar Moedas', id: 'give-coins', roles: ['teacher', 'admin'] },
+  { icon: Coins, label: 'Dar Moedas', id: 'give-coins', roles: ['admin'] },
   { icon: Gift, label: 'Loja de Cartas', id: 'shop', roles: ['student'] },
   { icon: BookOpen, label: 'Minha Coleção', id: 'collection', roles: ['student'] },
   { icon: Vote, label: 'Votações', id: 'polls', roles: ['student', 'teacher', 'admin'] },
