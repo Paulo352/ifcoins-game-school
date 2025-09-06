@@ -630,6 +630,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_poll_results: {
+        Args: { poll_id: string }
+        Returns: {
+          option_id: string
+          option_order: number
+          option_text: string
+          vote_count: number
+        }[]
+      }
       get_user_role_secure: {
         Args: { user_uuid: string }
         Returns: string

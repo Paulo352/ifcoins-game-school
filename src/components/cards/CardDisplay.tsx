@@ -42,7 +42,7 @@ export function CardDisplay({ card, className, showPrice = false, showQuantity =
       <CardHeader className="p-0">
         <div className="relative">
           <EnhancedCardImage
-            src={card.imageUrl}
+            src={card.imageUrl || ''}
             alt={card.name}
             className="w-full h-48"
           />

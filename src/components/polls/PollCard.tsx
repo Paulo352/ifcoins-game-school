@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Calendar, Users, BarChart3, Settings } from 'lucide-react';
-import { PollWithOptions, PollVote } from '@/hooks/usePolls';
+import { PollWithOptions, PollVote, usePollResults } from '@/hooks/usePolls';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PollCardProps {
@@ -28,18 +28,29 @@ export function PollCard({
   const { profile } = useAuth();
   const [selectedOptions, setSelectedOptions] = React.useState<string[]>([]);
   
+  // Limpar seleções quando voto for bem-sucedido
+  React.useEffect(() => {
+    if (!voteLoading) {
+      // O voteLoading volta a false após o voto, então limpamos
+      const timer = setTimeout(() => setSelectedOptions([]), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [voteLoading]);
+  
   const isAdmin = profile?.role === 'admin';
   const isExpired = new Date(poll.end_date) < new Date();
   const hasUserVoted = userVotes.some(vote => vote.poll_id === poll.id);
   
-  // Calcular resultados (mock - em produção viria da view)
-  const mockResults = poll.poll_options.map(option => ({
-    ...option,
-    vote_count: Math.floor(Math.random() * 100),
-    percentage: Math.floor(Math.random() * 100)
-  }));
+  // Buscar resultados reais da votação
+  const { data: pollResults = [] } = usePollResults(poll.id);
   
-  const totalVotes = mockResults.reduce((sum, option) => sum + option.vote_count, 0);
+  // Calcular resultados com dados reais
+  const totalVotes = pollResults.reduce((sum: number, result: any) => sum + Number(result.vote_count), 0);
+  
+  const resultsWithPercentage = pollResults.map((result: any) => ({
+    ...result,
+    percentage: totalVotes > 0 ? Math.round((Number(result.vote_count) / totalVotes) * 100) : 0
+  }));
 
   const handleOptionChange = (optionId: string, checked: boolean) => {
     if (poll.allow_multiple_votes) {
@@ -56,7 +67,6 @@ export function PollCard({
   const handleVote = () => {
     if (selectedOptions.length > 0) {
       onVote(poll.id, selectedOptions);
-      setSelectedOptions([]);
     }
   };
 
@@ -115,15 +125,15 @@ export function PollCard({
               <BarChart3 className="h-4 w-4" />
               <span className="text-sm font-medium">Resultados</span>
             </div>
-            {mockResults.map((option) => (
-              <div key={option.id} className="space-y-2">
+            {resultsWithPercentage.map((result: any) => (
+              <div key={result.option_id} className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>{option.option_text}</span>
+                  <span>{result.option_text}</span>
                   <span className="text-muted-foreground">
-                    {option.vote_count} votos ({option.percentage}%)
+                    {result.vote_count} votos ({result.percentage}%)
                   </span>
                 </div>
-                <Progress value={option.percentage} className="h-2" />
+                <Progress value={result.percentage} className="h-2" />
               </div>
             ))}
           </div>

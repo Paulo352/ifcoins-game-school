@@ -84,14 +84,15 @@ export function useAllPolls() {
   });
 }
 
-// Hook para buscar votos do usuário
+// Hook para buscar votos do usuário atual
 export function useUserVotes(pollId?: string) {
   return useQuery({
     queryKey: ['user-votes', pollId],
     queryFn: async () => {
       const query = supabase
         .from('poll_votes')
-        .select('*');
+        .select('*')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
       
       if (pollId) {
         query.eq('poll_id', pollId);
@@ -102,7 +103,7 @@ export function useUserVotes(pollId?: string) {
       if (error) throw error;
       return data as PollVote[];
     },
-    enabled: !!pollId,
+    enabled: true,
   });
 }
 
@@ -157,7 +158,8 @@ export function useVoteInPoll() {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['user-votes', variables.pollId] });
+      queryClient.invalidateQueries({ queryKey: ['user-votes'] });
+      queryClient.invalidateQueries({ queryKey: ['poll-results', variables.pollId] });
       queryClient.invalidateQueries({ queryKey: ['active-polls'] });
       toast({
         title: "Sucesso",
@@ -171,6 +173,24 @@ export function useVoteInPoll() {
         variant: "destructive",
       });
     },
+  });
+}
+
+// Hook para buscar resultados de uma votação
+export function usePollResults(pollId?: string) {
+  return useQuery({
+    queryKey: ['poll-results', pollId],
+    queryFn: async () => {
+      if (!pollId) return [];
+      
+      const { data, error } = await supabase.rpc('get_poll_results', {
+        poll_id: pollId
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!pollId,
   });
 }
 

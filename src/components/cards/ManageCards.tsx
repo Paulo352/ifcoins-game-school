@@ -84,10 +84,11 @@ export function ManageCards() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Não enviar image_path para o banco (a coluna não existe)
+    // Garantir que image_url não seja uma string vazia (usar null)
     const { image_path, ...cleanForm } = formData;
     const cardData = {
       ...cleanForm,
+      image_url: cleanForm.image_url.trim() || null,
       available: true,
     };
 
@@ -246,7 +247,10 @@ export function ManageCards() {
 
             <ImageSelector
               value={formData.image_url}
-              onChange={(url) => setFormData({...formData, image_url: url})}
+              onChange={(url) => {
+                console.log('Nova URL da imagem selecionada:', url);
+                setFormData({...formData, image_url: url});
+              }}
               onPathChange={(path) => setFormData({...formData, image_path: path})}
               label="Imagem da Carta"
               placeholder="URL da imagem ou faça upload do seu dispositivo"
