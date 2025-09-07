@@ -32,6 +32,7 @@ export function Settings() {
     time: '',
     message: ''
   });
+  const [testEmail, setTestEmail] = useState('');
 
   const handleBackup = async () => {
     try {
@@ -139,6 +140,25 @@ export function Settings() {
     }
   };
 
+  const handleSendTestEmail = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('admin-tools', {
+        body: { action: 'send_test_email', to_email: testEmail }
+      });
+
+      if (error) throw error;
+
+      toast.success(data?.message || 'Email de teste enviado. Verifique sua caixa de entrada.');
+      setTestEmail('');
+    } catch (error: any) {
+      console.error('Erro ao enviar email de teste:', error);
+      toast.error('Erro ao enviar email de teste: ' + (error.message || 'Erro desconhecido'));
+    } finally {
+      setLoading(false);
+    }
+  };
+ 
   if (!profile || profile.role !== 'admin') {
     return (
       <div className="text-center py-12">
@@ -343,6 +363,41 @@ export function Settings() {
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Exportar Dados
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Teste de Envio de Email */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Teste de Email
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Envie um email de teste para verificar a configuração do serviço de email.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="test-email">Email de destino</Label>
+              <Input
+                id="test-email"
+                type="email"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                placeholder="seu.email@ifpr.edu.br"
+                disabled={loading}
+              />
+            </div>
+            <Button 
+              onClick={handleSendTestEmail} 
+              disabled={loading || !testEmail}
+              variant="outline"
+              className="w-full"
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Enviar Email de Teste
             </Button>
           </CardContent>
         </Card>

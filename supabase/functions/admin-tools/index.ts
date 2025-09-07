@@ -53,6 +53,8 @@ serve(async (req) => {
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
+      case 'send_test_email':
+        return await handleSendTestEmail(params.to_email);
       default:
         return new Response(
           JSON.stringify({ error: 'Ação não reconhecida' }),
@@ -447,6 +449,56 @@ serve(async (req) => {
       }
     } catch (error) {
       console.error('Erro ao notificar usuários sobre agendamento:', error);
+    }
+  }
+
+  async function handleSendTestEmail(toEmail: string) {
+    try {
+      if (!toEmail) {
+        return new Response(
+          JSON.stringify({ error: 'Parâmetro to_email é obrigatório' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const fromEmail = Deno.env.get('MAINTENANCE_FROM_EMAIL') || 'IFPR Cards <onboarding@resend.dev>';
+      console.log(`Enviando email de teste para ${toEmail} de: ${fromEmail}`);
+
+      const { error: emailError } = await resend.emails.send({
+        from: fromEmail,
+        to: [toEmail],
+        subject: 'Teste de Email - IFPR Cards',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Teste de Email</h2>
+            <p>Este é um email de teste enviado pelo sistema IFPR Cards.</p>
+            <p>Se você recebeu este email, a configuração do serviço de email está funcionando.</p>
+            <hr style="margin: 30px 0;">
+            <p style="color: #6b7280; font-size: 14px;">
+              Enviado em: ${new Date().toLocaleString('pt-BR')}
+            </p>
+          </div>
+        `
+      });
+
+      if (emailError) {
+        console.error('Erro ao enviar email de teste:', emailError);
+        return new Response(
+          JSON.stringify({ success: false, error: emailError.message || JSON.stringify(emailError) }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Email de teste enviado com sucesso' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (error: any) {
+      console.error('Erro ao enviar email de teste:', error);
+      return new Response(
+        JSON.stringify({ success: false, error: error.message || 'Falha ao enviar email de teste' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
   }
 
