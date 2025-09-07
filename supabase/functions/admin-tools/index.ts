@@ -35,6 +35,24 @@ serve(async (req) => {
         return await handleMaintenanceMode(params.enabled, params.message);
       case 'schedule_maintenance':
         return await handleScheduleMaintenance(params.scheduled_at, params.message);
+      case 'cancel_scheduled_maintenance':
+        try {
+          const { error } = await supabase
+            .from('admin_config')
+            .delete()
+            .eq('config_key', 'maintenance_scheduled_at');
+          if (error) throw error;
+          return new Response(
+            JSON.stringify({ success: true, message: 'Agendamento de manutenção cancelado' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } catch (error: any) {
+          console.error('Erro ao cancelar agendamento de manutenção:', error);
+          return new Response(
+            JSON.stringify({ error: 'Erro ao cancelar agendamento: ' + error.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
       default:
         return new Response(
           JSON.stringify({ error: 'Ação não reconhecida' }),
@@ -239,7 +257,7 @@ serve(async (req) => {
           config_key: 'maintenance_mode', 
           config_value: enabled.toString(),
           updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'config_key' });
 
       if (maintenanceError) throw maintenanceError;
 
@@ -249,7 +267,7 @@ serve(async (req) => {
           config_key: 'maintenance_message', 
           config_value: message,
           updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'config_key' });
 
       if (messageError) throw messageError;
 
@@ -286,7 +304,7 @@ serve(async (req) => {
           config_key: 'maintenance_scheduled_at', 
           config_value: scheduledAt,
           updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'config_key' });
 
       if (error) throw error;
 

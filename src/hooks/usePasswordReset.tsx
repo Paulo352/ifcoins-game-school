@@ -18,7 +18,7 @@ export const usePasswordReset = () => {
       return { success: true };
     } catch (error: any) {
       console.error('Erro ao enviar email de reset:', error);
-      toast.error('Erro ao enviar email de recuperação. Verifique se o email está correto.');
+      toast.error(`Erro ao enviar email de recuperação: ${error?.message || 'Verifique se o email está correto e as configurações de email do projeto.'}`);
       return { success: false, error };
     } finally {
       setLoading(false);
@@ -38,7 +38,7 @@ export const usePasswordReset = () => {
       return { success: true };
     } catch (error: any) {
       console.error('Erro ao alterar senha:', error);
-      toast.error('Erro ao alterar senha. Tente novamente.');
+      toast.error(`Erro ao alterar senha: ${error?.message || 'Tente novamente.'}`);
       return { success: false, error };
     } finally {
       setLoading(false);

@@ -24,7 +24,7 @@ import {
 
 export function Settings() {
   const { profile } = useAuth();
-  const { status: maintenanceStatus, toggleMaintenanceMode, scheduleMaintenanceNotification } = useMaintenanceMode();
+  const { status: maintenanceStatus, toggleMaintenanceMode, scheduleMaintenanceNotification, cancelScheduledMaintenance } = useMaintenanceMode();
   const [loading, setLoading] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState('');
   const [scheduledMaintenanceData, setScheduledMaintenanceData] = useState({
@@ -126,6 +126,19 @@ export function Settings() {
     }
   };
 
+  const handleCancelSchedule = async () => {
+    try {
+      setLoading(true);
+      await cancelScheduledMaintenance();
+      toast.success('Agendamento cancelado com sucesso');
+    } catch (error: any) {
+      console.error('Erro ao cancelar agendamento:', error);
+      toast.error('Erro ao cancelar agendamento: ' + (error.message || 'Erro desconhecido'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!profile || profile.role !== 'admin') {
     return (
       <div className="text-center py-12">
@@ -201,6 +214,26 @@ export function Settings() {
             <p className="text-sm text-muted-foreground">
               Notificar usuários sobre manutenção programada.
             </p>
+
+            {maintenanceStatus.scheduled_at ? (
+              <div className="rounded-md border p-3 flex items-center justify-between">
+                <div className="text-sm">
+                  <span className="font-medium">Agendamento atual: </span>
+                  {new Date(maintenanceStatus.scheduled_at).toLocaleString('pt-BR')}
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={loading}
+                  onClick={handleCancelSchedule}
+                >
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Cancelar agendamento
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum agendamento ativo.</p>
+            )}
             
             <Dialog>
               <DialogTrigger asChild>

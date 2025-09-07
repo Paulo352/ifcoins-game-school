@@ -75,8 +75,24 @@ export const useMaintenanceMode = () => {
           message
         }
       });
+      await checkMaintenanceMode();
     } catch (error) {
       console.error('Erro ao agendar manutenção:', error);
+      throw error;
+    }
+  };
+
+  const cancelScheduledMaintenance = async () => {
+    if (profile?.role !== 'admin') {
+      throw new Error('Apenas administradores podem cancelar agendamento');
+    }
+    try {
+      await supabase.functions.invoke('admin-tools', {
+        body: { action: 'cancel_scheduled_maintenance' }
+      });
+      await checkMaintenanceMode();
+    } catch (error) {
+      console.error('Erro ao cancelar agendamento de manutenção:', error);
       throw error;
     }
   };
@@ -94,6 +110,7 @@ export const useMaintenanceMode = () => {
     status,
     toggleMaintenanceMode,
     scheduleMaintenanceNotification,
+    cancelScheduledMaintenance,
     refreshStatus: checkMaintenanceMode
   };
 };
