@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { NewAuthPage } from '@/components/auth/NewAuthPage';
 import { UserSettings } from '@/components/settings/UserSettings';
+import { Analytics } from '@/components/analytics/Analytics';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { StudentDashboard } from '@/components/dashboard/StudentDashboard';
@@ -63,6 +64,8 @@ const Index = () => {
         return <UserSettings />;
       case 'admin-settings':
         return <Settings />;
+      case 'analytics':
+        return <Analytics />;
       case 'polls':
         return <Polls />;
       default:

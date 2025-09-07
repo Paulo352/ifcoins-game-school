@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Settings as SettingsIcon, Save, RefreshCw, Database, Shield, Bell, Loader2 } from 'lucide-react';
 import { useAdminConfig } from '@/hooks/useAdminConfig';
 import { DailyCoinsConfig } from '@/components/admin/DailyCoinsConfig';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export function Settings() {
@@ -86,7 +87,45 @@ export function Settings() {
   };
 
   const handleBackup = async () => {
-    toast.info('Backup iniciado. Esta funcionalidade será implementada em breve.');
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-tools', {
+        body: { action: 'backup' }
+      });
+
+      if (error) throw error;
+
+      toast.success(`Backup realizado com sucesso! Arquivo: ${data.fileName}`);
+    } catch (error: any) {
+      toast.error('Erro ao fazer backup: ' + (error.message || 'Erro desconhecido'));
+    }
+  };
+
+  const handleExportData = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-tools', {
+        body: { action: 'export_data' }
+      });
+
+      if (error) throw error;
+
+      toast.success('Dados exportados com sucesso!');
+    } catch (error: any) {
+      toast.error('Erro ao exportar dados: ' + (error.message || 'Erro desconhecido'));
+    }
+  };
+
+  const handleCleanLogs = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-tools', {
+        body: { action: 'clean_logs' }
+      });
+
+      if (error) throw error;
+
+      toast.success(data.message);
+    } catch (error: any) {
+      toast.error('Erro ao limpar logs: ' + (error.message || 'Erro desconhecido'));
+    }
   };
 
   const handleToggle = (key: string, currentValue: string) => {
@@ -222,10 +261,10 @@ export function Settings() {
               <RefreshCw className="h-4 w-4" />
               Fazer Backup Agora
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button onClick={handleExportData} variant="outline" className="w-full">
               Exportar Dados do Sistema
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button onClick={handleCleanLogs} variant="outline" className="w-full">
               Limpar Logs Antigos
             </Button>
           </CardContent>

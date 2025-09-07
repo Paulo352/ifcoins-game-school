@@ -146,13 +146,16 @@ export function AdminDashboard({ onSectionChange }: AdminDashboardProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             <button 
-              onClick={() => onSectionChange('settings')}
+              onClick={() => onSectionChange('admin-settings')}
               className="w-full flex items-center gap-3 p-3 bg-ifpr-green text-white rounded-lg hover:bg-ifpr-green-dark transition-colors"
             >
               <Settings className="h-5 w-5" />
               <span>Configurações do Sistema</span>
             </button>
-            <button className="w-full flex items-center gap-3 p-3 bg-ifpr-blue text-white rounded-lg hover:bg-ifpr-blue-dark transition-colors">
+            <button 
+              onClick={() => onSectionChange('analytics')}
+              className="w-full flex items-center gap-3 p-3 bg-ifpr-blue text-white rounded-lg hover:bg-ifpr-blue-dark transition-colors"
+            >
               <TrendingUp className="h-5 w-5" />
               <span>Relatórios e Analytics</span>
             </button>

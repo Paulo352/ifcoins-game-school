@@ -50,7 +50,7 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Cores do IFPR */
+    /* Cores do IFPR usando valores HSL corretos */
     --ifpr-green: 158 64% 24%;
     --ifpr-green-dark: 158 64% 20%;
     --ifpr-blue: 214 100% 27%;
