@@ -217,6 +217,98 @@
   .dark .shadow-lg {
     box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -2px rgba(255, 255, 255, 0.05);
   }
+
+  /* Estilos de acessibilidade melhorados */
+  .high-contrast {
+    --background: 0 0% 8%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 120 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 60 100% 50%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 25%;
+    --input: 0 0% 15%;
+    --ring: 120 100% 50%;
+  }
+
+  .high-contrast-mode {
+    --background: 0 0% 8% !important;
+    --foreground: 0 0% 98% !important;
+    --border: 0 0% 30% !important;
+  }
+
+  .high-contrast-mode * {
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .high-contrast-mode .text-muted-foreground {
+    color: hsl(0 0% 80%) !important;
+  }
+
+  .large-text {
+    font-size: calc(1rem * var(--font-size-multiplier, 1.25));
+  }
+
+  .large-text h1 { font-size: calc(2.25rem * var(--font-size-multiplier, 1.25)); }
+  .large-text h2 { font-size: calc(1.875rem * var(--font-size-multiplier, 1.25)); }
+  .large-text h3 { font-size: calc(1.5rem * var(--font-size-multiplier, 1.25)); }
+  .large-text h4 { font-size: calc(1.25rem * var(--font-size-multiplier, 1.25)); }
+  .large-text h5 { font-size: calc(1.125rem * var(--font-size-multiplier, 1.25)); }
+  .large-text h6 { font-size: calc(1rem * var(--font-size-multiplier, 1.25)); }
+
+  .large-text .text-sm { font-size: calc(0.875rem * var(--font-size-multiplier, 1.25)); }
+  .large-text .text-xs { font-size: calc(0.75rem * var(--font-size-multiplier, 1.25)); }
+
+  .reduced-motion *,
+  .reduced-motion *::before,
+  .reduced-motion *::after {
+    animation-duration: var(--animation-duration, 0.01ms) !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--transition-duration, 0.01ms) !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Focus indicators for keyboard navigation */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Skip to content link */
+  .sr-only:not(:focus):not(:active) {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+
+  /* Enhanced button focus */
+  button:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Enhanced input focus */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
 }
 
 .card-flip {

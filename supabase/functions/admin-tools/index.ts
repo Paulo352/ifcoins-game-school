@@ -336,7 +336,7 @@ serve(async (req) => {
 
       // Enviar email em lote
       const { error: emailError } = await resend.emails.send({
-        from: 'IFPR Cards <noreply@resend.dev>',
+        from: 'IFPR Cards <onboarding@resend.dev>',
         to: emails,
         subject: 'Sistema em Manutenção - IFPR Cards',
         html: `
@@ -385,7 +385,7 @@ serve(async (req) => {
       const scheduledDate = new Date(scheduledAt).toLocaleString('pt-BR');
 
       const { error: emailError } = await resend.emails.send({
-        from: 'IFPR Cards <noreply@resend.dev>',
+        from: 'IFPR Cards <onboarding@resend.dev>',
         to: emails,
         subject: 'Manutenção Agendada - IFPR Cards',
         html: `
