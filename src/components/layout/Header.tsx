@@ -56,7 +56,7 @@ export function Header({ onSectionChange, currentSection }: HeaderProps) {
   const isSettingsActive = currentSection === 'settings';
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="border-b bg-card border-border">
       <div className="container flex h-14 items-center justify-between">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold text-primary">
@@ -86,10 +86,10 @@ export function Header({ onSectionChange, currentSection }: HeaderProps) {
               </Button>
             </DropdownMenuTrigger>
             
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuContent className="w-56 bg-popover border-border" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
+                  <p className="text-sm font-medium leading-none text-popover-foreground">
                     {profile.name}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
@@ -101,43 +101,58 @@ export function Header({ onSectionChange, currentSection }: HeaderProps) {
                 </div>
               </DropdownMenuLabel>
               
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="bg-border" />
               
               <DropdownMenuItem 
                 onClick={() => onSectionChange?.('settings')}
-                className={isSettingsActive ? 'bg-accent' : ''}
+                className={`${isSettingsActive ? 'bg-accent' : ''} text-popover-foreground hover:bg-accent`}
               >
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Configurações {profile.role === 'admin' ? 'Admin' : ''}</span>
               </DropdownMenuItem>
               
-              <DropdownMenuItem onClick={() => onSectionChange?.('profile')}>
+              <DropdownMenuItem 
+                onClick={() => onSectionChange?.('profile')}
+                className="text-popover-foreground hover:bg-accent"
+              >
                 <User className="mr-2 h-4 w-4" />
                 <span>Perfil</span>
               </DropdownMenuItem>
 
               {profile.role === 'admin' && (
                 <>
-                  <DropdownMenuItem onClick={() => onSectionChange?.('analytics')}>
+                  <DropdownMenuItem 
+                    onClick={() => onSectionChange?.('analytics')}
+                    className="text-popover-foreground hover:bg-accent"
+                  >
                     <Shield className="mr-2 h-4 w-4" />
                     <span>Relatórios e Analytics</span>
                   </DropdownMenuItem>
                 </>
               )}
               
-              <DropdownMenuItem onClick={handleTestNotification}>
+              <DropdownMenuItem 
+                onClick={handleTestNotification}
+                className="text-popover-foreground hover:bg-accent"
+              >
                 <Bell className="mr-2 h-4 w-4" />
                 <span>Testar Notificação</span>
               </DropdownMenuItem>
               
-              <DropdownMenuItem onClick={() => onSectionChange?.('help')}>
+              <DropdownMenuItem 
+                onClick={() => onSectionChange?.('help')}
+                className="text-popover-foreground hover:bg-accent"
+              >
                 <HelpCircle className="mr-2 h-4 w-4" />
                 <span>Ajuda</span>
               </DropdownMenuItem>
               
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="bg-border" />
               
-              <DropdownMenuItem onClick={handleSignOut}>
+              <DropdownMenuItem 
+                onClick={handleSignOut}
+                className="text-popover-foreground hover:bg-accent"
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sair</span>
               </DropdownMenuItem>

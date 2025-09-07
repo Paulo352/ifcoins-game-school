@@ -96,6 +96,12 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Cores IFPR para modo escuro */
+    --ifpr-green: 158 64% 35%;
+    --ifpr-green-dark: 158 64% 30%;
+    --ifpr-blue: 214 100% 40%;
+    --ifpr-blue-dark: 214 100% 35%;
   }
 
   /* Configurações de acessibilidade */
@@ -163,6 +169,53 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Garantir que todos os elementos principais usem as cores do tema */
+  html {
+    @apply bg-background;
+  }
+
+  #root, #main-content {
+    @apply bg-background text-foreground min-h-screen;
+  }
+
+  /* Melhorar bordas no modo escuro */
+  .dark .border {
+    @apply border-border;
+  }
+
+  .dark .bg-white {
+    @apply bg-card;
+  }
+
+  .dark .text-gray-900 {
+    @apply text-foreground;
+  }
+
+  .dark .text-gray-600 {
+    @apply text-muted-foreground;
+  }
+
+  .dark .bg-gray-50 {
+    @apply bg-background;
+  }
+
+  .dark .bg-gray-100 {
+    @apply bg-muted;
+  }
+
+  /* Bordas melhoradas para componentes */
+  .dark .shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .dark .shadow {
+    box-shadow: 0 1px 3px 0 rgba(255, 255, 255, 0.1), 0 1px 2px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .dark .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -2px rgba(255, 255, 255, 0.05);
   }
 }
 

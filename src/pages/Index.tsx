@@ -75,11 +75,11 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex w-full">
+    <div className="min-h-screen bg-background flex w-full">
       <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col bg-background">
         <Header onSectionChange={setActiveSection} currentSection={activeSection} />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 bg-background">
           {renderContent()}
         </main>
       </div>
