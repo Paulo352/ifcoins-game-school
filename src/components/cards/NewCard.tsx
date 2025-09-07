@@ -66,7 +66,8 @@ export function NewCard({
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     console.error('❌ Image failed to load:', imageUrl);
-    e.currentTarget.src = '/placeholder.svg';
+    // Remove broken image instead of showing placeholder
+    e.currentTarget.style.display = 'none';
   };
 
   return (

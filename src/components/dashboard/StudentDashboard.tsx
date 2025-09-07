@@ -172,7 +172,7 @@ export function StudentDashboard({ onSectionChange }: StudentDashboardProps) {
                         id: userCard.card.id,
                         name: userCard.card.name,
                         rarity: userCard.card.rarity,
-                        imageUrl: userCard.card.image_url || '/placeholder.svg',
+                        imageUrl: userCard.card.image_url || '',
                         available: userCard.card.available,
                         price: userCard.card.price,
                         description: userCard.card.description || '',
