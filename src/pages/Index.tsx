@@ -61,6 +61,7 @@ const Index = () => {
       case 'manage-cards':
         return <NewManageCards />;
       case 'settings':
+        if (profile.role === 'admin') return <Settings />;
         return <UserSettings />;
       case 'admin-settings':
         return <Settings />;

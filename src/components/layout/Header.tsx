@@ -108,7 +108,7 @@ export function Header({ onSectionChange, currentSection }: HeaderProps) {
                 className={isSettingsActive ? 'bg-accent' : ''}
               >
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Configurações</span>
+                <span>Configurações {profile.role === 'admin' ? 'Admin' : ''}</span>
               </DropdownMenuItem>
               
               <DropdownMenuItem onClick={() => onSectionChange?.('profile')}>
@@ -117,10 +117,12 @@ export function Header({ onSectionChange, currentSection }: HeaderProps) {
               </DropdownMenuItem>
 
               {profile.role === 'admin' && (
-                <DropdownMenuItem onClick={() => onSectionChange?.('admin-settings')}>
-                  <Shield className="mr-2 h-4 w-4" />
-                  <span>Configurações Admin</span>
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => onSectionChange?.('analytics')}>
+                    <Shield className="mr-2 h-4 w-4" />
+                    <span>Relatórios e Analytics</span>
+                  </DropdownMenuItem>
+                </>
               )}
               
               <DropdownMenuItem onClick={handleTestNotification}>
