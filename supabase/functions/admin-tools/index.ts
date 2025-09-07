@@ -180,18 +180,28 @@ serve(async (req) => {
         coins_distributed_last_30_days: rewardStats?.reduce((sum, reward) => sum + (reward.coins || 0), 0) || 0
       };
 
-      const fileName = `system_export_${new Date().toISOString().split('T')[0]}.json`;
+      // Criar timestamp único para o arquivo
+      const timestamp = Date.now();
+      const fileName = `system_export_${new Date().toISOString().split('T')[0]}_${timestamp}.json`;
       const exportJson = JSON.stringify(exportData, null, 2);
+
+      // Verificar se o bucket existe
+      const { data: buckets } = await supabase.storage.listBuckets();
+      console.log('Available buckets:', buckets?.map(b => b.name));
 
       const { error: uploadError } = await supabase.storage
         .from('backups')
         .upload(`exports/${fileName}`, exportJson, {
-          contentType: 'application/json'
+          contentType: 'application/json',
+          upsert: false
         });
 
       if (uploadError) {
+        console.error('Upload error details:', uploadError);
         throw new Error(`Failed to export data: ${uploadError.message}`);
       }
+
+      console.log(`Export completed successfully: ${fileName}`);
 
       return new Response(
         JSON.stringify({
@@ -355,44 +365,61 @@ serve(async (req) => {
       }
 
       // Obter email remetente configurado
-      const fromEmail = Deno.env.get('MAINTENANCE_FROM_EMAIL') || 'IFPR Cards <onboarding@resend.dev>';
+      const fromEmail = Deno.env.get('MAINTENANCE_FROM_EMAIL') || 'onboarding@resend.dev';
       
       console.log(`Enviando emails para ${emails.length} usuários de: ${fromEmail}`);
+      console.log('Lista de emails:', emails);
       
-      // Enviar email em lote
-      const { error: emailError } = await resend.emails.send({
-        from: fromEmail,
-        to: emails,
-        subject: 'Sistema em Manutenção - IFPR Cards',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2563eb;">Sistema em Manutenção</h2>
-            <p>Olá!</p>
-            <p>Informamos que o sistema IFPR Cards entrará em manutenção.</p>
-            <div style="background-color: #fef3c7; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
-              <p><strong>Mensagem:</strong> ${message}</p>
-            </div>
-            <p>Pedimos desculpas pelo transtorno e agradecemos sua compreensão.</p>
-            <p>Você será notificado quando o sistema voltar ao normal.</p>
-            <hr style="margin: 30px 0;">
-            <p style="color: #6b7280; font-size: 14px;">
-              Atenciosamente,<br>
-              Equipe IFPR Cards
-            </p>
-          </div>
-        `
-      });
+      // Enviar email para cada usuário individualmente para evitar problemas
+      let successCount = 0;
+      let errorCount = 0;
+      
+      for (const email of emails) {
+        try {
+          const { data, error: emailError } = await resend.emails.send({
+            from: fromEmail,
+            to: [email],
+            subject: 'Sistema em Manutenção - IFPR Cards',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2563eb;">Sistema em Manutenção</h2>
+                <p>Olá!</p>
+                <p>Informamos que o sistema IFPR Cards entrará em manutenção.</p>
+                <div style="background-color: #fef3c7; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+                  <p><strong>Mensagem:</strong> ${message}</p>
+                </div>
+                <p>Pedimos desculpas pelo transtorno e agradecemos sua compreensão.</p>
+                <p>Você será notificado quando o sistema voltar ao normal.</p>
+                <hr style="margin: 30px 0;">
+                <p style="color: #6b7280; font-size: 14px;">
+                  Atenciosamente,<br>
+                  Equipe IFPR Cards
+                </p>
+              </div>
+            `
+          });
 
-      if (emailError) {
-        console.error('Erro ao enviar emails:', emailError);
-        console.error('Detalhes do erro:', JSON.stringify(emailError));
-        // Não falhar silenciosamente - logar erro mas continuar
-        throw new Error(`Falha ao enviar emails: ${emailError.message || JSON.stringify(emailError)}`);
-      } else {
-        console.log(`Emails de manutenção enviados para ${emails.length} usuários`);
+          if (emailError) {
+            console.error(`Erro ao enviar email para ${email}:`, emailError);
+            errorCount++;
+          } else {
+            console.log(`Email enviado com sucesso para ${email}:`, data?.id);
+            successCount++;
+          }
+        } catch (err) {
+          console.error(`Exceção ao enviar email para ${email}:`, err);
+          errorCount++;
+        }
+      }
+      
+      console.log(`Emails de manutenção: ${successCount} sucessos, ${errorCount} erros`);
+      
+      if (errorCount > 0 && successCount === 0) {
+        throw new Error(`Falha ao enviar todos os emails de manutenção`);
       }
     } catch (error) {
       console.error('Erro ao notificar usuários sobre manutenção:', error);
+      throw error;
     }
   }
 
@@ -405,50 +432,73 @@ serve(async (req) => {
 
       if (error) throw error;
 
-      if (!users || users.length === 0) return;
+      if (!users || users.length === 0) {
+        console.log('Nenhum usuário para notificar sobre agendamento');
+        return;
+      }
 
       const emails = users.map(user => user.email).filter(Boolean);
-      if (emails.length === 0) return;
+      if (emails.length === 0) {
+        console.log('Nenhum email válido para agendamento');
+        return;
+      }
 
       const scheduledDate = new Date(scheduledAt).toLocaleString('pt-BR');
-      const fromEmail = Deno.env.get('MAINTENANCE_FROM_EMAIL') || 'IFPR Cards <onboarding@resend.dev>';
+      const fromEmail = Deno.env.get('MAINTENANCE_FROM_EMAIL') || 'onboarding@resend.dev';
       
       console.log(`Enviando emails de agendamento para ${emails.length} usuários de: ${fromEmail}`);
 
-      const { error: emailError } = await resend.emails.send({
-        from: fromEmail,
-        to: emails,
-        subject: 'Manutenção Agendada - IFPR Cards',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2563eb;">Manutenção Agendada</h2>
-            <p>Olá!</p>
-            <p>Informamos que uma manutenção foi agendada para o sistema IFPR Cards.</p>
-            <div style="background-color: #dbeafe; padding: 15px; border-left: 4px solid #2563eb; margin: 20px 0;">
-              <p><strong>Data e Hora:</strong> ${scheduledDate}</p>
-              <p><strong>Mensagem:</strong> ${message}</p>
-            </div>
-            <p>Durante este período, o sistema poderá ficar indisponível.</p>
-            <p>Agradecemos sua compreensão.</p>
-            <hr style="margin: 30px 0;">
-            <p style="color: #6b7280; font-size: 14px;">
-              Atenciosamente,<br>
-              Equipe IFPR Cards
-            </p>
-          </div>
-        `
-      });
+      // Enviar emails individualmente
+      let successCount = 0;
+      let errorCount = 0;
+      
+      for (const email of emails) {
+        try {
+          const { data, error: emailError } = await resend.emails.send({
+            from: fromEmail,
+            to: [email],
+            subject: 'Manutenção Agendada - IFPR Cards',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2563eb;">Manutenção Agendada</h2>
+                <p>Olá!</p>
+                <p>Informamos que uma manutenção foi agendada para o sistema IFPR Cards.</p>
+                <div style="background-color: #dbeafe; padding: 15px; border-left: 4px solid #2563eb; margin: 20px 0;">
+                  <p><strong>Data e Hora:</strong> ${scheduledDate}</p>
+                  <p><strong>Mensagem:</strong> ${message}</p>
+                </div>
+                <p>Durante este período, o sistema poderá ficar indisponível.</p>
+                <p>Agradecemos sua compreensão.</p>
+                <hr style="margin: 30px 0;">
+                <p style="color: #6b7280; font-size: 14px;">
+                  Atenciosamente,<br>
+                  Equipe IFPR Cards
+                </p>
+              </div>
+            `
+          });
 
-      if (emailError) {
-        console.error('Erro ao enviar emails de agendamento:', emailError);
-        console.error('Detalhes do erro:', JSON.stringify(emailError));
-        // Não falhar silenciosamente - logar erro mas continuar
-        throw new Error(`Falha ao enviar emails de agendamento: ${emailError.message || JSON.stringify(emailError)}`);
-      } else {
-        console.log(`Emails de agendamento enviados para ${emails.length} usuários`);
+          if (emailError) {
+            console.error(`Erro ao enviar email de agendamento para ${email}:`, emailError);
+            errorCount++;
+          } else {
+            console.log(`Email de agendamento enviado com sucesso para ${email}:`, data?.id);
+            successCount++;
+          }
+        } catch (err) {
+          console.error(`Exceção ao enviar email de agendamento para ${email}:`, err);
+          errorCount++;
+        }
+      }
+
+      console.log(`Emails de agendamento: ${successCount} sucessos, ${errorCount} erros`);
+      
+      if (errorCount > 0 && successCount === 0) {
+        throw new Error(`Falha ao enviar todos os emails de agendamento`);
       }
     } catch (error) {
       console.error('Erro ao notificar usuários sobre agendamento:', error);
+      throw error;
     }
   }
 
@@ -461,10 +511,16 @@ serve(async (req) => {
         );
       }
 
-      const fromEmail = Deno.env.get('MAINTENANCE_FROM_EMAIL') || 'IFPR Cards <onboarding@resend.dev>';
+      const fromEmail = Deno.env.get('MAINTENANCE_FROM_EMAIL') || 'onboarding@resend.dev';
       console.log(`Enviando email de teste para ${toEmail} de: ${fromEmail}`);
+      console.log('RESEND_API_KEY exists:', !!Deno.env.get('RESEND_API_KEY'));
 
-      const { error: emailError } = await resend.emails.send({
+      // Verificar se o Resend foi inicializado corretamente
+      if (!resend) {
+        throw new Error('Resend não foi inicializado corretamente');
+      }
+
+      const { data, error: emailError } = await resend.emails.send({
         from: fromEmail,
         to: [toEmail],
         subject: 'Teste de Email - IFPR Cards',
@@ -483,20 +539,34 @@ serve(async (req) => {
 
       if (emailError) {
         console.error('Erro ao enviar email de teste:', emailError);
+        console.error('Detalhes do erro:', JSON.stringify(emailError));
         return new Response(
-          JSON.stringify({ success: false, error: emailError.message || JSON.stringify(emailError) }),
+          JSON.stringify({ 
+            success: false, 
+            error: emailError.message || JSON.stringify(emailError),
+            details: {
+              from: fromEmail,
+              to: toEmail,
+              hasApiKey: !!Deno.env.get('RESEND_API_KEY')
+            }
+          }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
+      console.log('Email enviado com sucesso:', data);
       return new Response(
-        JSON.stringify({ success: true, message: 'Email de teste enviado com sucesso' }),
+        JSON.stringify({ success: true, message: 'Email de teste enviado com sucesso', data }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (error: any) {
       console.error('Erro ao enviar email de teste:', error);
       return new Response(
-        JSON.stringify({ success: false, error: error.message || 'Falha ao enviar email de teste' }),
+        JSON.stringify({ 
+          success: false, 
+          error: error.message || 'Falha ao enviar email de teste',
+          stack: error.stack
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
