@@ -6,6 +6,52 @@ export function useAuthActions() {
     try {
       console.log('Tentando login para:', email);
       
+      // Verificar modo manutenção primeiro
+      const { data: configData } = await supabase
+        .from('admin_config')
+        .select('config_key, config_value')
+        .in('config_key', ['maintenance_mode']);
+
+      const maintenanceEnabled = configData?.find(c => c.config_key === 'maintenance_mode')?.config_value === 'true';
+      
+      // Se modo manutenção ativo, verificar se é admin
+      if (maintenanceEnabled) {
+        console.log('Modo manutenção ativo - verificando permissões...');
+        
+        // Tentar login temporário para verificar role
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        });
+        
+        if (authError) {
+          console.error('Erro no login:', authError);
+          return { error: authError };
+        }
+        
+        if (authData?.user) {
+          // Verificar role do usuário
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', authData.user.id)
+            .single();
+          
+          // Se não é admin, fazer logout e bloquear acesso
+          if (profileData?.role !== 'admin') {
+            await supabase.auth.signOut();
+            return { 
+              error: { 
+                message: 'Sistema em manutenção. Apenas administradores podem acessar neste momento.' 
+              } 
+            };
+          }
+        }
+        
+        return { error: null };
+      }
+      
+      // Login normal se não há manutenção
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
@@ -26,6 +72,23 @@ export function useAuthActions() {
   const signUp = async (email: string, password: string, name: string) => {
     try {
       console.log('Tentando cadastro para:', email, 'nome:', name);
+      
+      // Verificar modo manutenção primeiro
+      const { data: configData } = await supabase
+        .from('admin_config')
+        .select('config_key, config_value')
+        .in('config_key', ['maintenance_mode']);
+
+      const maintenanceEnabled = configData?.find(c => c.config_key === 'maintenance_mode')?.config_value === 'true';
+      
+      // Bloquear cadastros durante manutenção
+      if (maintenanceEnabled) {
+        return { 
+          error: { 
+            message: 'Sistema em manutenção. Cadastros temporariamente bloqueados.' 
+          } 
+        };
+      }
       
       // Tipo de usuário é determinado automaticamente no backend
       // baseado em configuração segura na tabela admin_config
