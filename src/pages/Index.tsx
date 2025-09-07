@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { NewAuthPage } from '@/components/auth/NewAuthPage';
+import { UserSettings } from '@/components/settings/UserSettings';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { StudentDashboard } from '@/components/dashboard/StudentDashboard';
@@ -59,6 +60,8 @@ const Index = () => {
       case 'manage-cards':
         return <NewManageCards />;
       case 'settings':
+        return <UserSettings />;
+      case 'admin-settings':
         return <Settings />;
       case 'polls':
         return <Polls />;
@@ -71,7 +74,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50 flex w-full">
       <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
       <div className="flex-1 flex flex-col">
-        <Header />
+        <Header onSectionChange={setActiveSection} currentSection={activeSection} />
         <main className="flex-1 p-6">
           {renderContent()}
         </main>

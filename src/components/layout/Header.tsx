@@ -1,47 +1,146 @@
-
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
+import { NotificationPanel } from '@/components/notifications/NotificationPanel';
 import { CoinBalance } from '@/components/ui/coin-balance';
-import { LogOut } from 'lucide-react';
+import { 
+  Settings, 
+  LogOut, 
+  User,
+  HelpCircle,
+  Shield,
+  Bell
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
-export function Header() {
+interface HeaderProps {
+  onSectionChange?: (section: string) => void;
+  currentSection?: string;
+}
+
+export function Header({ onSectionChange, currentSection }: HeaderProps) {
   const { profile, signOut } = useAuth();
+  const { addNotification } = useNotifications();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+  };
+
+  const handleTestNotification = () => {
+    addNotification({
+      title: 'Notificação de Teste',
+      message: 'Esta é uma notificação de exemplo para testar o sistema.',
+      type: 'info'
+    });
+  };
 
   if (!profile) return null;
 
+  const userInitials = profile.name
+    ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : profile.email[0].toUpperCase();
+
+  const isSettingsActive = currentSection === 'settings';
+
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-ifpr-green rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">IF</span>
-            </div>
-            <h1 className="text-xl font-bold text-gray-900">IFCoins</h1>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          {profile.role === 'student' && (
-            <CoinBalance balance={profile.coins} />
-          )}
+          <h1 className="text-xl font-bold text-primary">
+            IFCoins
+          </h1>
           
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="font-medium text-gray-900">{profile.name}</p>
-              <p className="text-sm text-gray-600 capitalize">{profile.role}</p>
-            </div>
+          {profile.role !== 'student' && (
+            <span className="text-sm text-muted-foreground">
+              • Painel {profile.role === 'admin' ? 'Administrativo' : 'do Professor'}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-4">
+          <CoinBalance balance={profile.coins} />
+          
+          <NotificationPanel />
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="text-xs">
+                    {userInitials}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={signOut}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {profile.name}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {profile.email}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground capitalize">
+                    {profile.role}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem 
+                onClick={() => onSectionChange?.('settings')}
+                className={isSettingsActive ? 'bg-accent' : ''}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Configurações</span>
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => onSectionChange?.('profile')}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Perfil</span>
+              </DropdownMenuItem>
+
+              {profile.role === 'admin' && (
+                <DropdownMenuItem onClick={() => onSectionChange?.('admin-settings')}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  <span>Configurações Admin</span>
+                </DropdownMenuItem>
+              )}
+              
+              <DropdownMenuItem onClick={handleTestNotification}>
+                <Bell className="mr-2 h-4 w-4" />
+                <span>Testar Notificação</span>
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => onSectionChange?.('help')}>
+                <HelpCircle className="mr-2 h-4 w-4" />
+                <span>Ajuda</span>
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sair</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

@@ -53,17 +53,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Cores do IFPR
-        ifpr: {
-          green: {
-            DEFAULT: "#16a34a",
-            dark: "#15803d",
-          },
-          blue: {
-            DEFAULT: "#2563eb", 
-            dark: "#1d4ed8",
-          }
-        }
+        // Cores do IFPR usando semantic tokens
+        'ifpr-green': 'hsl(var(--ifpr-green))',
+        'ifpr-green-dark': 'hsl(var(--ifpr-green-dark))',
+        'ifpr-blue': 'hsl(var(--ifpr-blue))',
+        'ifpr-blue-dark': 'hsl(var(--ifpr-blue-dark))',
       },
       borderRadius: {
         lg: "var(--radius)",
