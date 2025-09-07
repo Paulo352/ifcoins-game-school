@@ -334,9 +334,14 @@ serve(async (req) => {
         return;
       }
 
+      // Obter email remetente configurado
+      const fromEmail = Deno.env.get('MAINTENANCE_FROM_EMAIL') || 'IFPR Cards <onboarding@resend.dev>';
+      
+      console.log(`Enviando emails para ${emails.length} usuários de: ${fromEmail}`);
+      
       // Enviar email em lote
       const { error: emailError } = await resend.emails.send({
-        from: 'IFPR Cards <onboarding@resend.dev>',
+        from: fromEmail,
         to: emails,
         subject: 'Sistema em Manutenção - IFPR Cards',
         html: `
@@ -360,6 +365,9 @@ serve(async (req) => {
 
       if (emailError) {
         console.error('Erro ao enviar emails:', emailError);
+        console.error('Detalhes do erro:', JSON.stringify(emailError));
+        // Não falhar silenciosamente - logar erro mas continuar
+        throw new Error(`Falha ao enviar emails: ${emailError.message || JSON.stringify(emailError)}`);
       } else {
         console.log(`Emails de manutenção enviados para ${emails.length} usuários`);
       }
@@ -383,9 +391,12 @@ serve(async (req) => {
       if (emails.length === 0) return;
 
       const scheduledDate = new Date(scheduledAt).toLocaleString('pt-BR');
+      const fromEmail = Deno.env.get('MAINTENANCE_FROM_EMAIL') || 'IFPR Cards <onboarding@resend.dev>';
+      
+      console.log(`Enviando emails de agendamento para ${emails.length} usuários de: ${fromEmail}`);
 
       const { error: emailError } = await resend.emails.send({
-        from: 'IFPR Cards <onboarding@resend.dev>',
+        from: fromEmail,
         to: emails,
         subject: 'Manutenção Agendada - IFPR Cards',
         html: `
@@ -410,6 +421,9 @@ serve(async (req) => {
 
       if (emailError) {
         console.error('Erro ao enviar emails de agendamento:', emailError);
+        console.error('Detalhes do erro:', JSON.stringify(emailError));
+        // Não falhar silenciosamente - logar erro mas continuar
+        throw new Error(`Falha ao enviar emails de agendamento: ${emailError.message || JSON.stringify(emailError)}`);
       } else {
         console.log(`Emails de agendamento enviados para ${emails.length} usuários`);
       }
