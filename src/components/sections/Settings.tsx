@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Settings as SettingsIcon, Save, RefreshCw, Database, Shield, Bell, Loader2 } from 'lucide-react';
 import { useAdminConfig } from '@/hooks/useAdminConfig';
+import { DailyCoinsConfig } from '@/components/admin/DailyCoinsConfig';
 import { toast } from 'sonner';
 
 export function Settings() {
@@ -258,6 +259,10 @@ export function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        <div className="lg:col-span-2">
+          <DailyCoinsConfig />
+        </div>
       </div>
 
       <div className="flex justify-end">

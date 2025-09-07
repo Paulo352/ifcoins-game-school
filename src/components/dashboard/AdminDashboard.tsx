@@ -2,7 +2,9 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, BookOpen, Coins, TrendingUp, Calendar, Settings } from 'lucide-react';
+import { Users, BookOpen, Coins, TrendingUp, Calendar, Settings, Loader2 } from 'lucide-react';
+import { useAdminStats } from '@/hooks/useAdminStats';
+import { DailyCoinsConfig } from '@/components/admin/DailyCoinsConfig';
 
 interface AdminDashboardProps {
   onSectionChange: (section: string) => void;
@@ -10,14 +12,23 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({ onSectionChange }: AdminDashboardProps) {
   const { profile } = useAuth();
+  const { stats, loading } = useAdminStats();
 
   if (!profile || profile.role !== 'admin') return null;
 
-  const stats = [
-    { title: 'Estudantes Ativos', value: '1,247', icon: Users, color: 'text-blue-600' },
-    { title: 'Cartas Disponíveis', value: '156', icon: BookOpen, color: 'text-green-600' },
-    { title: 'Moedas em Circulação', value: '45,230', icon: Coins, color: 'text-yellow-600' },
-    { title: 'Trocas Realizadas', value: '892', icon: TrendingUp, color: 'text-purple-600' },
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  const dashboardStats = [
+    { title: 'Estudantes Ativos', value: stats.totalStudents.toString(), icon: Users, color: 'text-blue-600' },
+    { title: 'Cartas Disponíveis', value: stats.totalCards.toString(), icon: BookOpen, color: 'text-green-600' },
+    { title: 'Moedas em Circulação', value: stats.totalCoinsInCirculation.toString(), icon: Coins, color: 'text-yellow-600' },
+    { title: 'Trocas Realizadas', value: stats.totalTrades.toString(), icon: TrendingUp, color: 'text-purple-600' },
   ];
 
   return (
@@ -32,7 +43,7 @@ export function AdminDashboard({ onSectionChange }: AdminDashboardProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => {
+        {dashboardStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card key={index}>
@@ -108,20 +119,22 @@ export function AdminDashboard({ onSectionChange }: AdminDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {[
-                { action: 'Novo estudante cadastrado', user: 'Pedro Oliveira', time: '2 min atrás' },
-                { action: 'Carta "Laboratório Avançado" criada', user: 'Sistema', time: '15 min atrás' },
-                { action: 'Evento "Feira de Ciências" iniciado', user: 'Maria Silva', time: '1 hora atrás' },
-                { action: '50 moedas distribuídas', user: 'João Santos', time: '2 horas atrás' },
-              ].map((activity, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-sm">{activity.action}</p>
-                    <p className="text-xs text-gray-600">por {activity.user}</p>
+              {stats.recentActivity.length > 0 ? (
+                stats.recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">{activity.action}</p>
+                      <p className="text-xs text-gray-600">por {activity.user}</p>
+                    </div>
+                    <p className="text-xs text-gray-500">{activity.time}</p>
                   </div>
-                  <p className="text-xs text-gray-500">{activity.time}</p>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>Nenhuma atividade recente</p>
+                  <p className="text-sm">As ações dos usuários aparecerão aqui</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
