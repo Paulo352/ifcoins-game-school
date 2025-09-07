@@ -1,86 +1,97 @@
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { NewAuthPage } from '@/components/auth/NewAuthPage';
-import { UserSettings } from '@/components/settings/UserSettings';
-import { Analytics } from '@/components/analytics/Analytics';
-import { Header } from '@/components/layout/Header';
-import { Sidebar } from '@/components/layout/Sidebar';
+import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
+import { AuthPage } from '@/components/auth/AuthPage';
+import { ResetPasswordPage } from '@/components/auth/ResetPasswordPage';
+import { MaintenanceScreen } from '@/components/maintenance/MaintenanceScreen';
 import { StudentDashboard } from '@/components/dashboard/StudentDashboard';
 import { TeacherDashboard } from '@/components/dashboard/TeacherDashboard';
-import { TeacherGiveCoins } from '@/components/sections/TeacherGiveCoins';
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
-import { AdminGiveCoins } from '@/components/sections/AdminGiveCoins';
-import { NewCardShop } from '@/components/cards/NewCardShop';
-import { NewManageCards } from '@/components/cards/NewManageCards';
-import { Rankings } from '@/components/sections/Rankings';
-import { Events } from '@/components/sections/Events';
-import { ManageStudents } from '@/components/sections/ManageStudents';
-import { NewCollection } from '@/components/cards/NewCollection';
-import { Settings } from '@/components/sections/Settings';
-import { Polls } from '@/components/sections/Polls';
-import { Loader2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const Index = () => {
-  const { profile, loading } = useAuth();
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const { user, profile, loading } = useAuth();
+  const { status: maintenanceStatus } = useMaintenanceMode();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const section = searchParams.get('section') || 'dashboard';
 
-  if (loading) {
+  // Verificar se é página de reset de senha
+  const isResetPasswordPage = location.pathname === '/reset-password' || 
+    (location.hash && location.hash.includes('type=recovery'));
+
+  console.log('Index - User:', user?.email, 'Profile:', profile?.role, 'Loading:', loading);
+
+  if (loading || maintenanceStatus.loading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>;
+  }
+
+  // Página de reset de senha tem prioridade
+  if (isResetPasswordPage) {
+    return <ResetPasswordPage />;
+  }
+
+  // Verificar modo manutenção (exceto para admins)
+  if (maintenanceStatus.enabled && profile?.role !== 'admin') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <MaintenanceScreen 
+        message={maintenanceStatus.message}
+        scheduledAt={maintenanceStatus.scheduled_at}
+        showEmailNotice={true}
+      />
     );
   }
 
-  if (!profile) {
-    return <NewAuthPage />;
+  if (!user) {
+    return <AuthPage />;
   }
 
   const renderContent = () => {
-    switch (activeSection) {
+    switch (section) {
       case 'dashboard':
-        if (profile.role === 'student') return <StudentDashboard onSectionChange={setActiveSection} />;
+        if (profile.role === 'student') return <StudentDashboard onSectionChange={() => {}} />;
         if (profile.role === 'teacher') return <TeacherDashboard />;
-        if (profile.role === 'admin') return <AdminDashboard onSectionChange={setActiveSection} />;
+        if (profile.role === 'admin') return <AdminDashboard onSectionChange={() => {}} />;
         break;
       case 'shop':
-        return <NewCardShop />;
+        return <div>Shop (em construção)</div>;
       case 'collection':
-        return <NewCollection />;
+        return <div>Collection (em construção)</div>;
       case 'give-coins':
-        if (profile.role === 'teacher') return <TeacherGiveCoins />;
-        if (profile.role === 'admin') return <AdminGiveCoins />;
-        break;
+        return <div>Give Coins (em construção)</div>;
       case 'rankings':
-        return <Rankings />;
+        return <div>Rankings (em construção)</div>;
       case 'events':
-        return <Events />;
+        return <div>Events (em construção)</div>;
       case 'manage-students':
-        return <ManageStudents />;
+        return <div>Manage Students (em construção)</div>;
       case 'manage-cards':
-        return <NewManageCards />;
+        return <div>Manage Cards (em construção)</div>;
       case 'settings':
-        if (profile.role === 'admin') return <Settings />;
-        return <UserSettings />;
+        return <div>Settings (em construção)</div>;
       case 'admin-settings':
-        return <Settings />;
+        return <div>Admin Settings (em construção)</div>;
       case 'analytics':
-        return <Analytics />;
+        return <div>Analytics (em construção)</div>;
       case 'polls':
-        return <Polls />;
+        return <div>Polls (em construção)</div>;
       default:
-        return <StudentDashboard onSectionChange={setActiveSection} />;
+        if (profile.role === 'student') return <StudentDashboard onSectionChange={() => {}} />;
+        if (profile.role === 'teacher') return <TeacherDashboard />;
+        if (profile.role === 'admin') return <AdminDashboard onSectionChange={() => {}} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-background flex w-full">
-      <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
       <div className="flex-1 flex flex-col bg-background">
-        <Header onSectionChange={setActiveSection} currentSection={activeSection} />
         <main className="flex-1 p-6 bg-background">
-          {renderContent()}
+          {profile.role === 'student' && <StudentDashboard onSectionChange={() => {}} />}
+          {profile.role === 'teacher' && <TeacherDashboard />}
+          {profile.role === 'admin' && <AdminDashboard onSectionChange={() => {}} />}
         </main>
       </div>
     </div>

@@ -28,6 +28,7 @@ const App = () => (
                 <div id="main-content">
                   <Routes>
                     <Route path="/" element={<Index />} />
+                    <Route path="/reset-password" element={<Index />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </div>

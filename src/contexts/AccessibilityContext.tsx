@@ -40,6 +40,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     
     // Apply accessibility classes to document
     const root = document.documentElement;
+    const body = document.body;
     
     root.classList.toggle('high-contrast', settings.highContrast);
     root.classList.toggle('large-text', settings.largeText);
@@ -47,9 +48,44 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     
     // Apply reduced motion preference
     if (settings.reducedMotion) {
-      document.body.style.setProperty('--transition-duration', '0s');
+      body.style.setProperty('--transition-duration', '0s');
+      body.style.setProperty('--animation-duration', '0s');
     } else {
-      document.body.style.removeProperty('--transition-duration');
+      body.style.removeProperty('--transition-duration');
+      body.style.removeProperty('--animation-duration');
+    }
+    
+    // Apply large text preference
+    if (settings.largeText) {
+      body.style.setProperty('--font-size-multiplier', '1.25');
+    } else {
+      body.style.removeProperty('--font-size-multiplier');
+    }
+    
+    // Apply high contrast preference
+    if (settings.highContrast) {
+      body.classList.add('high-contrast-mode');
+    } else {
+      body.classList.remove('high-contrast-mode');
+    }
+    
+    // Announce settings changes
+    if (typeof window !== 'undefined') {
+      const enabledFeatures = Object.entries(settings)
+        .filter(([key, value]) => value && key !== 'keyboardNavigation')
+        .map(([key]) => {
+          switch (key) {
+            case 'highContrast': return 'Alto contraste';
+            case 'largeText': return 'Texto grande';
+            case 'reducedMotion': return 'Movimento reduzido';
+            case 'screenReader': return 'Otimização para leitor de tela';
+            default: return key;
+          }
+        });
+      
+      if (enabledFeatures.length > 0) {
+        announceToScreenReader(`Recursos de acessibilidade ativados: ${enabledFeatures.join(', ')}`);
+      }
     }
   }, [settings]);
 

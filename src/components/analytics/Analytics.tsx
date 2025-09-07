@@ -5,6 +5,8 @@ import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { 
   TrendingUp, 
   Users, 
@@ -118,29 +120,88 @@ export function Analytics() {
 
   const exportReport = async () => {
     try {
-      const { data: exportData, error } = await supabase.functions.invoke('admin-tools', {
-        body: { action: 'export_data' }
+      if (!data) {
+        toast.error('Nenhum dado disponível para exportar');
+        return;
+      }
+
+      // Criar PDF
+      const doc = new jsPDF();
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('pt-BR');
+      const timeStr = now.toLocaleTimeString('pt-BR');
+      
+      // Cabeçalho
+      doc.setFontSize(18);
+      doc.text('IFPR Cards - Relatório do Sistema', 20, 20);
+      doc.setFontSize(12);
+      doc.text(`Data: ${dateStr} - Hora: ${timeStr}`, 20, 30);
+      
+      // Estatísticas principais
+      doc.setFontSize(14);
+      doc.text('Estatísticas Gerais', 20, 50);
+      
+      const statsData = [
+        ['Total de Usuários', data.totalUsers.toString()],
+        ['Usuários Ativos', data.activeUsers.toString()],
+        ['Moedas em Circulação', data.totalCoins.toLocaleString()],
+        ['Cartas Disponíveis', data.totalCards.toString()],
+        ['Trocas Realizadas', data.totalTrades.toString()]
+      ];
+
+      autoTable(doc, {
+        startY: 55,
+        head: [['Métrica', 'Valor']],
+        body: statsData,
+        theme: 'grid'
       });
 
-      if (error) throw error;
+      // Distribuição de moedas
+      if (data.coinDistribution.length > 0) {
+        doc.setFontSize(14);
+        doc.text('Distribuição de Moedas por Papel', 20, (doc as any).lastAutoTable.finalY + 20);
+        
+        const coinData = data.coinDistribution.map(item => [
+          item.role.charAt(0).toUpperCase() + item.role.slice(1) + 's',
+          item.users.toString(),
+          item.coins.toLocaleString()
+        ]);
 
-      // Download do arquivo
-      const blob = new Blob([JSON.stringify(exportData.export, null, 2)], {
-        type: 'application/json'
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `relatorio_sistema_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+        autoTable(doc, {
+          startY: (doc as any).lastAutoTable.finalY + 25,
+          head: [['Papel', 'Usuários', 'Moedas']],
+          body: coinData,
+          theme: 'grid'
+        });
+      }
 
-      toast.success('Relatório exportado com sucesso!');
+      // Atividade recente
+      if (data.recentActivity.length > 0) {
+        doc.setFontSize(14);
+        doc.text('Atividade Recente', 20, (doc as any).lastAutoTable.finalY + 20);
+        
+        const activityData = data.recentActivity.slice(0, 10).map(activity => [
+          activity.coins.toString(),
+          activity.reason || 'N/A',
+          new Date(activity.created_at).toLocaleDateString('pt-BR')
+        ]);
+
+        autoTable(doc, {
+          startY: (doc as any).lastAutoTable.finalY + 25,
+          head: [['Moedas', 'Motivo', 'Data']],
+          body: activityData,
+          theme: 'grid'
+        });
+      }
+
+      // Salvar PDF
+      const fileName = `IFPR_Cards_Relatorio_${dateStr.replace(/\//g, '-')}_${timeStr.replace(/:/g, '-')}.pdf`;
+      doc.save(fileName);
+
+      toast.success('Relatório PDF gerado com sucesso!');
     } catch (error) {
-      console.error('Erro ao exportar relatório:', error);
-      toast.error('Erro ao exportar relatório');
+      console.error('Erro ao gerar relatório PDF:', error);
+      toast.error('Erro ao gerar relatório PDF');
     }
   };
 
@@ -187,7 +248,7 @@ export function Analytics() {
         
         <Button onClick={exportReport} className="flex items-center gap-2">
           <Download className="h-4 w-4" />
-          Exportar Relatório
+          Baixar Relatório PDF
         </Button>
       </div>
 
