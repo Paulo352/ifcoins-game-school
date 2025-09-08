@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Coins, CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateCoins } from '@/hooks/useUpdateCoins';
+import { useTeacherDailyLimit } from '@/hooks/useTeacherDailyLimit';
 import { Profile } from '@/types/supabase';
 
 interface TeacherGiveCoinsSection {
@@ -31,6 +32,7 @@ export function TeacherGiveCoinsSection({ users, teacherId, onSuccess }: Teacher
   const [selectedUserId, setSelectedUserId] = useState('');
   const [selectedReason, setSelectedReason] = useState<string>('');
   const { giveCoins, loading } = useUpdateCoins();
+  const { dailyCoins, dailyLimit, refetch: refetchLimit } = useTeacherDailyLimit();
 
   const studentUsers = users?.filter(u => u.role === 'student') || [];
   const selectedReasonData = PREDEFINED_REASONS.find(r => r.reason === selectedReason);
@@ -59,6 +61,7 @@ export function TeacherGiveCoinsSection({ users, teacherId, onSuccess }: Teacher
       setSelectedUserId('');
       setSelectedReason('');
       onSuccess();
+      refetchLimit();
       toast({
         title: "Recompensa entregue!",
         description: `${selectedUserName} recebeu ${selectedReasonData.coins} IFCoins por: ${selectedReasonData.reason}`,
@@ -73,8 +76,11 @@ export function TeacherGiveCoinsSection({ users, teacherId, onSuccess }: Teacher
           <Coins className="h-5 w-5" />
           Recompensar Estudante
         </CardTitle>
-        <CardDescription>
-          Use motivos pré-definidos para recompensas rápidas e consistentes
+        <CardDescription className="flex items-center justify-between">
+          <span>Use motivos pré-definidos para recompensas rápidas e consistentes</span>
+          <Badge variant="secondary" className="text-xs">
+            {dailyCoins}/{dailyLimit} moedas hoje
+          </Badge>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -163,8 +169,8 @@ export function TeacherGiveCoinsSection({ users, teacherId, onSuccess }: Teacher
         {/* Info */}
         <div className="p-3 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-700">
-            💡 <strong>Dica:</strong> Estes motivos cobrem as situações mais comuns. 
-            Para casos especiais, use a aba "Dar Moedas" no menu principal.
+            💡 <strong>Dica:</strong> Estes motivos sempre funcionam, mesmo após o limite diário de moedas especiais. 
+            Para casos únicos com mais moedas, use a aba "Dar Moedas" no menu principal.
           </p>
         </div>
       </CardContent>

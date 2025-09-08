@@ -9,9 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Coins, AlertTriangle, Lightbulb } from 'lucide-react';
+import { Coins, AlertTriangle, Lightbulb, Ban } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateCoins } from '@/hooks/useUpdateCoins';
+import { useTeacherDailyLimit } from '@/hooks/useTeacherDailyLimit';
 import { Profile } from '@/types/supabase';
 
 export function TeacherGiveCoins() {
@@ -20,6 +21,7 @@ export function TeacherGiveCoins() {
   const [coinsAmount, setCoinsAmount] = useState('');
   const [reason, setReason] = useState('');
   const { giveCoins, loading } = useUpdateCoins();
+  const { dailyCoins, remainingCoins, canGiveSpecialCoins, limitReached, dailyLimit, refetch: refetchLimit } = useTeacherDailyLimit();
 
   const { data: students, refetch } = useQuery({
     queryKey: ['all-students'],
@@ -111,6 +113,7 @@ export function TeacherGiveCoins() {
       setCoinsAmount('');
       setReason('');
       refetch();
+      refetchLimit();
     }
   };
 
@@ -125,24 +128,51 @@ export function TeacherGiveCoins() {
         <p className="text-gray-600 mt-1">
           Para atividades extracurriculares e casos únicos (máximo 500 moedas)
         </p>
+        <div className="flex items-center gap-4 mt-3">
+          <Badge variant={limitReached ? "destructive" : "secondary"}>
+            {dailyCoins}/{dailyLimit} moedas hoje
+          </Badge>
+          {limitReached && (
+            <Badge variant="outline" className="text-red-600">
+              <Ban className="h-3 w-3 mr-1" />
+              Limite diário atingido
+            </Badge>
+          )}
+        </div>
       </div>
 
-      {/* Warning */}
-      <Card className="border-orange-200 bg-orange-50">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-orange-900">Atenção - Casos Especiais</h3>
-              <p className="text-sm text-orange-700 mt-1">
-                Esta área é para recompensas especiais como atividades extracurriculares, 
-                projetos únicos ou situações excepcionais. Para recompensas do dia a dia, 
-                use a seção "Gerenciar Estudantes" com motivos pré-definidos.
-              </p>
+      {/* Warning or Limit Notice */}
+      {limitReached ? (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <Ban className="h-5 w-5 text-red-600 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-red-900">Limite Diário Atingido</h3>
+                <p className="text-sm text-red-700 mt-1">
+                  Você já deu {dailyLimit} moedas hoje. Para continuar dando recompensas, 
+                  use apenas os motivos pré-definidos na seção "Gerenciar Estudantes".
+                </p>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-orange-900">Atenção - Casos Especiais</h3>
+                <p className="text-sm text-orange-700 mt-1">
+                  Esta área é para recompensas especiais como atividades extracurriculares, 
+                  projetos únicos ou situações excepcionais. Limite diário: {remainingCoins} moedas restantes.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Form */}
       <Card>
@@ -159,9 +189,9 @@ export function TeacherGiveCoins() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="student">Estudante</Label>
-              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+              <Select value={selectedUserId} onValueChange={setSelectedUserId} disabled={limitReached}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione um estudante" />
+                  <SelectValue placeholder={limitReached ? "Limite atingido" : "Selecione um estudante"} />
                 </SelectTrigger>
                 <SelectContent>
                   {students?.map(student => (
@@ -179,18 +209,21 @@ export function TeacherGiveCoins() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="coins">Quantidade de Moedas (máximo 500)</Label>
+              <Label htmlFor="coins">
+                Quantidade de Moedas (máximo {Math.min(500, remainingCoins)})
+              </Label>
               <Input
                 id="coins"
                 type="number"
                 min="1"
-                max="500"
+                max={Math.min(500, remainingCoins)}
                 placeholder="50"
                 value={coinsAmount}
                 onChange={(e) => setCoinsAmount(e.target.value)}
+                disabled={limitReached}
               />
               <p className="text-xs text-muted-foreground">
-                Limite máximo: 500 moedas por transação
+                {limitReached ? 'Limite diário atingido' : `Restam ${remainingCoins} moedas hoje`}
               </p>
             </div>
           </div>
@@ -199,13 +232,14 @@ export function TeacherGiveCoins() {
             <Label htmlFor="reason">Motivo Especial</Label>
             <Textarea
               id="reason"
-              placeholder="Ex: Participação excepcional na feira de ciências, projeto de extensão, representação da escola em evento externo..."
+              placeholder={limitReached ? "Limite diário atingido" : "Ex: Participação excepcional na feira de ciências, projeto de extensão, representação da escola em evento externo..."}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={4}
+              disabled={limitReached}
             />
             <p className="text-xs text-muted-foreground">
-              Descreva detalhadamente o motivo especial desta recompensa
+              {limitReached ? 'Use "Gerenciar Estudantes" para motivos pré-definidos' : 'Descreva detalhadamente o motivo especial desta recompensa'}
             </p>
           </div>
 
@@ -225,13 +259,19 @@ export function TeacherGiveCoins() {
 
           <Button 
             onClick={handleGiveCoins}
-            disabled={loading || !selectedUserId || !coinsAmount || !reason}
+            disabled={loading || !selectedUserId || !coinsAmount || !reason || limitReached}
             className="bg-green-600 hover:bg-green-700"
             size="lg"
           >
             <Coins className="h-4 w-4 mr-2" />
-            {loading ? 'Processando...' : 'Dar Moedas Especiais'}
+            {limitReached ? 'Limite Diário Atingido' : loading ? 'Processando...' : 'Dar Moedas Especiais'}
           </Button>
+          
+          {limitReached && (
+            <p className="text-sm text-red-600 mt-2">
+              Use a seção "Gerenciar Estudantes" para continuar dando recompensas com motivos pré-definidos.
+            </p>
+          )}
         </CardContent>
       </Card>
 

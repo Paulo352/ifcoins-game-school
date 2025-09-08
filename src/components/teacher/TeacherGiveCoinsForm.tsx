@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Coins, Award } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateCoins } from '@/hooks/useUpdateCoins';
+import { useTeacherDailyLimit } from '@/hooks/useTeacherDailyLimit';
+import { Badge } from '@/components/ui/badge';
 
 interface TeacherGiveCoinsFormProps {
   students: any[] | undefined;
@@ -20,6 +22,7 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
   const [coinsAmount, setCoinsAmount] = useState('');
   const [reason, setReason] = useState('');
   const { giveCoins, loading } = useUpdateCoins();
+  const { dailyCoins, dailyLimit, refetch: refetchLimit } = useTeacherDailyLimit();
 
   const handleGiveCoins = async () => {
     if (!selectedStudentEmail || !coinsAmount || !reason) {
@@ -64,6 +67,7 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
       setCoinsAmount('');
       setReason('');
       onSuccess();
+      refetchLimit();
     }
   };
 
@@ -74,8 +78,11 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
           <Award className="h-5 w-5" />
           Dar Moedas IFCoins
         </CardTitle>
-        <CardDescription>
-          Recompense estudantes por bom comportamento e participação
+        <CardDescription className="flex items-center justify-between">
+          <span>Recompense estudantes por bom comportamento e participação</span>
+          <Badge variant="secondary" className="text-xs">
+            {dailyCoins}/{dailyLimit} moedas hoje
+          </Badge>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
