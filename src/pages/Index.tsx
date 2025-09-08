@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
-import { AuthPage } from '@/components/auth/AuthPage';
 import { ResetPasswordPage } from '@/components/auth/ResetPasswordPage';
+import LoginPage from '@/pages/LoginPage';
 import { MaintenanceScreen } from '@/components/maintenance/MaintenanceScreen';
 import { UserSettings } from '@/components/settings/UserSettings';
 import { Analytics } from '@/components/analytics/Analytics';
@@ -60,7 +60,7 @@ const Index = () => {
   }
 
   if (!user) {
-    return <AuthPage />;
+    return <LoginPage />;
   }
 
   const renderContent = () => {
