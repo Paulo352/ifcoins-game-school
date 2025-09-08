@@ -75,7 +75,7 @@ export function ManageStudents() {
         <TabsContent value="students" className="space-y-6">
           <div>
             <h3 className="text-xl font-semibold mb-4">Estudantes ({studentUsers.length})</h3>
-            <UsersTable users={studentUsers} />
+            <UsersTable users={studentUsers} onRefresh={refetch} />
             
             {profile.role === 'admin' && (
               <AdminUserManagement 
@@ -91,7 +91,7 @@ export function ManageStudents() {
         <TabsContent value="teachers" className="space-y-6">
           <div>
             <h3 className="text-xl font-semibold mb-4">Professores ({teacherUsers.length})</h3>
-            <UsersTable users={teacherUsers} />
+            <UsersTable users={teacherUsers} onRefresh={refetch} />
             
             {profile.role === 'admin' && (
               <AdminUserManagement 
@@ -107,7 +107,7 @@ export function ManageStudents() {
         <TabsContent value="admins" className="space-y-6">
           <div>
             <h3 className="text-xl font-semibold mb-4">Administradores ({adminUsers.length})</h3>
-            <UsersTable users={adminUsers} />
+            <UsersTable users={adminUsers} onRefresh={refetch} />
             
             {profile.role === 'admin' && (
               <AdminUserManagement 

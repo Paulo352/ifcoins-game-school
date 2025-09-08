@@ -69,7 +69,7 @@ export function useAuthActions() {
     }
   };
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string, ra?: string, studentClass?: string) => {
     try {
       console.log('Tentando cadastro para:', email, 'nome:', name);
       
@@ -110,6 +110,8 @@ export function useAuthActions() {
           data: {
             name: name.trim(),
             role: userType,
+            ra: ra?.trim() || null,
+            class: studentClass?.trim() || null,
           },
         },
       });
@@ -130,6 +132,8 @@ export function useAuthActions() {
             email: email.trim().toLowerCase(),
             name: name.trim(),
             role: userType,
+            ra: ra?.trim() || null,
+            class: studentClass?.trim() || null,
             coins: 100, // moedas iniciais
           });
 
