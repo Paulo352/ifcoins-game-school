@@ -120,6 +120,21 @@ serve(async (req) => {
       console.log('All trades cleared successfully')
     }
 
+    // Step 5: Delete all cards from the system
+    console.log('Deleting all system cards...')
+    const { error: systemCardsError } = await supabase
+      .from('cards')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all rows
+    
+    if (systemCardsError) {
+      console.error('Error deleting system cards:', systemCardsError)
+      resetSteps.push({ step: 'system_cards', status: 'error', error: systemCardsError.message })
+    } else {
+      resetSteps.push({ step: 'system_cards', status: 'success' })
+      console.log('All system cards deleted successfully')
+    }
+
     // Log the system reset action
     const { error: securityLogError } = await supabase
       .from('security_logs')

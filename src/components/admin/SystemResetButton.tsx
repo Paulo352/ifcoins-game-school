@@ -96,8 +96,9 @@ export function SystemResetButton() {
               <p className="text-sm text-red-700 mt-1">
                 Esta ação irá:
               </p>
-              <ul className="text-sm text-red-700 mt-2 ml-4 space-y-1">
+                  <ul className="text-sm text-red-700 mt-2 ml-4 space-y-1">
                 <li>• Remover todas as cartas dos usuários</li>
+                <li>• Deletar todas as cartas criadas no sistema</li>
                 <li>• Zerar moedas de todos os usuários (volta para 100)</li>
                 <li>• Limpar histórico de recompensas</li>
                 <li>• Cancelar todas as trocas pendentes</li>
@@ -163,6 +164,7 @@ export function SystemResetButton() {
                   </p>
                   <ul className="text-sm space-y-1 ml-4">
                     <li>✗ Remover todas as cartas dos usuários</li>
+                    <li>✗ Deletar todas as cartas criadas no sistema</li>
                     <li>✗ Zerar todas as moedas (volta para 100)</li>
                     <li>✗ Limpar histórico de recompensas</li>
                     <li>✗ Cancelar todas as trocas</li>
