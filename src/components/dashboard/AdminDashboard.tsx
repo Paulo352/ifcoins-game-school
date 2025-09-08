@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Users, BookOpen, Coins, TrendingUp, Calendar, Settings, Loader2 } from 'lucide-react';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { DailyCoinsConfig } from '@/components/admin/DailyCoinsConfig';
+import { SystemResetButton } from '@/components/admin/SystemResetButton';
 
 interface AdminDashboardProps {
   onSectionChange: (section: string) => void;
@@ -166,6 +167,9 @@ export function AdminDashboard({ onSectionChange }: AdminDashboardProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* System Reset Section */}
+      <SystemResetButton />
     </div>
   );
 }
