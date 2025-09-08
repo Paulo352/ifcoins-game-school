@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-const DAILY_LIMIT = 300; // Reduzido de 500 para 300
+const DAILY_LIMIT = 500;
 
 export function useTeacherDailyLimit() {
   const { profile } = useAuth();
