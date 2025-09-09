@@ -7,6 +7,7 @@ import { Profile } from '@/types/supabase';
 import { AdminStats } from '@/components/admin/AdminStats';
 import { GiveCoinsForm } from '@/components/admin/GiveCoinsForm';
 import { RecentRewards } from '@/components/admin/RecentRewards';
+import { RewardsHistoryReport } from '@/components/admin/RewardsHistoryReport';
 
 export function AdminGiveCoins() {
   const { profile } = useAuth();
@@ -66,10 +67,14 @@ export function AdminGiveCoins() {
 
       <AdminStats users={users} recentRewards={recentRewards} />
       
-      <GiveCoinsForm 
-        users={users} 
-        onSuccess={refetchUsers}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <GiveCoinsForm 
+          users={users} 
+          onSuccess={refetchUsers}
+        />
+        
+        <RewardsHistoryReport />
+      </div>
       
       <RecentRewards recentRewards={recentRewards} />
     </div>
