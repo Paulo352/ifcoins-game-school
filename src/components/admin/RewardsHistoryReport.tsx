@@ -64,6 +64,43 @@ export function RewardsHistoryReport() {
       const uniqueStudents = new Set(rewardLogs.map(log => log.student.name)).size;
       const uniqueTeachers = new Set(rewardLogs.map(log => log.teacher.name)).size;
 
+      // Análise de distribuição por professor
+      const teacherStats = rewardLogs.reduce((acc, log) => {
+        const teacherName = log.teacher.name;
+        const studentName = log.student.name;
+        
+        if (!acc[teacherName]) {
+          acc[teacherName] = {
+            totalCoins: 0,
+            totalTransactions: 0,
+            students: new Set(),
+            studentCoins: {}
+          };
+        }
+        
+        acc[teacherName].totalCoins += log.coins;
+        acc[teacherName].totalTransactions += 1;
+        acc[teacherName].students.add(studentName);
+        
+        if (!acc[teacherName].studentCoins[studentName]) {
+          acc[teacherName].studentCoins[studentName] = 0;
+        }
+        acc[teacherName].studentCoins[studentName] += log.coins;
+        
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Identificar padrões suspeitos
+      const suspiciousTeachers = Object.entries(teacherStats).filter(([_, stats]) => {
+        const studentsCount = stats.students.size;
+        const avgCoinsPerStudent = stats.totalCoins / studentsCount;
+        const studentCoinsList = Object.values(stats.studentCoins);
+        const maxCoinsToStudent = Math.max(...studentCoinsList as number[]);
+        
+        // Suspeito se: mais de 70% das moedas para menos de 30% dos alunos
+        return studentsCount > 1 && (maxCoinsToStudent / stats.totalCoins) > 0.7;
+      });
+
       doc.setFontSize(14);
       doc.text('Resumo Estatístico:', 20, 50);
       doc.setFontSize(10);
@@ -71,6 +108,39 @@ export function RewardsHistoryReport() {
       doc.text(`Total de transações: ${totalTransactions.toLocaleString('pt-BR')}`, 25, 67);
       doc.text(`Estudantes beneficiados: ${uniqueStudents.toLocaleString('pt-BR')}`, 25, 74);
       doc.text(`Professores participantes: ${uniqueTeachers.toLocaleString('pt-BR')}`, 25, 81);
+
+      // Análise de distribuição por professor
+      let currentY = 95;
+      doc.setFontSize(14);
+      doc.text('Análise de Distribuição por Professor:', 20, currentY);
+      currentY += 10;
+      
+      doc.setFontSize(10);
+      Object.entries(teacherStats).forEach(([teacherName, stats]) => {
+        const studentsCount = stats.students.size;
+        const avgCoinsPerStudent = Math.round(stats.totalCoins / studentsCount);
+        
+        // Top 3 alunos que mais receberam moedas deste professor
+        const topStudents = Object.entries(stats.studentCoins)
+          .sort(([,a], [,b]) => (b as number) - (a as number))
+          .slice(0, 3);
+        
+        doc.text(`${teacherName}:`, 25, currentY);
+        doc.text(`  • ${stats.totalCoins} moedas para ${studentsCount} alunos (média: ${avgCoinsPerStudent} por aluno)`, 30, currentY + 7);
+        doc.text(`  • Top alunos: ${topStudents.map(([name, coins]) => `${name} (${coins})`).join(', ')}`, 30, currentY + 14);
+        
+        // Indicar se é suspeito
+        const isSuspicious = suspiciousTeachers.some(([name]) => name === teacherName);
+        if (isSuspicious) {
+          doc.setTextColor(255, 0, 0);
+          doc.text(`  ⚠️ ATENÇÃO: Concentração alta de moedas em poucos alunos`, 30, currentY + 21);
+          doc.setTextColor(0, 0, 0);
+          currentY += 28;
+        } else {
+          currentY += 21;
+        }
+        currentY += 5;
+      });
 
       // Preparar dados para a tabela
       const tableData = rewardLogs.map(log => [
@@ -84,7 +154,7 @@ export function RewardsHistoryReport() {
 
       // Adicionar tabela
       autoTable(doc, {
-        startY: 95,
+        startY: currentY + 10,
         head: [['Data', 'Hora', 'Estudante', 'Professor', 'Moedas', 'Motivo']],
         body: tableData,
         styles: {
@@ -112,12 +182,13 @@ export function RewardsHistoryReport() {
       });
 
       // Adicionar rodapé com informações adicionais
-      const finalY = (doc as any).lastAutoTable.finalY || 95;
+      const finalY = (doc as any).lastAutoTable.finalY || currentY + 10;
       doc.setFontSize(8);
       doc.text('Observações:', 20, finalY + 20);
       doc.text('• Valores positivos (+) representam moedas dadas aos estudantes', 25, finalY + 27);
       doc.text('• Valores negativos (-) representam moedas retiradas dos estudantes', 25, finalY + 34);
       doc.text('• Este relatório contém todos os registros históricos do sistema', 25, finalY + 41);
+      doc.text('• ⚠️ Professores marcados podem ter distribuição concentrada em poucos alunos', 25, finalY + 48);
 
       // Salvar PDF
       const fileName = `IFPR_Cards_Historico_Moedas_${dateStr.replace(/\//g, '-')}_${timeStr.replace(/:/g, '-')}.pdf`;
@@ -141,22 +212,22 @@ export function RewardsHistoryReport() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Histórico de Moedas
+          Análise de Distribuição de Moedas
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Gere um relatório completo em PDF com todo o histórico de moedas distribuídas no sistema, 
-            incluindo informações detalhadas sobre estudantes, professores, datas e motivos.
+            incluindo análise de padrões suspeitos, distribuição por professor e informações detalhadas sobre favoristismo.
           </p>
           
           <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border">
             <Calendar className="h-4 w-4 text-blue-600" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-blue-900">Relatório Completo</p>
+              <p className="text-sm font-medium text-blue-900">Relatório Completo com Análise</p>
               <p className="text-xs text-blue-700">
-                Inclui todas as transações desde o início do sistema
+                Inclui detecção automática de padrões suspeitos e concentração de recompensas
               </p>
             </div>
           </div>
@@ -174,7 +245,7 @@ export function RewardsHistoryReport() {
             ) : (
               <>
                 <Download className="h-4 w-4" />
-                Baixar Histórico de Moedas (PDF)
+                Baixar Relatório de Análise de Moedas (PDF)
               </>
             )}
           </Button>
