@@ -1,0 +1,1 @@
+UPDATE admin_config SET config_value = 'true' WHERE config_key = 'maintenance_mode';
