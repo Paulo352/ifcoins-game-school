@@ -6,6 +6,7 @@ import { Users, BookOpen, Coins, TrendingUp, Calendar, Settings, Loader2 } from 
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { DailyCoinsConfig } from '@/components/admin/DailyCoinsConfig';
 import { SystemResetButton } from '@/components/admin/SystemResetButton';
+import { MaintenanceControl } from '@/components/admin/MaintenanceControl';
 
 interface AdminDashboardProps {
   onSectionChange: (section: string) => void;
@@ -167,6 +168,9 @@ export function AdminDashboard({ onSectionChange }: AdminDashboardProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Maintenance Control Section */}
+      <MaintenanceControl />
 
       {/* System Reset Section */}
       <SystemResetButton />
