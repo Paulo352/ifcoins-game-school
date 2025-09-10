@@ -55,6 +55,7 @@ const Index = () => {
         message={maintenanceStatus.message}
         scheduledAt={maintenanceStatus.scheduled_at}
         showEmailNotice={true}
+        showBackToLogin={true}
       />
     );
   }

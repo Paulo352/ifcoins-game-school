@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
@@ -8,11 +9,13 @@ import { AuthHeader } from './AuthHeader';
 import { LoginForm } from './LoginForm';
 import { RegistrationForm } from './RegistrationForm';
 import { TestAccountsInfo } from './TestAccountsInfo';
+import { MaintenanceScreen } from '@/components/maintenance/MaintenanceScreen';
 
 export function AuthPage() {
   const { loading } = useAuth();
+  const { status: maintenanceStatus } = useMaintenanceMode();
 
-  if (loading) {
+  if (loading || maintenanceStatus.loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
         <div className="flex flex-col items-center gap-4">
@@ -20,6 +23,18 @@ export function AuthPage() {
           <p className="text-primary">Carregando...</p>
         </div>
       </div>
+    );
+  }
+
+  // Verificar modo manutenção
+  if (maintenanceStatus.enabled) {
+    return (
+      <MaintenanceScreen 
+        message={maintenanceStatus.message}
+        scheduledAt={maintenanceStatus.scheduled_at}
+        showEmailNotice={true}
+        showBackToLogin={false}
+      />
     );
   }
 

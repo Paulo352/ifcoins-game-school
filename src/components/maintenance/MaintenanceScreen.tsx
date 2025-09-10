@@ -1,18 +1,28 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Mail, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, Mail, Clock, ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MaintenanceScreenProps {
   message: string;
   scheduledAt?: string;
   showEmailNotice?: boolean;
+  showBackToLogin?: boolean;
 }
 
 export function MaintenanceScreen({ 
   message, 
   scheduledAt, 
-  showEmailNotice = true 
+  showEmailNotice = true,
+  showBackToLogin = false
 }: MaintenanceScreenProps) {
+  const { signOut } = useAuth();
+
+  const handleBackToLogin = async () => {
+    await signOut();
+    window.location.reload();
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg text-center">
@@ -54,6 +64,17 @@ export function MaintenanceScreen({
           <p className="text-xs text-muted-foreground">
             Desculpe pelo transtorno. Estamos trabalhando para resolver o mais rápido possível.
           </p>
+
+          {showBackToLogin && (
+            <Button 
+              onClick={handleBackToLogin}
+              variant="outline"
+              className="w-full mt-4"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar ao Login
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>
