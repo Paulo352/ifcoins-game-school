@@ -95,7 +95,7 @@ export function Header({ onSectionChange, currentSection, activeSection }: Heade
               </Button>
             </DropdownMenuTrigger>
             
-            <DropdownMenuContent className="w-56 bg-popover border-border" align="end" forceMount>
+            <DropdownMenuContent className="w-56 bg-popover border-border z-50 shadow-lg" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none text-popover-foreground">
