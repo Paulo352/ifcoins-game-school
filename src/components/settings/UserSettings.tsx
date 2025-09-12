@@ -123,26 +123,26 @@ export function UserSettings() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto gap-1">
-          <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2">
-            <User className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Perfil</span>
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto">
+          <TabsTrigger value="profile" className="flex items-center gap-2 p-2 text-sm">
+            <User className="h-4 w-4" />
+            <span className="hidden md:inline">Perfil</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2">
-            <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Segurança</span>
+          <TabsTrigger value="security" className="flex items-center gap-2 p-2 text-sm">
+            <Lock className="h-4 w-4" />
+            <span className="hidden md:inline">Segurança</span>
           </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2">
-            <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Aparência</span>
+          <TabsTrigger value="appearance" className="flex items-center gap-2 p-2 text-sm">
+            <Palette className="h-4 w-4" />
+            <span className="hidden md:inline">Aparência</span>
           </TabsTrigger>
-          <TabsTrigger value="accessibility" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2">
-            <Accessibility className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Acessibilidade</span>
+          <TabsTrigger value="accessibility" className="flex items-center gap-2 p-2 text-sm">
+            <Accessibility className="h-4 w-4" />
+            <span className="hidden md:inline">Acessibilidade</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2">
-            <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Notificações</span>
+          <TabsTrigger value="notifications" className="flex items-center gap-2 p-2 text-sm">
+            <Bell className="h-4 w-4" />
+            <span className="hidden md:inline">Notificações</span>
           </TabsTrigger>
         </TabsList>
 
@@ -269,7 +269,7 @@ export function UserSettings() {
               <CardTitle>Tema da Interface</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {themeOptions.map((option) => {
                   const Icon = option.icon;
                   return (

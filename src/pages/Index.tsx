@@ -104,17 +104,32 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex w-full">
-      <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
-      <div className="flex-1 flex flex-col bg-background">
+    <div className="min-h-screen bg-background">
+      {/* Mobile Layout */}
+      <div className="lg:hidden flex flex-col min-h-screen">
         <Header 
           onSectionChange={setActiveSection} 
           currentSection={activeSection}
           activeSection={activeSection}
         />
-        <main className="flex-1 p-4 sm:p-6 bg-background overflow-auto">
+        <main className="flex-1 p-4 overflow-auto">
           {renderContent()}
         </main>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden lg:flex min-h-screen">
+        <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+        <div className="flex-1 flex flex-col">
+          <Header 
+            onSectionChange={setActiveSection} 
+            currentSection={activeSection}
+            activeSection={activeSection}
+          />
+          <main className="flex-1 p-6 overflow-auto">
+            {renderContent()}
+          </main>
+        </div>
       </div>
     </div>
   );

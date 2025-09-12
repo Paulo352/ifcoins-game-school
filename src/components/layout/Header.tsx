@@ -59,28 +59,36 @@ export function Header({ onSectionChange, currentSection, activeSection }: Heade
 
   return (
     <header className="border-b bg-card border-border">
-      <div className="container flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2 sm:gap-4">
-          <h1 className="text-lg sm:text-xl font-bold text-primary">
-            IFCoins
-          </h1>
+      <div className="flex h-14 items-center justify-between px-4">
+        {/* Logo e título */}
+        <div className="flex items-center gap-3">
+          <MobileSidebar 
+            activeSection={activeSection || currentSection || 'dashboard'} 
+            onSectionChange={onSectionChange || (() => {})} 
+          />
+          
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 lg:w-8 lg:h-8 bg-primary rounded-lg flex items-center justify-center lg:hidden">
+              <span className="text-primary-foreground font-bold text-xs lg:text-sm">IF</span>
+            </div>
+            <h1 className="text-lg lg:text-xl font-bold text-primary">
+              IFCoins
+            </h1>
+          </div>
           
           {profile.role !== 'student' && (
-            <span className="hidden sm:block text-sm text-muted-foreground">
+            <span className="hidden lg:block text-sm text-muted-foreground">
               • Painel {profile.role === 'admin' ? 'Administrativo' : 'do Professor'}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        {/* Ações do usuário */}
+        <div className="flex items-center gap-3">
+          {/* Moedas - mostrar sempre em mobile, esconder em telas muito pequenas */}
           <div className="hidden sm:block">
             <CoinBalance balance={profile.coins} />
           </div>
-          
-          <MobileSidebar 
-            activeSection={activeSection || currentSection || 'dashboard'} 
-            onSectionChange={onSectionChange || (() => {})} 
-          />
           
           <NotificationPanel />
           
