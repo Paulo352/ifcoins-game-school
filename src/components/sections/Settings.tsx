@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { UserSettings } from '@/components/settings/UserSettings';
 import { 
   Database, 
   Download, 
@@ -19,7 +21,8 @@ import {
   Settings as SettingsIcon,
   Power,
   Calendar,
-  Mail
+  Mail,
+  User
 } from 'lucide-react';
 
 export function Settings() {
@@ -171,11 +174,25 @@ export function Settings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Configurações Administrativas</h1>
+        <h1 className="text-3xl font-bold">Configurações</h1>
         <p className="text-muted-foreground mt-1">
-          Configure o sistema, gerenciar manutenção e executar tarefas administrativas
+          Gerencie configurações administrativas e pessoais do sistema
         </p>
       </div>
+
+      <Tabs defaultValue="admin" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="admin" className="flex items-center gap-2">
+            <SettingsIcon className="h-4 w-4" />
+            Configurações Administrativas
+          </TabsTrigger>
+          <TabsTrigger value="user" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Configurações Pessoais
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="admin" className="space-y-6">{/* Conteúdo administrativo */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Modo Manutenção */}
@@ -426,6 +443,12 @@ export function Settings() {
           </CardContent>
         </Card>
       </div>
+        </TabsContent>
+
+        <TabsContent value="user">
+          <UserSettings />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
