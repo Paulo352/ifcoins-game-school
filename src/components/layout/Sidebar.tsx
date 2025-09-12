@@ -52,7 +52,7 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
   );
 
   return (
-    <aside className="w-64 bg-sidebar-background border-r border-sidebar-border">
+    <aside className="hidden lg:block w-64 bg-sidebar-background border-r border-sidebar-border">
       <div className="flex flex-col h-full">
         <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-2">

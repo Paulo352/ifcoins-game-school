@@ -181,26 +181,26 @@ export function Settings() {
       </div>
 
       <Tabs defaultValue="admin" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="admin" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 h-auto">
+          <TabsTrigger value="admin" className="flex items-center gap-2 text-sm">
             <SettingsIcon className="h-4 w-4" />
-            Configurações Administrativas
+            <span className="hidden sm:inline">Configurações </span>Administrativas
           </TabsTrigger>
-          <TabsTrigger value="user" className="flex items-center gap-2">
+          <TabsTrigger value="user" className="flex items-center gap-2 text-sm">
             <User className="h-4 w-4" />
-            Configurações Pessoais
+            <span className="hidden sm:inline">Configurações </span>Pessoais
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="admin" className="space-y-6">{/* Conteúdo administrativo */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Modo Manutenção */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Power className="h-5 w-5" />
-              Modo Manutenção
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <Power className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="truncate">Modo Manutenção</span>
               {maintenanceStatus.enabled && (
                 <span className="bg-destructive text-destructive-foreground px-2 py-1 rounded-full text-xs">
                   ATIVO
@@ -209,7 +209,7 @@ export function Settings() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {maintenanceStatus.enabled 
                 ? 'Sistema atualmente em modo manutenção. Usuários não conseguem fazer login.'
                 : 'Ativar modo manutenção impede login de estudantes e professores.'

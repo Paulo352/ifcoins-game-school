@@ -107,8 +107,12 @@ const Index = () => {
     <div className="min-h-screen bg-background flex w-full">
       <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
       <div className="flex-1 flex flex-col bg-background">
-        <Header onSectionChange={setActiveSection} currentSection={activeSection} />
-        <main className="flex-1 p-6 bg-background">
+        <Header 
+          onSectionChange={setActiveSection} 
+          currentSection={activeSection}
+          activeSection={activeSection}
+        />
+        <main className="flex-1 p-4 sm:p-6 bg-background overflow-auto">
           {renderContent()}
         </main>
       </div>

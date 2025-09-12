@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { NotificationPanel } from '@/components/notifications/NotificationPanel';
 import { CoinBalance } from '@/components/ui/coin-balance';
+import { MobileSidebar } from './MobileSidebar';
 import { 
   Settings, 
   LogOut, 
@@ -25,9 +26,10 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 interface HeaderProps {
   onSectionChange?: (section: string) => void;
   currentSection?: string;
+  activeSection?: string;
 }
 
-export function Header({ onSectionChange, currentSection }: HeaderProps) {
+export function Header({ onSectionChange, currentSection, activeSection }: HeaderProps) {
   const { profile, signOut } = useAuth();
   const { addNotification } = useNotifications();
 
@@ -57,21 +59,28 @@ export function Header({ onSectionChange, currentSection }: HeaderProps) {
 
   return (
     <header className="border-b bg-card border-border">
-      <div className="container flex h-14 items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold text-primary">
+      <div className="container flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <h1 className="text-lg sm:text-xl font-bold text-primary">
             IFCoins
           </h1>
           
           {profile.role !== 'student' && (
-            <span className="text-sm text-muted-foreground">
+            <span className="hidden sm:block text-sm text-muted-foreground">
               • Painel {profile.role === 'admin' ? 'Administrativo' : 'do Professor'}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-4">
-          <CoinBalance balance={profile.coins} />
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="hidden sm:block">
+            <CoinBalance balance={profile.coins} />
+          </div>
+          
+          <MobileSidebar 
+            activeSection={activeSection || currentSection || 'dashboard'} 
+            onSectionChange={onSectionChange || (() => {})} 
+          />
           
           <NotificationPanel />
           

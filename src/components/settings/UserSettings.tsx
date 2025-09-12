@@ -123,26 +123,26 @@ export function UserSettings() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Perfil
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto gap-1">
+          <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2">
+            <User className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Perfil</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Lock className="h-4 w-4" />
-            Segurança
+          <TabsTrigger value="security" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2">
+            <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Segurança</span>
           </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2">
-            <Palette className="h-4 w-4" />
-            Aparência
+          <TabsTrigger value="appearance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2">
+            <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Aparência</span>
           </TabsTrigger>
-          <TabsTrigger value="accessibility" className="flex items-center gap-2">
-            <Accessibility className="h-4 w-4" />
-            Acessibilidade
+          <TabsTrigger value="accessibility" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2">
+            <Accessibility className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Acessibilidade</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            Notificações
+          <TabsTrigger value="notifications" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2">
+            <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Notificações</span>
           </TabsTrigger>
         </TabsList>
 
@@ -152,7 +152,7 @@ export function UserSettings() {
               <CardTitle>Informações do Perfil</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="name">Nome Completo</Label>
                   <Input
@@ -269,7 +269,7 @@ export function UserSettings() {
               <CardTitle>Tema da Interface</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {themeOptions.map((option) => {
                   const Icon = option.icon;
                   return (
