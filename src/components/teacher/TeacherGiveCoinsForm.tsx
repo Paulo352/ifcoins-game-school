@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Coins, Award } from 'lucide-react';
+import { Coins, Award, Calendar, Star } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateCoins } from '@/hooks/useUpdateCoins';
 import { useTeacherDailyLimit } from '@/hooks/useTeacherDailyLimit';
+import { useActiveEvent } from '@/hooks/useActiveEvent';
 import { Badge } from '@/components/ui/badge';
 
 interface TeacherGiveCoinsFormProps {
@@ -21,8 +22,9 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
   const [selectedStudentEmail, setSelectedStudentEmail] = useState('');
   const [coinsAmount, setCoinsAmount] = useState('');
   const [reason, setReason] = useState('');
-  const { giveCoins, loading } = useUpdateCoins();
+  const { giveCoins, loading, calculateBonusCoins } = useUpdateCoins();
   const { dailyCoins, dailyLimit, refetch: refetchLimit } = useTeacherDailyLimit();
+  const { activeEvent, multiplier, hasActiveEvent } = useActiveEvent();
 
   const handleGiveCoins = async () => {
     if (!selectedStudentEmail || !coinsAmount || !reason) {
@@ -80,12 +82,32 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
         </CardTitle>
         <CardDescription className="flex items-center justify-between">
           <span>Recompense estudantes por bom comportamento e participação</span>
-          <Badge variant="secondary" className="text-xs">
-            {dailyCoins}/{dailyLimit} moedas hoje
-          </Badge>
+          <div className="flex gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {dailyCoins}/{dailyLimit} moedas hoje
+            </Badge>
+            {hasActiveEvent && (
+              <Badge variant="default" className="bg-purple-600 text-xs">
+                <Calendar className="h-3 w-3 mr-1" />
+                Evento: {multiplier}x
+              </Badge>
+            )}
+          </div>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Event Active Notice */}
+        {hasActiveEvent && (
+          <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+            <div className="flex items-center gap-2 text-purple-700">
+              <Star className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                Evento "{activeEvent?.name}" ativo - Bônus {multiplier}x aplicado automaticamente!
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="student">Email do Estudante</Label>
@@ -105,7 +127,14 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
             </datalist>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="coins">Quantidade de Moedas (1-50)</Label>
+            <Label htmlFor="coins">
+              Quantidade de Moedas (1-50)
+              {hasActiveEvent && coinsAmount && (
+                <span className="text-purple-600 font-medium ml-1">
+                  → {calculateBonusCoins(parseInt(coinsAmount))} com bônus {multiplier}x
+                </span>
+              )}
+            </Label>
             <Input
               id="coins"
               type="number"

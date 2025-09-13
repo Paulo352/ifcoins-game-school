@@ -2,9 +2,11 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useActiveEvent } from '@/hooks/useActiveEvent';
 
 export function useUpdateCoins() {
   const [loading, setLoading] = useState(false);
+  const { calculateBonusCoins, activeEvent } = useActiveEvent();
 
   const updateUserCoins = async (userId: string, amount: number) => {
     setLoading(true);
@@ -31,7 +33,9 @@ export function useUpdateCoins() {
     teacherId: string,
     userName: string
   ) => {
-    const success = await updateUserCoins(userId, amount);
+    // Apply event bonus multiplier
+    const finalAmount = calculateBonusCoins(amount);
+    const success = await updateUserCoins(userId, finalAmount);
     
     if (success) {
       try {
@@ -41,15 +45,17 @@ export function useUpdateCoins() {
           .insert({
             teacher_id: teacherId,
             student_id: userId,
-            coins: amount,
-            reason: reason
+            coins: finalAmount,
+            reason: activeEvent ? `${reason} (Evento: ${activeEvent.name} - ${activeEvent.bonus_multiplier}x)` : reason
           });
 
         if (logError) throw logError;
 
         toast({
           title: "Moedas entregues!",
-          description: `${amount} IFCoins foram dados para ${userName}`,
+          description: activeEvent 
+            ? `${finalAmount} IFCoins foram dados para ${userName} (${amount} x ${activeEvent.bonus_multiplier} - ${activeEvent.name})`
+            : `${finalAmount} IFCoins foram dados para ${userName}`,
         });
         
         return true;
@@ -75,6 +81,8 @@ export function useUpdateCoins() {
   return {
     giveCoins,
     updateUserCoins,
-    loading
+    loading,
+    activeEvent,
+    calculateBonusCoins
   };
 }

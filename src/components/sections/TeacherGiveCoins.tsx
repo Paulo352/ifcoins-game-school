@@ -9,10 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Coins, AlertTriangle, Lightbulb, Ban } from 'lucide-react';
+import { Coins, AlertTriangle, Lightbulb, Ban, Calendar, Star } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateCoins } from '@/hooks/useUpdateCoins';
 import { useTeacherDailyLimit } from '@/hooks/useTeacherDailyLimit';
+import { useActiveEvent } from '@/hooks/useActiveEvent';
 import { Profile } from '@/types/supabase';
 
 export function TeacherGiveCoins() {
@@ -20,8 +21,9 @@ export function TeacherGiveCoins() {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [coinsAmount, setCoinsAmount] = useState('');
   const [reason, setReason] = useState('');
-  const { giveCoins, loading } = useUpdateCoins();
+  const { giveCoins, loading, calculateBonusCoins } = useUpdateCoins();
   const { dailyCoins, remainingCoins, canGiveSpecialCoins, limitReached, dailyLimit, refetch: refetchLimit } = useTeacherDailyLimit();
+  const { activeEvent, multiplier, hasActiveEvent } = useActiveEvent();
 
   const { data: students, refetch } = useQuery({
     queryKey: ['all-students'],
@@ -132,6 +134,12 @@ export function TeacherGiveCoins() {
           <Badge variant={limitReached ? "destructive" : "secondary"}>
             {dailyCoins}/{dailyLimit} moedas hoje
           </Badge>
+          {hasActiveEvent && (
+            <Badge variant="default" className="bg-purple-600">
+              <Calendar className="h-3 w-3 mr-1" />
+              Evento: {activeEvent?.name} ({multiplier}x)
+            </Badge>
+          )}
           {limitReached && (
             <Badge variant="outline" className="text-red-600">
               <Ban className="h-3 w-3 mr-1" />
@@ -140,6 +148,26 @@ export function TeacherGiveCoins() {
           )}
         </div>
       </div>
+
+      {/* Active Event Notice */}
+      {hasActiveEvent && (
+        <Card className="border-purple-200 bg-purple-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <Star className="h-5 w-5 text-purple-600 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-purple-900">🎉 Evento Ativo - Bônus {multiplier}x</h3>
+                <p className="text-sm text-purple-700 mt-1">
+                  <strong>{activeEvent?.name}</strong> está ativo! Todas as moedas dadas serão multiplicadas por {multiplier}x automaticamente.
+                </p>
+                <p className="text-xs text-purple-600 mt-1">
+                  Período: {new Date(activeEvent?.start_date || '').toLocaleDateString('pt-BR')} até {new Date(activeEvent?.end_date || '').toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Warning or Limit Notice */}
       {limitReached ? (
@@ -211,6 +239,11 @@ export function TeacherGiveCoins() {
             <div className="space-y-2">
               <Label htmlFor="coins">
                 Quantidade de Moedas (máximo {Math.min(500, remainingCoins)})
+                {hasActiveEvent && (
+                  <span className="text-purple-600 font-medium ml-1">
+                    → {coinsAmount ? calculateBonusCoins(parseInt(coinsAmount)) : '0'} com bônus {multiplier}x
+                  </span>
+                )}
               </Label>
               <Input
                 id="coins"
@@ -245,15 +278,30 @@ export function TeacherGiveCoins() {
 
           {/* Preview */}
           {selectedStudent && coinsAmount && reason && (
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-              <h4 className="font-medium text-green-900 mb-2">Preview da Recompensa</h4>
-              <p className="text-sm text-green-700">
+            <div className={`p-4 rounded-lg border ${hasActiveEvent ? 'bg-purple-50 border-purple-200' : 'bg-green-50 border-green-200'}`}>
+              <h4 className={`font-medium mb-2 ${hasActiveEvent ? 'text-purple-900' : 'text-green-900'}`}>
+                Preview da Recompensa {hasActiveEvent && '🎉'}
+              </h4>
+              <p className={`text-sm ${hasActiveEvent ? 'text-purple-700' : 'text-green-700'}`}>
                 <strong>{selectedStudent.name}</strong> receberá{' '}
-                <strong>{coinsAmount} IFCoins</strong> por: <em>{reason}</em>
+                {hasActiveEvent ? (
+                  <>
+                    <strong className="text-purple-800">{calculateBonusCoins(parseInt(coinsAmount))} IFCoins</strong>
+                    <span className="text-purple-600"> ({coinsAmount} x {multiplier} do evento)</span>
+                  </>
+                ) : (
+                  <strong>{coinsAmount} IFCoins</strong>
+                )}
+                {' '}por: <em>{reason}</em>
               </p>
-              <p className="text-xs text-green-600 mt-1">
-                Saldo atual: {selectedStudent.coins} → Novo saldo: {selectedStudent.coins + parseInt(coinsAmount)}
+              <p className={`text-xs mt-1 ${hasActiveEvent ? 'text-purple-600' : 'text-green-600'}`}>
+                Saldo atual: {selectedStudent.coins} → Novo saldo: {selectedStudent.coins + (hasActiveEvent ? calculateBonusCoins(parseInt(coinsAmount)) : parseInt(coinsAmount))}
               </p>
+              {hasActiveEvent && (
+                <p className="text-xs text-purple-500 mt-1">
+                  ✨ Bônus aplicado automaticamente pelo evento "{activeEvent?.name}"
+                </p>
+              )}
             </div>
           )}
 
