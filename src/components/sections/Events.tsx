@@ -18,6 +18,7 @@ export function Events() {
     loading,
     createEvent,
     updateEvent,
+    deactivateEvent,
     deleteEvent
   } = useEventManagement();
   
@@ -54,6 +55,12 @@ export function Events() {
       setEditingEvent(null);
     }
     return success;
+  };
+
+  const handleDeactivateEvent = async (eventId: string) => {
+    if (window.confirm('Tem certeza que deseja desativar este evento?')) {
+      await deactivateEvent(eventId);
+    }
   };
 
   const handleDeleteEvent = async (eventId: string) => {
@@ -112,6 +119,7 @@ export function Events() {
             isAdmin={isAdmin}
             onEdit={handleEditEvent}
             onDelete={handleDeleteEvent}
+            onDeactivate={handleDeactivateEvent}
           />
         </TabsContent>
         

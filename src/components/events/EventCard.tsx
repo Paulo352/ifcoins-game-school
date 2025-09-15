@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Edit, Trash2, Trophy } from 'lucide-react';
+import { Calendar, Edit, Trash2, Trophy, StopCircle } from 'lucide-react';
 import { Event } from '@/types/supabase';
 
 interface EventCardProps {
@@ -10,9 +10,10 @@ interface EventCardProps {
   isAdmin: boolean;
   onEdit: (event: Event) => void;
   onDelete: (eventId: string) => void;
+  onDeactivate: (eventId: string) => void;
 }
 
-export function EventCard({ event, isAdmin, onEdit, onDelete }: EventCardProps) {
+export function EventCard({ event, isAdmin, onEdit, onDelete, onDeactivate }: EventCardProps) {
   const getEventStatus = (startDate: string, endDate: string) => {
     const now = new Date();
     const start = new Date(startDate);
@@ -58,6 +59,11 @@ export function EventCard({ event, isAdmin, onEdit, onDelete }: EventCardProps) 
               <Button variant="ghost" size="sm" onClick={() => onEdit(event)}>
                 <Edit className="h-4 w-4" />
               </Button>
+              {status === 'active' && (
+                <Button variant="ghost" size="sm" onClick={() => onDeactivate(event.id)}>
+                  <StopCircle className="h-4 w-4 text-orange-500" />
+                </Button>
+              )}
               <Button variant="ghost" size="sm" onClick={() => onDelete(event.id)}>
                 <Trash2 className="h-4 w-4 text-red-500" />
               </Button>

@@ -101,6 +101,42 @@ export function useEventManagement() {
     }
   };
 
+  const deactivateEvent = async (eventId: string) => {
+    setLoading(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data, error } = await supabase.rpc('update_event', {
+        event_id: eventId,
+        name: events?.find(e => e.id === eventId)?.name || '',
+        description: events?.find(e => e.id === eventId)?.description || '',
+        start_date: events?.find(e => e.id === eventId)?.start_date || today,
+        end_date: today,
+        bonus_multiplier: events?.find(e => e.id === eventId)?.bonus_multiplier || 1
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Sucesso",
+        description: "Evento desativado com sucesso!",
+      });
+
+      refetch();
+      return true;
+    } catch (error) {
+      console.error('Erro ao desativar evento:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível desativar o evento",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const deleteEvent = async (eventId: string) => {
     setLoading(true);
     try {
@@ -136,6 +172,7 @@ export function useEventManagement() {
     loading,
     createEvent,
     updateEvent,
+    deactivateEvent,
     deleteEvent,
     refetch
   };

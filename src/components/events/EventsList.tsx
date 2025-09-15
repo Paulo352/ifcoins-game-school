@@ -10,9 +10,10 @@ interface EventsListProps {
   isAdmin: boolean;
   onEdit: (event: Event) => void;
   onDelete: (eventId: string) => void;
+  onDeactivate: (eventId: string) => void;
 }
 
-export function EventsList({ events, isLoading, isAdmin, onEdit, onDelete }: EventsListProps) {
+export function EventsList({ events, isLoading, isAdmin, onEdit, onDelete, onDeactivate }: EventsListProps) {
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -43,6 +44,7 @@ export function EventsList({ events, isLoading, isAdmin, onEdit, onDelete }: Eve
           isAdmin={isAdmin}
           onEdit={onEdit}
           onDelete={onDelete}
+          onDeactivate={onDeactivate}
         />
       ))}
     </div>
