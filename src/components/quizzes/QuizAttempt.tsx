@@ -35,6 +35,8 @@ export function QuizAttempt({ quiz, userId, onComplete }: QuizAttemptProps) {
   const answerQuestion = useAnswerQuestion();
   const completeQuiz = useCompleteQuiz();
 
+  console.log('QuizAttempt - Quiz:', quiz.id, 'UserId:', userId, 'Questions:', questions?.length);
+
   // Timer effect
   useEffect(() => {
     if (quiz.time_limit_minutes && timeLeft !== null && timeLeft > 0 && quizStarted) {
@@ -53,7 +55,17 @@ export function QuizAttempt({ quiz, userId, onComplete }: QuizAttemptProps) {
   }, [timeLeft, quizStarted, quiz.time_limit_minutes]);
 
   const handleStartQuiz = async () => {
-    if (!questions?.length) return;
+    if (!questions?.length) {
+      console.error('Nenhuma pergunta encontrada para o quiz');
+      return;
+    }
+
+    if (!userId) {
+      console.error('UserId não fornecido');
+      return;
+    }
+
+    console.log('Tentando iniciar quiz:', { quizId: quiz.id, userId, questionsCount: questions.length });
 
     try {
       const attempt = await startAttempt.mutateAsync({
@@ -62,6 +74,7 @@ export function QuizAttempt({ quiz, userId, onComplete }: QuizAttemptProps) {
         totalQuestions: questions.length
       });
       
+      console.log('Quiz iniciado com sucesso:', attempt);
       setAttemptId(attempt.id);
       setQuizStarted(true);
       

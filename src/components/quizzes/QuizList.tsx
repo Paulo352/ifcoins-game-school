@@ -10,15 +10,29 @@ interface QuizListProps {
 }
 
 export function QuizList({ onStartQuiz }: QuizListProps) {
-  const { profile } = useAuth();
+  const { profile, user, loading: authLoading } = useAuth();
   const { data: quizzes, isLoading } = useActiveQuizzes();
   const { data: userAttempts } = useUserAttempts(profile?.id);
 
-  if (isLoading) {
+  console.log('QuizList - Profile:', profile, 'User:', user, 'Auth Loading:', authLoading);
+
+  if (isLoading || authLoading) {
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
+    );
+  }
+
+  if (!profile || !user) {
+    return (
+      <Card>
+        <CardContent className="text-center py-12">
+          <p className="text-muted-foreground">
+            Você precisa estar logado para acessar os quizzes.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 

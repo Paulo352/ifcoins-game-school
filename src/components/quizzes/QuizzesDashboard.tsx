@@ -6,8 +6,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HelpCircle, Settings } from 'lucide-react';
 
 export function QuizzesDashboard() {
-  const { profile } = useAuth();
+  const { profile, user, loading: authLoading } = useAuth();
   const isAdminOrTeacher = profile?.role === 'admin' || profile?.role === 'teacher';
+
+  console.log('QuizzesDashboard - Profile:', profile, 'User:', user, 'AuthLoading:', authLoading);
+
+  if (authLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user || !profile) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Você precisa estar logado para acessar os quizzes.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

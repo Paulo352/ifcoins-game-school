@@ -211,6 +211,8 @@ export function useStartQuizAttempt() {
       userId: string; 
       totalQuestions: number;
     }) => {
+      console.log('Iniciando quiz attempt:', { quizId, userId, totalQuestions });
+      
       const { data, error } = await supabase
         .from('quiz_attempts')
         .insert([{
@@ -221,10 +223,16 @@ export function useStartQuizAttempt() {
         .select()
         .single();
       
-      if (error) throw error;
+      console.log('Resultado insert attempt:', { data, error });
+      
+      if (error) {
+        console.error('Erro detalhado ao inserir attempt:', error);
+        throw error;
+      }
       return data as QuizAttempt;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Quiz attempt criado com sucesso:', data);
       queryClient.invalidateQueries({ queryKey: ['user-attempts'] });
     },
     onError: (error) => {
