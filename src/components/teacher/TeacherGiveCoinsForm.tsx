@@ -78,7 +78,7 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Award className="h-5 w-5" />
-          Dar Moedas IFCoins
+          Atribuir Moedas IFCoins
         </CardTitle>
         <CardDescription className="flex items-center justify-between">
           <span>Recompense estudantes por bom comportamento e participação</span>
@@ -162,7 +162,7 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
           disabled={loading}
         >
           <Coins className="h-4 w-4 mr-2" />
-          {loading ? 'Dando Moedas...' : 'Dar Moedas'}
+          {loading ? 'Atribuindo Moedas...' : 'Atribuir Moedas'}
         </Button>
       </CardContent>
     </Card>

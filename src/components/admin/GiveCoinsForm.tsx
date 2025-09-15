@@ -61,7 +61,7 @@ export function GiveCoinsForm({ users, onSuccess }: GiveCoinsFormProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Coins className="h-5 w-5" />
-          Dar Moedas IFCoins
+          Creditar Moedas IFCoins
         </CardTitle>
         <CardDescription>
           <div className="flex items-center justify-between">
@@ -144,7 +144,7 @@ export function GiveCoinsForm({ users, onSuccess }: GiveCoinsFormProps) {
           disabled={loading}
         >
           <Coins className="h-4 w-4 mr-2" />
-          {loading ? 'Processando...' : 'Dar Moedas'}
+          {loading ? 'Processando...' : 'Creditar Moedas'}
         </Button>
       </CardContent>
     </Card>
