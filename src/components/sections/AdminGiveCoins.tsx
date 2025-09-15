@@ -49,7 +49,7 @@ export function AdminGiveCoins() {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold mb-4">Acesso Negado</h2>
-        <p className="text-gray-600">Apenas administradores podem dar moedas.</p>
+        <p className="text-gray-600">Apenas administradores podem creditar moedas.</p>
       </div>
     );
   }
@@ -58,7 +58,7 @@ export function AdminGiveCoins() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">
-          Dar Moedas IFCoins
+          Creditar Moedas IFCoins
         </h1>
         <p className="text-gray-600 mt-1">
           Recompense usuários com moedas IFCoins

@@ -5,8 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Users, BookOpen, Coins, TrendingUp, Calendar, Settings, Loader2 } from 'lucide-react';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { DailyCoinsConfig } from '@/components/admin/DailyCoinsConfig';
-import { SystemResetButton } from '@/components/admin/SystemResetButton';
-import { MaintenanceControl } from '@/components/admin/MaintenanceControl';
 
 interface AdminDashboardProps {
   onSectionChange: (section: string) => void;
@@ -92,10 +90,10 @@ export function AdminDashboard({ onSectionChange }: AdminDashboardProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Coins className="h-5 w-5 text-yellow-600" />
-              Dar Moedas
+              Creditar Moedas
             </CardTitle>
             <CardDescription>
-              Dar moedas para estudantes e professores
+              Creditar moedas para estudantes e professores
             </CardDescription>
           </CardHeader>
         </Card>
@@ -168,12 +166,6 @@ export function AdminDashboard({ onSectionChange }: AdminDashboardProps) {
           </CardContent>
         </Card>
       </div>
-
-      {/* Maintenance Control Section */}
-      <MaintenanceControl />
-
-      {/* System Reset Section */}
-      <SystemResetButton />
     </div>
   );
 }

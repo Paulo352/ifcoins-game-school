@@ -11,6 +11,7 @@ import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { UserSettings } from '@/components/settings/UserSettings';
+import { SystemResetButton } from '@/components/admin/SystemResetButton';
 import { 
   Database, 
   Download, 
@@ -443,6 +444,9 @@ export function Settings() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Zona de Perigo */}
+      <SystemResetButton />
         </TabsContent>
 
         <TabsContent value="user">
