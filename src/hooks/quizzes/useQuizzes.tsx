@@ -271,20 +271,26 @@ export function useAnswerQuestion() {
       
       if (error) throw error;
 
-      // Atualizar pontuação da tentativa manualmente
-      const { data: currentAttempt, error: fetchError } = await supabase
-        .from('quiz_attempts')
-        .select('score')
-        .eq('id', attemptId)
-        .single();
+      // Atualizar pontuação da tentativa usando a função criada
+      const { error: updateError } = await supabase.rpc('update_quiz_score', {
+        attempt_id: attemptId,
+        points_to_add: pointsEarned
+      });
 
-      if (!fetchError && currentAttempt) {
-        const { error: updateError } = await supabase
+      if (updateError) {
+        // Fallback: atualizar manualmente
+        const { data: currentAttempt, error: fetchError } = await supabase
           .from('quiz_attempts')
-          .update({ score: currentAttempt.score + pointsEarned })
-          .eq('id', attemptId);
+          .select('score')
+          .eq('id', attemptId)
+          .single();
 
-        if (updateError) throw updateError;
+        if (!fetchError && currentAttempt) {
+          await supabase
+            .from('quiz_attempts')
+            .update({ score: currentAttempt.score + pointsEarned })
+            .eq('id', attemptId);
+        }
       }
       
       return { ...data, isCorrect, pointsEarned };

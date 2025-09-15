@@ -870,6 +870,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_quiz_score: {
+        Args: { attempt_id: string; points_to_add: number }
+        Returns: undefined
+      }
       update_user_coins: {
         Args: { amount: number; user_id: string }
         Returns: undefined

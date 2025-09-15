@@ -12,8 +12,16 @@ import {
   Settings,
   Gift,
   Vote,
-import { HelpCircle } from 'lucide-react';
+  Bot,
+  HelpCircle
+} from 'lucide-react';
 
+interface SidebarItem {
+  icon: React.ElementType;
+  label: string;
+  id: string;
+  roles: ('student' | 'teacher' | 'admin')[];
+}
 const sidebarItems: SidebarItem[] = [
   { icon: Home, label: 'Início', id: 'dashboard', roles: ['student', 'teacher', 'admin'] },
   { icon: Coins, label: 'Dar Moedas', id: 'give-coins', roles: ['teacher', 'admin'] },
