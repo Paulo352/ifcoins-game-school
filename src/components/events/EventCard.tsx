@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Edit, Trash2, Trophy, StopCircle } from 'lucide-react';
+import { Calendar, Edit, Trash2, Trophy, StopCircle, Gift } from 'lucide-react';
 import { Event } from '@/types/supabase';
 
 interface EventCardProps {
@@ -81,6 +81,12 @@ export function EventCard({ event, isAdmin, onEdit, onDelete, onDeactivate }: Ev
             <Trophy className="h-4 w-4 text-ifpr-green" />
             <span className="font-semibold text-ifpr-green">{event.bonus_multiplier}x moedas</span>
           </div>
+          {(event as any).bonus_coins && (event as any).bonus_coins > 0 && (
+            <div className="flex items-center gap-2">
+              <Gift className="h-4 w-4 text-yellow-500" />
+              <span className="font-semibold text-yellow-600">+{(event as any).bonus_coins} moedas bonus</span>
+            </div>
+          )}
           {event.description && (
             <p className="text-sm text-gray-600">{event.description}</p>
           )}

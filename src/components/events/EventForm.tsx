@@ -15,6 +15,7 @@ interface EventFormProps {
     start_date: string;
     end_date: string;
     bonus_multiplier: number;
+    bonus_coins?: number;
   }) => Promise<boolean>;
   onCancel: () => void;
   loading: boolean;
@@ -26,7 +27,8 @@ export function EventForm({ event, onSubmit, onCancel, loading }: EventFormProps
     description: '',
     start_date: '',
     end_date: '',
-    bonus_multiplier: 1
+    bonus_multiplier: 1,
+    bonus_coins: 0
   });
 
   useEffect(() => {
@@ -36,7 +38,8 @@ export function EventForm({ event, onSubmit, onCancel, loading }: EventFormProps
         description: event.description || '',
         start_date: event.start_date,
         end_date: event.end_date,
-        bonus_multiplier: event.bonus_multiplier
+        bonus_multiplier: event.bonus_multiplier,
+        bonus_coins: (event as any).bonus_coins || 0
       });
     } else {
       setFormData({
@@ -44,7 +47,8 @@ export function EventForm({ event, onSubmit, onCancel, loading }: EventFormProps
         description: '',
         start_date: '',
         end_date: '',
-        bonus_multiplier: 1
+        bonus_multiplier: 1,
+        bonus_coins: 0
       });
     }
   }, [event]);
@@ -64,7 +68,8 @@ export function EventForm({ event, onSubmit, onCancel, loading }: EventFormProps
           description: '',
           start_date: '',
           end_date: '',
-          bonus_multiplier: 1
+          bonus_multiplier: 1,
+          bonus_coins: 0
         });
       }
     }
@@ -122,6 +127,21 @@ export function EventForm({ event, onSubmit, onCancel, loading }: EventFormProps
               value={formData.bonus_multiplier}
               onChange={(e) => setFormData({...formData, bonus_multiplier: parseFloat(e.target.value)})}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="bonus_coins">Bonus de Moedas (opcional)</Label>
+            <Input
+              id="bonus_coins"
+              type="number"
+              min="0"
+              value={formData.bonus_coins}
+              onChange={(e) => setFormData({...formData, bonus_coins: parseInt(e.target.value) || 0})}
+              placeholder="0"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Moedas que serão distribuídas para todos os estudantes quando o evento for ativado
+            </p>
           </div>
           
           <div>

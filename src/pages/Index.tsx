@@ -18,10 +18,13 @@ import { NewManageCards } from '@/components/cards/NewManageCards';
 import { Rankings } from '@/components/sections/Rankings';
 import { Events } from '@/components/sections/Events';
 import { ManageStudents } from '@/components/sections/ManageStudents';
+import { ManagePacks } from '@/components/packs/ManagePacks';
+import { ManageQuizzes } from '@/components/quizzes/ManageQuizzes';
 import { NewCollection } from '@/components/cards/NewCollection';
 import { Settings } from '@/components/sections/Settings';
 import { Polls } from '@/components/sections/Polls';
 import { Quizzes } from '@/components/sections/Quizzes';
+import { QuizzesDashboard } from '@/components/quizzes/QuizzesDashboard';
 import { AITutor } from '@/components/sections/AITutor';
 import { useLocation } from 'react-router-dom';
 
@@ -98,8 +101,12 @@ const Index = () => {
         return <ManageStudents />;
       case 'manage-cards':
         return <NewManageCards />;
+      case 'manage-packs':
+        return <ManagePacks />;
+      case 'manage-quizzes':
+        return <ManageQuizzes />;
       case 'quizzes':
-        return <Quizzes />;
+        return <QuizzesDashboard />;
       case 'settings':
         if (profile.role === 'admin') return <Settings />;
         return <UserSettings />;

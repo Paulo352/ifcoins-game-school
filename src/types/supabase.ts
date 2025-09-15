@@ -54,6 +54,7 @@ export interface Event {
   start_date: string;
   end_date: string;
   bonus_multiplier: number;
+  bonus_coins?: number;
   description?: string;
   created_at: string;
   updated_at: string;

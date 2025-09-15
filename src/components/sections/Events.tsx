@@ -19,7 +19,8 @@ export function Events() {
     createEvent,
     updateEvent,
     deactivateEvent,
-    deleteEvent
+    deleteEvent,
+    giveEventBonus
   } = useEventManagement();
   
   const [isCreating, setIsCreating] = useState(false);
@@ -33,6 +34,7 @@ export function Events() {
     start_date: string;
     end_date: string;
     bonus_multiplier: number;
+    bonus_coins?: number;
   }) => {
     const success = await createEvent(eventData);
     if (success) {
@@ -47,6 +49,7 @@ export function Events() {
     start_date: string;
     end_date: string;
     bonus_multiplier: number;
+    bonus_coins?: number;
   }) => {
     if (!editingEvent) return false;
     
@@ -120,6 +123,8 @@ export function Events() {
             onEdit={handleEditEvent}
             onDelete={handleDeleteEvent}
             onDeactivate={handleDeactivateEvent}
+            onGiveBonus={giveEventBonus}
+            loading={loading}
           />
         </TabsContent>
         

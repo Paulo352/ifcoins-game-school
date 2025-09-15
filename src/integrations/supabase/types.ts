@@ -120,6 +120,7 @@ export type Database = {
       }
       events: {
         Row: {
+          bonus_coins: number | null
           bonus_multiplier: number
           created_at: string | null
           description: string | null
@@ -130,6 +131,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          bonus_coins?: number | null
           bonus_multiplier?: number
           created_at?: string | null
           description?: string | null
@@ -140,6 +142,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          bonus_coins?: number | null
           bonus_multiplier?: number
           created_at?: string | null
           description?: string | null

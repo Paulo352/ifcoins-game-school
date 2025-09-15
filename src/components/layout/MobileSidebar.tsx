@@ -16,7 +16,8 @@ import {
   Gift,
   Vote,
   Bot,
-  HelpCircle
+  HelpCircle,
+  Package
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -38,6 +39,8 @@ const sidebarItems: SidebarItem[] = [
   { icon: Calendar, label: 'Eventos', id: 'events', roles: ['student', 'teacher', 'admin'] },
   { icon: Users, label: 'Gerenciar Estudantes', id: 'manage-students', roles: ['teacher', 'admin'] },
   { icon: BookOpen, label: 'Gerenciar Cartas', id: 'manage-cards', roles: ['admin'] },
+  { icon: Package, label: 'Gerenciar Pacotes', id: 'manage-packs', roles: ['admin'] },
+  { icon: HelpCircle, label: 'Gerenciar Quizzes', id: 'manage-quizzes', roles: ['admin'] },
   { icon: Settings, label: 'Configurações', id: 'settings', roles: ['admin'] }
 ];
 

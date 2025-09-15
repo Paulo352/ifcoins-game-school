@@ -5,6 +5,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Event } from '@/types/supabase';
 
+interface EventData {
+  name: string;
+  description?: string;
+  start_date: string;
+  end_date: string;
+  bonus_multiplier: number;
+  bonus_coins?: number;
+}
+
 export function useEventManagement() {
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -22,18 +31,12 @@ export function useEventManagement() {
     },
   });
 
-  const createEvent = async (eventData: {
-    name: string;
-    description: string;
-    start_date: string;
-    end_date: string;
-    bonus_multiplier: number;
-  }) => {
+  const createEvent = async (eventData: EventData) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.rpc('create_event', {
         name: eventData.name,
-        description: eventData.description,
+        description: eventData.description || null,
         start_date: eventData.start_date,
         end_date: eventData.end_date,
         bonus_multiplier: eventData.bonus_multiplier
@@ -41,19 +44,28 @@ export function useEventManagement() {
 
       if (error) throw error;
 
-      toast({
-        title: "Sucesso",
-        description: "Evento criado com sucesso!",
-      });
+      // Se o evento tem bonus de moedas, atualizar a tabela separadamente
+      if (eventData.bonus_coins && eventData.bonus_coins > 0 && data) {
+        const { error: updateError } = await supabase
+          .from('events')
+          .update({ bonus_coins: eventData.bonus_coins })
+          .eq('id', data);
 
+        if (updateError) throw updateError;
+      }
+
+      toast({
+        title: "Evento criado!",
+        description: "O evento foi criado com sucesso.",
+      });
       refetch();
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao criar evento:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar o evento",
-        variant: "destructive"
+        description: "Não foi possível criar o evento.",
+        variant: "destructive",
       });
       return false;
     } finally {
@@ -61,19 +73,13 @@ export function useEventManagement() {
     }
   };
 
-  const updateEvent = async (eventId: string, eventData: {
-    name: string;
-    description: string;
-    start_date: string;
-    end_date: string;
-    bonus_multiplier: number;
-  }) => {
+  const updateEvent = async (eventId: string, eventData: EventData) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('update_event', {
+      const { error } = await supabase.rpc('update_event', {
         event_id: eventId,
         name: eventData.name,
-        description: eventData.description,
+        description: eventData.description || null,
         start_date: eventData.start_date,
         end_date: eventData.end_date,
         bonus_multiplier: eventData.bonus_multiplier
@@ -81,19 +87,26 @@ export function useEventManagement() {
 
       if (error) throw error;
 
-      toast({
-        title: "Sucesso",
-        description: "Evento atualizado com sucesso!",
-      });
+      // Atualizar bonus de moedas separadamente
+      const { error: updateError } = await supabase
+        .from('events')
+        .update({ bonus_coins: eventData.bonus_coins || 0 })
+        .eq('id', eventId);
 
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Evento atualizado!",
+        description: "O evento foi atualizado com sucesso.",
+      });
       refetch();
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar evento:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o evento",
-        variant: "destructive"
+        description: "Não foi possível atualizar o evento.",
+        variant: "destructive",
       });
       return false;
     } finally {
@@ -166,14 +179,84 @@ export function useEventManagement() {
     }
   };
 
-  return {
-    events,
-    isLoading,
-    loading,
-    createEvent,
-    updateEvent,
-    deactivateEvent,
-    deleteEvent,
-    refetch
+  // Função para dar moedas de bonus do evento para todos os usuários
+  const giveEventBonus = async (eventId: string) => {
+    setLoading(true);
+    try {
+      // Buscar dados do evento
+      const { data: event, error: eventError } = await supabase
+        .from('events')
+        .select('name, bonus_coins')
+        .eq('id', eventId)
+        .single();
+
+      if (eventError) throw eventError;
+      if (!event.bonus_coins || event.bonus_coins <= 0) {
+        toast({
+          title: "Erro",
+          description: "Este evento não possui bonus de moedas configurado.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Buscar todos os usuários estudantes
+      const { data: students, error: studentsError } = await supabase
+        .from('profiles')
+        .select('id, name, email, coins')
+        .eq('role', 'student');
+
+      if (studentsError) throw studentsError;
+
+      if (!students || students.length === 0) {
+        toast({
+          title: "Aviso",
+          description: "Nenhum estudante encontrado para receber o bonus.",
+        });
+        return;
+      }
+
+      // Dar moedas para todos os estudantes
+      let updatedCount = 0;
+      for (const student of students) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ 
+            coins: student.coins + event.bonus_coins,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', student.id);
+
+        if (!updateError) {
+          updatedCount++;
+        }
+      }
+
+      toast({
+        title: "Bonus distribuído!",
+        description: `${event.bonus_coins} moedas foram dadas para ${updatedCount} estudantes do evento "${event.name}".`,
+      });
+    } catch (error: any) {
+      console.error('Erro ao dar bonus do evento:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível distribuir o bonus do evento.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { 
+    events, 
+    isLoading, 
+    loading, 
+    createEvent, 
+    updateEvent, 
+    deactivateEvent, 
+    deleteEvent, 
+    giveEventBonus, 
+    refetch 
   };
 }
