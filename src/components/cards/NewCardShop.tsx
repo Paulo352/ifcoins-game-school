@@ -3,8 +3,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAvailableCards } from '@/hooks/useNewCards';
 import { useCardPurchase } from '@/hooks/cards/useCardPurchase';
 import { NewCard } from './NewCard';
+import { PackShop } from '../packs/PackShop';
 import { Card, CardContent } from '@/components/ui/card';
-import { ShoppingCart } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ShoppingCart, Package } from 'lucide-react';
 
 export function NewCardShop() {
   const { profile } = useAuth();
@@ -47,23 +49,42 @@ export function NewCardShop() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Loja de Cartas</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Loja</h1>
         <p className="text-gray-600 mt-1">
-          Compre cartas usando seus IFCoins
+          Compre cartas e pacotes usando seus IFCoins
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {cards.map((card) => (
-          <NewCard
-            key={card.id}
-            card={card}
-            onBuy={handleBuyCard}
-            showPrice
-            showActions
-          />
-        ))}
-      </div>
+      <Tabs defaultValue="cards" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="cards" className="flex items-center gap-2">
+            <ShoppingCart className="w-4 h-4" />
+            Cartas Individuais
+          </TabsTrigger>
+          <TabsTrigger value="packs" className="flex items-center gap-2">
+            <Package className="w-4 h-4" />
+            Pacotes de Cartas
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="cards" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {cards.map((card) => (
+              <NewCard
+                key={card.id}
+                card={card}
+                onBuy={handleBuyCard}
+                showPrice
+                showActions
+              />
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="packs" className="mt-6">
+          <PackShop />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

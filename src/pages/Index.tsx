@@ -79,7 +79,7 @@ const Index = () => {
       case 'dashboard':
         if (profile.role === 'student') return <StudentDashboard onSectionChange={setActiveSection} />;
         if (profile.role === 'teacher') return <TeacherDashboard />;
-        if (profile.role === 'admin') return <AdminDashboard onSectionChange={setActiveSection} />;
+        if (profile.role === 'admin') return <AdminDashboard />;
         break;
       case 'shop':
         return <NewCardShop />;
@@ -111,7 +111,7 @@ const Index = () => {
       default:
         if (profile.role === 'student') return <StudentDashboard onSectionChange={setActiveSection} />;
         if (profile.role === 'teacher') return <TeacherDashboard />;
-        if (profile.role === 'admin') return <AdminDashboard onSectionChange={setActiveSection} />;
+        if (profile.role === 'admin') return <AdminDashboard />;
     }
   };
 
