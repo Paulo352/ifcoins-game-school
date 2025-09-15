@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, BookOpen, Coins, TrendingUp, Calendar, Settings, Loader2 } from 'lucide-react';
 import { useAdminStats } from '@/hooks/useAdminStats';
-import { DailyCoinsConfig } from '@/components/admin/DailyCoinsConfig';
 
 interface AdminDashboardProps {
   onSectionChange: (section: string) => void;
