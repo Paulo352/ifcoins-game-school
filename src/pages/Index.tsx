@@ -64,6 +64,15 @@ const Index = () => {
     return <LoginPage />;
   }
 
+  // Wait for profile to load before rendering content
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   const renderContent = () => {
     switch (activeSection) {
       case 'dashboard':
