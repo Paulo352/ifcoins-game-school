@@ -21,6 +21,7 @@ import { ManageStudents } from '@/components/sections/ManageStudents';
 import { NewCollection } from '@/components/cards/NewCollection';
 import { Settings } from '@/components/sections/Settings';
 import { Polls } from '@/components/sections/Polls';
+import { Quizzes } from '@/components/sections/Quizzes';
 import { AITutor } from '@/components/sections/AITutor';
 import { useLocation } from 'react-router-dom';
 
@@ -97,6 +98,8 @@ const Index = () => {
         return <ManageStudents />;
       case 'manage-cards':
         return <NewManageCards />;
+      case 'quizzes':
+        return <Quizzes />;
       case 'settings':
         if (profile.role === 'admin') return <Settings />;
         return <UserSettings />;

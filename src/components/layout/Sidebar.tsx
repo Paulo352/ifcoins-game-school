@@ -12,21 +12,14 @@ import {
   Settings,
   Gift,
   Vote,
-  Bot
-} from 'lucide-react';
-
-interface SidebarItem {
-  icon: React.ElementType;
-  label: string;
-  id: string;
-  roles: ('student' | 'teacher' | 'admin')[];
-}
+import { HelpCircle } from 'lucide-react';
 
 const sidebarItems: SidebarItem[] = [
   { icon: Home, label: 'Início', id: 'dashboard', roles: ['student', 'teacher', 'admin'] },
   { icon: Coins, label: 'Dar Moedas', id: 'give-coins', roles: ['teacher', 'admin'] },
   { icon: Gift, label: 'Loja de Cartas', id: 'shop', roles: ['student'] },
   { icon: BookOpen, label: 'Minha Coleção', id: 'collection', roles: ['student'] },
+  { icon: HelpCircle, label: 'Quizzes', id: 'quizzes', roles: ['student', 'teacher', 'admin'] },
   { icon: Vote, label: 'Votações', id: 'polls', roles: ['admin'] },
   { icon: Bot, label: 'IA Tutor', id: 'ai-tutor', roles: ['student', 'teacher', 'admin'] },
   { icon: Trophy, label: 'Rankings', id: 'rankings', roles: ['student', 'teacher', 'admin'] },

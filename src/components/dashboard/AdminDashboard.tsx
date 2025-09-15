@@ -9,6 +9,7 @@ import { AdminGiveCoins } from '../sections/AdminGiveCoins';
 import { Settings } from '../sections/Settings';
 import { NewManageCards } from '../cards/NewManageCards';
 import { ManagePacks } from '../packs/ManagePacks';
+import { ManageQuizzes } from '../quizzes/ManageQuizzes';
 import { Events } from '../sections/Events';
 import { Polls } from '../sections/Polls';
 import { AITutor } from '../sections/AITutor';
@@ -21,7 +22,8 @@ import {
   Vote, 
   Bot, 
   Settings as SettingsIcon,
-  Package
+  Package,
+  HelpCircle
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -38,6 +40,7 @@ export function AdminDashboard({}: AdminDashboardProps) {
     { id: 'coins', name: 'Dar Moedas', icon: Coins },
     { id: 'cards', name: 'Gerenciar Cartas', icon: CreditCard },
     { id: 'packs', name: 'Gerenciar Pacotes', icon: Package },
+    { id: 'quizzes', name: 'Gerenciar Quizzes', icon: HelpCircle },
     { id: 'events', name: 'Eventos', icon: Calendar },
     { id: 'polls', name: 'Votações', icon: Vote },
     { id: 'ai-tutor', name: 'IA Tutor', icon: Bot },
@@ -74,6 +77,7 @@ export function AdminDashboard({}: AdminDashboardProps) {
         {activeSection === 'coins' && <AdminGiveCoins />}
         {activeSection === 'cards' && <NewManageCards />}
         {activeSection === 'packs' && <ManagePacks />}
+        {activeSection === 'quizzes' && <ManageQuizzes />}
         {activeSection === 'events' && <Events />}
         {activeSection === 'polls' && <Polls />}
         {activeSection === 'ai-tutor' && <AITutor />}
