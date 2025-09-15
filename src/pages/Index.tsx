@@ -21,6 +21,7 @@ import { ManageStudents } from '@/components/sections/ManageStudents';
 import { NewCollection } from '@/components/cards/NewCollection';
 import { Settings } from '@/components/sections/Settings';
 import { Polls } from '@/components/sections/Polls';
+import { AITutor } from '@/components/sections/AITutor';
 import { useLocation } from 'react-router-dom';
 
 const Index = () => {
@@ -105,6 +106,8 @@ const Index = () => {
         return <Analytics />;
       case 'polls':
         return <Polls />;
+      case 'ai-tutor':
+        return <AITutor />;
       default:
         if (profile.role === 'student') return <StudentDashboard onSectionChange={setActiveSection} />;
         if (profile.role === 'teacher') return <TeacherDashboard />;

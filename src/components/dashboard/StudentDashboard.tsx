@@ -7,7 +7,7 @@ import { CoinBalance } from '@/components/ui/coin-balance';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CardDisplay } from '@/components/cards/CardDisplay';
-import { Gift, BookOpen, Users, Trophy, Calendar, Loader2 } from 'lucide-react';
+import { Gift, BookOpen, Users, Trophy, Calendar, Loader2, Bot } from 'lucide-react';
 
 interface StudentDashboardProps {
   onSectionChange: (section: string) => void;
@@ -120,15 +120,15 @@ export function StudentDashboard({ onSectionChange }: StudentDashboardProps) {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => onSectionChange('trades')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => onSectionChange('ai-tutor')}>
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-purple-600" />
-              <CardTitle className="text-lg">Trocas</CardTitle>
+              <Bot className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">IA Tutor</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600">Troque cartas com colegas</p>
+            <p className="text-sm text-gray-600">Ajuda personalizada e dicas de estudo</p>
           </CardContent>
         </Card>
 

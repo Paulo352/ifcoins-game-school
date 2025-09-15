@@ -14,7 +14,8 @@ import {
   Calendar,
   Settings,
   Gift,
-  Vote
+  Vote,
+  Bot
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -30,6 +31,7 @@ const sidebarItems: SidebarItem[] = [
   { icon: Gift, label: 'Loja de Cartas', id: 'shop', roles: ['student'] },
   { icon: BookOpen, label: 'Minha Coleção', id: 'collection', roles: ['student'] },
   { icon: Vote, label: 'Votações', id: 'polls', roles: ['admin'] },
+  { icon: Bot, label: 'IA Tutor', id: 'ai-tutor', roles: ['student', 'teacher', 'admin'] },
   { icon: Trophy, label: 'Rankings', id: 'rankings', roles: ['student', 'teacher', 'admin'] },
   { icon: Calendar, label: 'Eventos', id: 'events', roles: ['student', 'teacher', 'admin'] },
   { icon: Users, label: 'Gerenciar Estudantes', id: 'manage-students', roles: ['teacher', 'admin'] },
