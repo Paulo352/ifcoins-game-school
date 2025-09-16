@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +11,7 @@ export function useAuthState() {
 
   const fetchProfile = async (userId: string) => {
     try {
-      console.log('Buscando perfil para usuário:', userId);
+      console.log('useAuthState - Buscando perfil para usuário:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -20,14 +19,14 @@ export function useAuthState() {
         .single();
       
       if (error) {
-        console.error('Erro ao buscar perfil:', error);
+        console.error('useAuthState - Erro ao buscar perfil:', error);
         return;
       }
       
-      console.log('Perfil encontrado:', data);
+      console.log('useAuthState - Perfil encontrado:', data);
       setProfile(data);
     } catch (error) {
-      console.error('Erro inesperado ao buscar perfil:', error);
+      console.error('useAuthState - Erro inesperado ao buscar perfil:', error);
     }
   };
 
@@ -39,10 +38,11 @@ export function useAuthState() {
 
   useEffect(() => {
     let mounted = true;
+    console.log('useAuthState - Iniciando efeito de autenticação');
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Mudança de estado auth:', event, session?.user?.email);
+        console.log('useAuthState - Mudança de estado auth:', event, session?.user?.email, 'Session exists:', !!session);
         
         if (!mounted) return;
         
@@ -50,12 +50,14 @@ export function useAuthState() {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          console.log('useAuthState - Usuário encontrado, buscando perfil em 500ms');
           setTimeout(() => {
             if (mounted) {
               fetchProfile(session.user.id);
             }
           }, 500);
         } else {
+          console.log('useAuthState - Sem usuário, limpando perfil');
           setProfile(null);
         }
         
@@ -65,7 +67,10 @@ export function useAuthState() {
 
     const initializeAuth = async () => {
       try {
+        console.log('useAuthState - Inicializando autenticação...');
         const { data: { session } } = await supabase.auth.getSession();
+        
+        console.log('useAuthState - Session inicial:', !!session, session?.user?.email);
         
         if (!mounted) return;
         
@@ -73,12 +78,13 @@ export function useAuthState() {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          console.log('useAuthState - Usuário inicial encontrado, buscando perfil');
           await fetchProfile(session.user.id);
         }
         
         setLoading(false);
       } catch (error) {
-        console.error('Erro ao inicializar auth:', error);
+        console.error('useAuthState - Erro ao inicializar auth:', error);
         setLoading(false);
       }
     };
@@ -86,6 +92,7 @@ export function useAuthState() {
     initializeAuth();
 
     return () => {
+      console.log('useAuthState - Limpando subscription');
       mounted = false;
       subscription.unsubscribe();
     };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { ResetPasswordPage } from '@/components/auth/ResetPasswordPage';
@@ -27,6 +27,7 @@ import { Quizzes } from '@/components/sections/Quizzes';
 import { QuizzesDashboard } from '@/components/quizzes/QuizzesDashboard';
 import { AITutor } from '@/components/sections/AITutor';
 import { useLocation } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const { user, profile, loading } = useAuth();
@@ -34,11 +35,20 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const location = useLocation();
 
+  console.log('Index - User:', user?.email, 'Profile:', profile?.role, 'Loading:', loading);
+
+  // Debug adicional - verificar session diretamente
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Index - Session direta:', !!session, session?.user?.email);
+    };
+    checkSession();
+  }, []);
+
   // Verificar se é página de reset de senha
   const isResetPasswordPage = location.pathname === '/reset-password' || 
     (location.hash && location.hash.includes('type=recovery'));
-
-  console.log('Index - User:', user?.email, 'Profile:', profile?.role, 'Loading:', loading);
 
   if (loading || maintenanceStatus.loading) {
     return (

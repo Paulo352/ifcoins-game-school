@@ -22,6 +22,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, profile, session, loading, refreshProfile, setProfile, setUser, setSession } = useAuthState();
   const { signIn, signUp, signOut: baseSignOut } = useAuthActions();
 
+  console.log('AuthProvider render - User:', !!user, 'Profile:', !!profile, 'Loading:', loading);
+
   const signOut = async () => {
     await baseSignOut();
     setProfile(null);
