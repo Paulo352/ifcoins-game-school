@@ -9,7 +9,8 @@ import {
   Trophy, 
   Calendar,
   Eye,
-  ArrowLeft
+  ArrowLeft,
+  AlertCircle
 } from 'lucide-react';
 import { QuizAttemptDetails } from './QuizAttemptDetails';
 
@@ -19,15 +20,22 @@ interface QuizAttemptsListProps {
 }
 
 export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
-  console.log('🎯 [QuizAttemptsList] Renderizando lista para quiz:', quiz.id, quiz.title);
-  
-  const { data: attempts, isLoading } = useQuizAttempts(quiz.id);
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
+  
+  const { data: attempts, isLoading, error } = useQuizAttempts(quiz?.id || null);
 
-  console.log('🎯 [QuizAttemptsList] Dados recebidos:', { attempts: attempts?.length || 0, isLoading });
+  console.log('🎯 [QuizAttemptsList] Estado:', { 
+    quizId: quiz?.id, 
+    quizTitle: quiz?.title,
+    attempts: attempts?.length || 0, 
+    isLoading,
+    error 
+  });
 
+  // Encontrar tentativa selecionada de forma segura
   const selectedAttempt = attempts?.find((a: AttemptWithProfile) => a.id === selectedAttemptId);
 
+  // Se há uma tentativa selecionada, mostrar detalhes
   if (selectedAttempt) {
     return (
       <QuizAttemptDetails
@@ -37,6 +45,7 @@ export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
     );
   }
 
+  // Estado de carregamento
   if (isLoading) {
     return (
       <Card>
@@ -47,15 +56,44 @@ export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
     );
   }
 
-  const formatDuration = (seconds: number | null) => {
-    if (!seconds) return 'N/A';
+  // Estado de erro
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-8">
+          <AlertCircle className="w-8 h-8 text-destructive mb-2" />
+          <p className="text-destructive text-center">
+            Erro ao carregar tentativas do quiz
+          </p>
+          <Button variant="outline" onClick={onBack} className="mt-4">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Funções utilitárias
+  const formatDuration = (seconds: number | null | undefined): string => {
+    if (!seconds || seconds <= 0) return 'N/A';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}m ${secs}s`;
   };
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('pt-BR');
+  const formatDate = (date: string | null | undefined): string => {
+    if (!date) return 'N/A';
+    try {
+      return new Date(date).toLocaleString('pt-BR');
+    } catch {
+      return 'Data inválida';
+    }
+  };
+
+  const calculatePercentage = (score: number, total: number): number => {
+    if (!total || total <= 0) return 0;
+    return Math.round((score / total) * 100);
   };
 
   return (
@@ -65,7 +103,7 @@ export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
-        <h2 className="text-xl font-semibold">Tentativas - {quiz.title}</h2>
+        <h2 className="text-xl font-semibold">Tentativas - {quiz?.title || 'Quiz'}</h2>
       </div>
 
       {!attempts || attempts.length === 0 ? (
@@ -77,8 +115,8 @@ export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
       ) : (
         <div className="space-y-4">
           <div className="grid gap-4">
-            {attempts?.map((attempt: AttemptWithProfile) => {
-              const percentage = Math.round((attempt.score / attempt.total_questions) * 100);
+            {attempts.map((attempt: AttemptWithProfile) => {
+              const percentage = calculatePercentage(attempt.score || 0, attempt.total_questions || 1);
               const passed = percentage >= 70;
 
               return (
@@ -88,16 +126,20 @@ export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-muted-foreground" />
-                          <span className="font-medium">{attempt.profiles.name}</span>
+                          <span className="font-medium">
+                            {attempt.profiles?.name || 'Usuário desconhecido'}
+                          </span>
                           <Badge variant="outline" className="text-xs">
-                            {attempt.profiles.email}
+                            {attempt.profiles?.email || 'N/A'}
                           </Badge>
                         </div>
 
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Trophy className="w-3 h-3" />
-                            <span>{attempt.score}/{attempt.total_questions} ({percentage}%)</span>
+                            <span>
+                              {attempt.score || 0}/{attempt.total_questions || 0} ({percentage}%)
+                            </span>
                           </div>
 
                           <div className="flex items-center gap-1">
@@ -116,7 +158,7 @@ export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
                             {passed ? 'Passou' : 'Reprovou'}
                           </Badge>
                           
-                          {attempt.coins_earned > 0 && (
+                          {(attempt.coins_earned || 0) > 0 && (
                             <Badge variant="outline">
                               +{attempt.coins_earned} moedas
                             </Badge>
