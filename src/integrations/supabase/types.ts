@@ -187,6 +187,80 @@ export type Database = {
         }
         Relationships: []
       }
+      pack_cards: {
+        Row: {
+          card_id: string
+          created_at: string | null
+          id: string
+          pack_id: string
+          quantity: number
+        }
+        Insert: {
+          card_id: string
+          created_at?: string | null
+          id?: string
+          pack_id: string
+          quantity?: number
+        }
+        Update: {
+          card_id?: string
+          created_at?: string | null
+          id?: string
+          pack_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pack_cards_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pack_cards_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "packs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pack_purchases: {
+        Row: {
+          cards_received: Json
+          coins_spent: number
+          id: string
+          pack_id: string
+          purchased_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cards_received?: Json
+          coins_spent: number
+          id?: string
+          pack_id: string
+          purchased_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cards_received?: Json
+          coins_spent?: number
+          id?: string
+          pack_id?: string
+          purchased_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pack_purchases_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "packs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packs: {
         Row: {
           available: boolean
@@ -194,6 +268,7 @@ export type Database = {
           id: string
           limit_per_student: number
           name: string
+          pack_type: string
           price: number
           probability_common: number
           probability_legendary: number
@@ -207,6 +282,7 @@ export type Database = {
           id?: string
           limit_per_student?: number
           name: string
+          pack_type?: string
           price: number
           probability_common?: number
           probability_legendary?: number
@@ -220,6 +296,7 @@ export type Database = {
           id?: string
           limit_per_student?: number
           name?: string
+          pack_type?: string
           price?: number
           probability_common?: number
           probability_legendary?: number
