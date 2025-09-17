@@ -28,7 +28,7 @@ const sidebarItems: SidebarItem[] = [
   { icon: Coins, label: 'Dar Moedas', id: 'give-coins', roles: ['teacher', 'admin'] },
   { icon: Gift, label: 'Loja de Cartas', id: 'shop', roles: ['student'] },
   { icon: BookOpen, label: 'Minha Coleção', id: 'collection', roles: ['student'] },
-  { icon: HelpCircle, label: 'Quizzes', id: 'quizzes', roles: ['student', 'teacher'] },
+  { icon: HelpCircle, label: 'Quizzes', id: 'quizzes', roles: ['student', 'teacher', 'admin'] },
   { icon: Vote, label: 'Votações', id: 'polls', roles: ['admin'] },
   { icon: Bot, label: 'IA Tutor', id: 'ai-tutor', roles: ['student', 'teacher', 'admin'] },
   { icon: Trophy, label: 'Rankings', id: 'rankings', roles: ['student', 'teacher', 'admin'] },
@@ -36,7 +36,6 @@ const sidebarItems: SidebarItem[] = [
   { icon: Users, label: 'Gerenciar Estudantes', id: 'manage-students', roles: ['teacher', 'admin'] },
   { icon: BookOpen, label: 'Gerenciar Cartas', id: 'manage-cards', roles: ['admin'] },
   { icon: Package, label: 'Gerenciar Pacotes', id: 'manage-packs', roles: ['admin'] },
-  { icon: HelpCircle, label: 'Gerenciar Quizzes', id: 'manage-quizzes', roles: ['admin'] },
   { icon: Settings, label: 'Configurações', id: 'settings', roles: ['admin'] }
 ];
 

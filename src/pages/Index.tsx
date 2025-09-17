@@ -113,8 +113,6 @@ const Index = () => {
         return <NewManageCards />;
       case 'manage-packs':
         return <ManagePacks />;
-      case 'manage-quizzes':
-        return <ManageQuizzes />;
       case 'quizzes':
         return <QuizzesDashboard />;
       case 'settings':

@@ -19,8 +19,12 @@ interface QuizAttemptsListProps {
 }
 
 export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
+  console.log('🎯 [QuizAttemptsList] Renderizando lista para quiz:', quiz.id, quiz.title);
+  
   const { data: attempts, isLoading } = useQuizAttempts(quiz.id);
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
+
+  console.log('🎯 [QuizAttemptsList] Dados recebidos:', { attempts: attempts?.length || 0, isLoading });
 
   const selectedAttempt = attempts?.find(a => a.id === selectedAttemptId);
 

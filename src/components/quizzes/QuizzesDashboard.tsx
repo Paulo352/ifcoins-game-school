@@ -9,9 +9,10 @@ export function QuizzesDashboard() {
   const { profile, user, loading: authLoading } = useAuth();
   const isAdminOrTeacher = profile?.role === 'admin' || profile?.role === 'teacher';
 
-  console.log('🎯 QuizzesDashboard - Profile:', profile, 'User:', user, 'AuthLoading:', authLoading);
+  console.log('🎯 [QuizzesDashboard] Renderizando - Profile:', profile?.role, 'User:', user?.email, 'AuthLoading:', authLoading, 'isAdminOrTeacher:', isAdminOrTeacher);
 
   if (authLoading) {
+    console.log('🎯 [QuizzesDashboard] Mostrando loading...');
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -20,6 +21,7 @@ export function QuizzesDashboard() {
   }
 
   if (!user || !profile) {
+    console.log('🎯 [QuizzesDashboard] Usuário não logado ou sem profile');
     return (
       <div className="text-center py-8">
         <p className="text-muted-foreground">Você precisa estar logado para acessar os quizzes.</p>

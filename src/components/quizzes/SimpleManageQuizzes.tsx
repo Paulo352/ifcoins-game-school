@@ -41,27 +41,42 @@ export function SimpleManageQuizzes() {
     questions: [{ question_text: '', correct_answer: '', points: 1 }]
   });
 
+  console.log('🎯 [SimpleManageQuizzes] Renderizando - Profile:', profile?.role, 'selectedQuizForResults:', selectedQuizForResults);
+
   // Hook para buscar todos os quizzes
   const { data: quizzes, isLoading } = useQuery({
     queryKey: ['all-quizzes'],
     queryFn: async () => {
+      console.log('🎯 [SimpleManageQuizzes] Buscando todos os quizzes...');
+      
       const { data, error } = await supabase
         .from('quizzes')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [SimpleManageQuizzes] Erro ao buscar quizzes:', error);
+        throw error;
+      }
+      
+      console.log('✅ [SimpleManageQuizzes] Quizzes encontrados:', data?.length || 0, data);
       return data as Quiz[];
     },
   });
 
   const selectedQuiz = quizzes?.find(q => q.id === selectedQuizForResults);
+  
+  console.log('🎯 [SimpleManageQuizzes] Quiz selecionado para resultados:', selectedQuiz?.title);
 
   if (selectedQuiz) {
+    console.log('🎯 [SimpleManageQuizzes] Renderizando QuizAttemptsList para quiz:', selectedQuiz.title);
     return (
       <QuizAttemptsList
         quiz={selectedQuiz}
-        onBack={() => setSelectedQuizForResults(null)}
+        onBack={() => {
+          console.log('🎯 [SimpleManageQuizzes] Voltando da visualização de resultados');
+          setSelectedQuizForResults(null);
+        }}
       />
     );
   }
@@ -270,6 +285,7 @@ export function SimpleManageQuizzes() {
   };
 
   const handleEditQuiz = async (quiz: Quiz) => {
+    console.log('🎯 [SimpleManageQuizzes] Iniciando edição do quiz:', quiz);
     setEditingQuiz(quiz);
     setForm({
       title: quiz.title,
@@ -281,12 +297,21 @@ export function SimpleManageQuizzes() {
     });
     setShowForm(true);
     
+    console.log('🎯 [SimpleManageQuizzes] Buscando perguntas do quiz:', quiz.id);
+    
     // Buscar perguntas e preencher o formulário
-    const { data: questions } = await supabase
+    const { data: questions, error } = await supabase
       .from('quiz_questions')
       .select('*')
       .eq('quiz_id', quiz.id)
       .order('question_order', { ascending: true });
+
+    if (error) {
+      console.error('❌ [SimpleManageQuizzes] Erro ao buscar perguntas:', error);
+      return;
+    }
+
+    console.log('✅ [SimpleManageQuizzes] Perguntas encontradas:', questions?.length || 0, questions);
 
     if (questions && questions.length > 0) {
       setForm(prev => ({
@@ -503,7 +528,10 @@ export function SimpleManageQuizzes() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => setSelectedQuizForResults(quiz.id)}
+                  onClick={() => {
+                    console.log('🎯 [SimpleManageQuizzes] Visualizando resultados do quiz:', quiz.id, quiz.title);
+                    setSelectedQuizForResults(quiz.id);
+                  }}
                 >
                   <BarChart3 className="w-4 h-4" />
                 </Button>

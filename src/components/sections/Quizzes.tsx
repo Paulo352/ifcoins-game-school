@@ -1,8 +1,8 @@
 import React from 'react';
-import { QuizSystemMain } from '../quizzes/QuizSystemMain';
+import { QuizzesDashboard } from '../quizzes/QuizzesDashboard';
 
 export function Quizzes() {
   console.log('🎯 Componente Quizzes carregado');
   
-  return <QuizSystemMain />;
+  return <QuizzesDashboard />;
 }

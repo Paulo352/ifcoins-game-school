@@ -9,8 +9,22 @@ export function useQuizAttempts(quizId: string | null) {
     queryFn: async () => {
       if (!quizId) return [];
       
-      console.log('🎯 Buscando tentativas do quiz:', quizId);
+      console.log('🎯 [useQuizAttempts] Buscando tentativas do quiz:', quizId);
       
+      // Verificar primeiro se o usuário atual tem permissão
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
+      console.log('🎯 [useQuizAttempts] Profile do usuário:', profile);
+      
+      if (profileError) {
+        console.error('❌ [useQuizAttempts] Erro ao buscar profile:', profileError);
+        throw profileError;
+      }
+
       const { data, error } = await supabase
         .from('quiz_attempts')
         .select(`
@@ -26,11 +40,11 @@ export function useQuizAttempts(quizId: string | null) {
         .order('started_at', { ascending: false });
 
       if (error) {
-        console.error('❌ Erro ao buscar tentativas do quiz:', error);
+        console.error('❌ [useQuizAttempts] Erro ao buscar tentativas do quiz:', error);
         throw error;
       }
 
-      console.log('✅ Tentativas encontradas:', data?.length || 0);
+      console.log('✅ [useQuizAttempts] Tentativas encontradas:', data?.length || 0, data);
       return data as any[];
     },
     enabled: !!quizId,
@@ -44,8 +58,22 @@ export function useAttemptAnswers(attemptId: string | null) {
     queryFn: async () => {
       if (!attemptId) return [];
       
-      console.log('🎯 Buscando respostas da tentativa:', attemptId);
+      console.log('🎯 [useAttemptAnswers] Buscando respostas da tentativa:', attemptId);
       
+      // Verificar primeiro se o usuário atual tem permissão
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
+      console.log('🎯 [useAttemptAnswers] Profile do usuário:', profile);
+      
+      if (profileError) {
+        console.error('❌ [useAttemptAnswers] Erro ao buscar profile:', profileError);
+        throw profileError;
+      }
+
       const { data, error } = await supabase
         .from('quiz_answers')
         .select(`
@@ -65,11 +93,11 @@ export function useAttemptAnswers(attemptId: string | null) {
         .order('answered_at', { ascending: true });
 
       if (error) {
-        console.error('❌ Erro ao buscar respostas da tentativa:', error);
+        console.error('❌ [useAttemptAnswers] Erro ao buscar respostas da tentativa:', error);
         throw error;
       }
 
-      console.log('✅ Respostas encontradas:', data?.length || 0);
+      console.log('✅ [useAttemptAnswers] Respostas encontradas:', data?.length || 0, data);
       return data as any[];
     },
     enabled: !!attemptId,
