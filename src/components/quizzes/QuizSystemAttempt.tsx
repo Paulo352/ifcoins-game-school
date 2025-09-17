@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuizQuestions, useAnswerQuestion, useCompleteQuiz, type Quiz } from '@/hooks/quizzes/useQuizSystem';
+import { useQuizQuestions, useAnswerQuestion, useCompleteQuiz, type Quiz, type QuizQuestion } from '@/hooks/quizzes/useQuizSystem';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Clock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { QuizResults } from './QuizResults';
 
 interface QuizSystemAttemptProps {
   quiz: Quiz;
@@ -33,6 +34,13 @@ export function QuizSystemAttempt({
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [questionResults, setQuestionResults] = useState<Record<string, boolean>>({});
   const [quizStarted, setQuizStarted] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [finalResults, setFinalResults] = useState<{
+    score: number;
+    totalQuestions: number;
+    coinsEarned: number;
+    passed: boolean;
+  } | null>(null);
 
   // Timer effect
   useEffect(() => {
@@ -102,8 +110,14 @@ export function QuizSystemAttempt({
 
   const handleCompleteQuiz = async () => {
     try {
-      await completeMutation.mutateAsync({ attemptId });
-      onComplete();
+      const result = await completeMutation.mutateAsync({ attemptId });
+      setFinalResults({
+        score: result.score,
+        totalQuestions: result.total_questions,
+        coinsEarned: result.coins_earned,
+        passed: result.passed
+      });
+      setQuizCompleted(true);
     } catch (error) {
       console.error('Erro ao completar quiz:', error);
     }
@@ -171,6 +185,25 @@ export function QuizSystemAttempt({
     );
   }
 
+  // Mostrar resultados se o quiz foi completado
+  if (quizCompleted && finalResults) {
+    return (
+      <QuizResults
+        score={finalResults.score}
+        totalQuestions={finalResults.totalQuestions}
+        coinsEarned={finalResults.coinsEarned}
+        passed={finalResults.passed}
+        questions={questions}
+        userAnswers={answers}
+        onBack={() => {
+          setQuizCompleted(false);
+          setFinalResults(null);
+          onComplete();
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Header com progresso e timer */}
@@ -218,6 +251,20 @@ export function QuizSystemAttempt({
                   <Label htmlFor={key}>{String(value)}</Label>
                 </div>
               ))}
+            </RadioGroup>
+          ) : currentQuestion?.question_type === 'true_false' ? (
+            <RadioGroup 
+              value={answers[currentQuestion.id] || ''} 
+              onValueChange={handleAnswerChange}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Verdadeiro" id="true" />
+                <Label htmlFor="true">Verdadeiro</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Falso" id="false" />
+                <Label htmlFor="false">Falso</Label>
+              </div>
             </RadioGroup>
           ) : (
             <Input
