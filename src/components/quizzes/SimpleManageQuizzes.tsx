@@ -31,6 +31,7 @@ export function SimpleManageQuizzes() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedQuizForResults, setSelectedQuizForResults] = useState<string | null>(null);
+  const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const [form, setForm] = useState<QuizForm>({
     title: '',
     description: '',
@@ -108,19 +109,69 @@ export function SimpleManageQuizzes() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-quizzes'] });
       setShowForm(false);
-      setForm({
-        title: '',
-        description: '',
-        reward_coins: 10,
-        max_attempts: 1,
-        time_limit_minutes: 10,
-        questions: [{ question_text: '', correct_answer: '', points: 1 }]
-      });
+      resetForm();
       toast.success('Quiz criado com sucesso!');
     },
     onError: (error) => {
       console.error('Erro ao criar quiz:', error);
       toast.error('Erro ao criar quiz');
+    },
+  });
+
+  // Mutation para atualizar quiz
+  const updateMutation = useMutation({
+    mutationFn: async ({ quizId, quizData }: { quizId: string; quizData: QuizForm }) => {
+      if (!profile?.id) throw new Error('Não autenticado');
+
+      // Atualizar dados do quiz
+      const { error: quizError } = await supabase
+        .from('quizzes')
+        .update({
+          title: quizData.title,
+          description: quizData.description,
+          reward_coins: quizData.reward_coins,
+          max_attempts: quizData.max_attempts,
+          time_limit_minutes: quizData.time_limit_minutes,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', quizId);
+
+      if (quizError) throw quizError;
+
+      // Deletar perguntas antigas
+      await supabase
+        .from('quiz_questions')
+        .delete()
+        .eq('quiz_id', quizId);
+
+      // Inserir novas perguntas
+      const questions = quizData.questions.map((q, index) => ({
+        quiz_id: quizId,
+        question_text: q.question_text,
+        correct_answer: q.correct_answer,
+        points: q.points,
+        question_order: index,
+        question_type: 'text'
+      }));
+
+      const { error: questionsError } = await supabase
+        .from('quiz_questions')
+        .insert(questions);
+
+      if (questionsError) throw questionsError;
+
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-quizzes'] });
+      setEditingQuiz(null);
+      setShowForm(false);
+      resetForm();
+      toast.success('Quiz atualizado com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar quiz:', error);
+      toast.error('Erro ao atualizar quiz');
     },
   });
 
@@ -193,6 +244,17 @@ export function SimpleManageQuizzes() {
     },
   });
 
+  const resetForm = () => {
+    setForm({
+      title: '',
+      description: '',
+      reward_coins: 10,
+      max_attempts: 1,
+      time_limit_minutes: 10,
+      questions: [{ question_text: '', correct_answer: '', points: 1 }]
+    });
+  };
+
   const handleAddQuestion = () => {
     setForm(prev => ({
       ...prev,
@@ -207,6 +269,37 @@ export function SimpleManageQuizzes() {
     }));
   };
 
+  const handleEditQuiz = async (quiz: Quiz) => {
+    setEditingQuiz(quiz);
+    setForm({
+      title: quiz.title,
+      description: quiz.description || '',
+      reward_coins: quiz.reward_coins,
+      max_attempts: quiz.max_attempts || 1,
+      time_limit_minutes: quiz.time_limit_minutes || 10,
+      questions: [{ question_text: '', correct_answer: '', points: 1 }] // Será preenchido após carregar as perguntas
+    });
+    setShowForm(true);
+    
+    // Buscar perguntas e preencher o formulário
+    const { data: questions } = await supabase
+      .from('quiz_questions')
+      .select('*')
+      .eq('quiz_id', quiz.id)
+      .order('question_order', { ascending: true });
+
+    if (questions && questions.length > 0) {
+      setForm(prev => ({
+        ...prev,
+        questions: questions.map(q => ({
+          question_text: q.question_text,
+          correct_answer: q.correct_answer,
+          points: q.points
+        }))
+      }));
+    }
+  };
+
   const handleSubmit = () => {
     if (!form.title.trim()) {
       toast.error('Título é obrigatório');
@@ -218,7 +311,17 @@ export function SimpleManageQuizzes() {
       return;
     }
 
-    createMutation.mutate(form);
+    if (editingQuiz) {
+      updateMutation.mutate({ quizId: editingQuiz.id, quizData: form });
+    } else {
+      createMutation.mutate(form);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingQuiz(null);
+    setShowForm(false);
+    resetForm();
   };
 
   if (isLoading) {
@@ -233,7 +336,7 @@ export function SimpleManageQuizzes() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Gerenciar Quizzes</h2>
-        <Button onClick={() => setShowForm(!showForm)}>
+        <Button onClick={() => { setEditingQuiz(null); setShowForm(!showForm); resetForm(); }}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Quiz
         </Button>
@@ -242,7 +345,7 @@ export function SimpleManageQuizzes() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Criar Novo Quiz</CardTitle>
+            <CardTitle>{editingQuiz ? 'Editar Quiz' : 'Criar Novo Quiz'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
@@ -338,13 +441,16 @@ export function SimpleManageQuizzes() {
             <div className="flex gap-2">
               <Button 
                 onClick={handleSubmit} 
-                disabled={createMutation.isPending}
+                disabled={createMutation.isPending || updateMutation.isPending}
                 className="flex-1"
               >
                 <Save className="w-4 h-4 mr-2" />
-                {createMutation.isPending ? 'Salvando...' : 'Salvar Quiz'}
+                {editingQuiz 
+                  ? (updateMutation.isPending ? 'Atualizando...' : 'Atualizar Quiz')
+                  : (createMutation.isPending ? 'Salvando...' : 'Salvar Quiz')
+                }
               </Button>
-              <Button variant="outline" onClick={() => setShowForm(false)}>
+              <Button variant="outline" onClick={handleCancelEdit}>
                 Cancelar
               </Button>
             </div>
@@ -386,6 +492,13 @@ export function SimpleManageQuizzes() {
                   disabled={toggleMutation.isPending}
                 >
                   {quiz.is_active ? 'Desativar' : 'Ativar'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleEditQuiz(quiz)}
+                >
+                  <Edit className="w-4 h-4" />
                 </Button>
                 <Button
                   size="sm"
