@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuizAttempts, type Quiz } from '@/hooks/quizzes/useQuizSystemExtras';
+import { useQuizAttempts, type Quiz, type AttemptWithProfile } from '@/hooks/quizzes/useQuizSystemExtras';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +26,7 @@ export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
 
   console.log('🎯 [QuizAttemptsList] Dados recebidos:', { attempts: attempts?.length || 0, isLoading });
 
-  const selectedAttempt = attempts?.find(a => a.id === selectedAttemptId);
+  const selectedAttempt = attempts?.find((a: AttemptWithProfile) => a.id === selectedAttemptId);
 
   if (selectedAttempt) {
     return (
@@ -77,7 +77,7 @@ export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
       ) : (
         <div className="space-y-4">
           <div className="grid gap-4">
-            {attempts.map((attempt) => {
+            {attempts?.map((attempt: AttemptWithProfile) => {
               const percentage = Math.round((attempt.score / attempt.total_questions) * 100);
               const passed = percentage >= 70;
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAttemptAnswers } from '@/hooks/quizzes/useQuizSystemExtras';
+import { useAttemptAnswers, type AnswerWithQuestion, type AttemptWithProfile } from '@/hooks/quizzes/useQuizSystemExtras';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,19 +14,7 @@ import {
 } from 'lucide-react';
 
 interface QuizAttemptDetailsProps {
-  attempt: {
-    id: string;
-    score: number;
-    total_questions: number;
-    coins_earned: number;
-    started_at: string;
-    completed_at?: string;
-    time_taken_seconds?: number;
-    profiles: {
-      name: string;
-      email: string;
-    };
-  };
+  attempt: AttemptWithProfile;
   onBack: () => void;
 }
 
@@ -126,7 +114,7 @@ export function QuizAttemptDetails({ attempt, onBack }: QuizAttemptDetailsProps)
             </p>
           ) : (
             <div className="space-y-4">
-              {answers.map((answer, index) => (
+              {answers.map((answer: AnswerWithQuestion, index) => (
                 <div key={answer.id} className="border rounded-lg p-4 space-y-2">
                   <div className="flex items-start gap-2">
                     {answer.is_correct ? (
