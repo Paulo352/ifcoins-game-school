@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuizAttempts, type Quiz, type AttemptWithProfile } from '@/hooks/quizzes/useQuizSystemExtras';
+import { useQuizAttempts, type Quiz } from '@/hooks/quizzes/useQuizSystem';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +33,7 @@ export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
   });
 
   // Encontrar tentativa selecionada de forma segura
-  const selectedAttempt = attempts?.find((a: AttemptWithProfile) => a.id === selectedAttemptId);
+  const selectedAttempt = attempts?.find((a: any) => a.id === selectedAttemptId);
 
   // Se há uma tentativa selecionada, mostrar detalhes
   if (selectedAttempt) {
@@ -115,7 +115,7 @@ export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
       ) : (
         <div className="space-y-4">
           <div className="grid gap-4">
-            {attempts.map((attempt: AttemptWithProfile) => {
+            {attempts.map((attempt: any) => {
               const percentage = calculatePercentage(attempt.score || 0, attempt.total_questions || 1);
               const passed = percentage >= 70;
 

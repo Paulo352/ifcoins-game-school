@@ -123,6 +123,68 @@ export function QuizSystemAttempt({
     }
   };
 
+  const renderQuestionOptions = (question: QuizQuestion) => {
+    if (question.question_type === 'multiple_choice' && question.options) {
+      // Handle both array and object options
+      if (Array.isArray(question.options)) {
+        return (
+          <RadioGroup 
+            value={answers[question.id] || ''} 
+            onValueChange={handleAnswerChange}
+          >
+            {question.options.map((option: string, index: number) => (
+              <div key={index} className="flex items-center space-x-2">
+                <RadioGroupItem value={option} id={`option-${index}`} />
+                <Label htmlFor={`option-${index}`}>{option}</Label>
+              </div>
+            ))}
+          </RadioGroup>
+        );
+      } else if (typeof question.options === 'object') {
+        return (
+          <RadioGroup 
+            value={answers[question.id] || ''} 
+            onValueChange={handleAnswerChange}
+          >
+            {Object.entries(question.options).map(([key, value]) => (
+              <div key={key} className="flex items-center space-x-2">
+                <RadioGroupItem value={String(value)} id={key} />
+                <Label htmlFor={key}>{String(value)}</Label>
+              </div>
+            ))}
+          </RadioGroup>
+        );
+      }
+    }
+
+    if (question.question_type === 'true_false') {
+      return (
+        <RadioGroup 
+          value={answers[question.id] || ''} 
+          onValueChange={handleAnswerChange}
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="Verdadeiro" id="true" />
+            <Label htmlFor="true">Verdadeiro</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="Falso" id="false" />
+            <Label htmlFor="false">Falso</Label>
+          </div>
+        </RadioGroup>
+      );
+    }
+
+    // Open text question
+    return (
+      <Input
+        placeholder="Digite sua resposta..."
+        value={answers[question.id] || ''}
+        onChange={(e) => handleAnswerChange(e.target.value)}
+      />
+    );
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -240,48 +302,7 @@ export function QuizSystemAttempt({
         </CardHeader>
         
         <CardContent className="space-y-4">
-          {currentQuestion?.question_type === 'multiple_choice' && currentQuestion.options && typeof currentQuestion.options === 'object' ? (
-            <RadioGroup 
-              value={answers[currentQuestion.id] || ''} 
-              onValueChange={handleAnswerChange}
-            >
-              {Array.isArray(currentQuestion.options) ? (
-                currentQuestion.options.map((option: string, index: number) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`option-${index}`} />
-                    <Label htmlFor={`option-${index}`}>{option}</Label>
-                  </div>
-                ))
-              ) : (
-                Object.entries(currentQuestion.options).map(([key, value]) => (
-                  <div key={key} className="flex items-center space-x-2">
-                    <RadioGroupItem value={String(value)} id={key} />
-                    <Label htmlFor={key}>{String(value)}</Label>
-                  </div>
-                ))
-              )}
-            </RadioGroup>
-          ) : currentQuestion?.question_type === 'true_false' ? (
-            <RadioGroup 
-              value={answers[currentQuestion.id] || ''} 
-              onValueChange={handleAnswerChange}
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Verdadeiro" id="true" />
-                <Label htmlFor="true">Verdadeiro</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Falso" id="false" />
-                <Label htmlFor="false">Falso</Label>
-              </div>
-            </RadioGroup>
-          ) : (
-            <Input
-              placeholder="Digite sua resposta..."
-              value={answers[currentQuestion?.id || ''] || ''}
-              onChange={(e) => handleAnswerChange(e.target.value)}
-            />
-          )}
+          {currentQuestion && renderQuestionOptions(currentQuestion)}
 
           <div className="flex gap-2 pt-4">
             {currentQuestionIndex === (questions.length - 1) ? (

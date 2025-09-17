@@ -23,7 +23,7 @@ export interface QuizQuestion {
   quiz_id: string;
   question_text: string;
   question_type: string;
-  options?: any;
+  options?: string[] | Record<string, any>;
   correct_answer: string;
   points: number;
   question_order: number;
@@ -50,6 +50,40 @@ export interface QuizAnswer {
   is_correct: boolean;
   points_earned: number;
   answered_at?: string;
+}
+
+// Para compatibilidade com componentes de admin
+export interface AttemptWithProfile {
+  id: string;
+  quiz_id: string;
+  user_id: string;
+  score: number;
+  total_questions: number;
+  coins_earned: number;
+  started_at: string;
+  completed_at?: string;
+  is_completed: boolean;
+  time_taken_seconds?: number;
+  profiles?: {
+    name: string;
+    email: string;
+    role: string;
+  } | null;
+}
+
+export interface AnswerWithQuestion {
+  id: string;
+  attempt_id: string;
+  question_id: string;
+  user_answer: string;
+  is_correct: boolean;
+  points_earned: number;
+  answered_at?: string;
+  quiz_questions?: {
+    question_text: string;
+    correct_answer: string;
+    points: number;
+  } | null;
 }
 
 // Hook para buscar quizzes ativos
@@ -212,7 +246,7 @@ export function useStartQuizAttempt() {
       return data as QuizAttempt;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-attempts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-quiz-attempts'] });
       toast.success('Quiz iniciado!');
     },
     onError: (error) => {
@@ -322,7 +356,7 @@ export function useCompleteQuiz() {
       return data as unknown as QuizResult;
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ['user-attempts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-quiz-attempts'] });
       
       if (result.passed) {
         toast.success(`Parabéns! Você ganhou ${result.coins_earned} moedas!`);
@@ -334,5 +368,73 @@ export function useCompleteQuiz() {
       console.error('❌ Erro ao completar quiz:', error);
       toast.error('Erro ao completar quiz');
     },
+  });
+}
+
+// Hook para buscar tentativas de um quiz específico (para admin)
+export function useQuizAttempts(quizId: string | null) {
+  return useQuery({
+    queryKey: ['quiz-attempts', quizId],
+    queryFn: async () => {
+      if (!quizId) return [];
+      
+      console.log('🎯 Buscando tentativas do quiz:', quizId);
+      
+      const { data, error } = await supabase
+        .from('quiz_attempts')
+        .select(`
+          *,
+          profiles (
+            name,
+            email,
+            role
+          )
+        `)
+        .eq('quiz_id', quizId)
+        .order('started_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ Erro ao buscar tentativas:', error);
+        throw error;
+      }
+
+      console.log('✅ Tentativas encontradas:', data?.length || 0);
+      return data as any[];
+    },
+    enabled: !!quizId,
+  });
+}
+
+// Hook para buscar respostas de uma tentativa (para admin)
+export function useAttemptAnswers(attemptId: string | null) {
+  return useQuery({
+    queryKey: ['attempt-answers', attemptId],
+    queryFn: async () => {
+      if (!attemptId) return [];
+      
+      console.log('🎯 Buscando respostas da tentativa:', attemptId);
+      
+      const { data, error } = await supabase
+        .from('quiz_answers')
+        .select(`
+          *,
+          quiz_questions (
+            question_text,
+            correct_answer,
+            points
+          )
+        `)
+        .eq('attempt_id', attemptId)
+        .order('answered_at', { ascending: true });
+
+      if (error) {
+        console.error('❌ Erro ao buscar respostas:', error);
+        throw error;
+      }
+
+      console.log('✅ Respostas encontradas:', data?.length || 0);
+      return data as any[];
+    },
+    enabled: !!attemptId,
   });
 }
