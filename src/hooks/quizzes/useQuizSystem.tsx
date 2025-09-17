@@ -14,6 +14,8 @@ export interface Quiz {
   created_by: string;
   created_at: string;
   updated_at: string;
+  creator_name?: string;
+  creator_role?: string;
 }
 
 export interface QuizQuestion {
@@ -57,7 +59,8 @@ export function useActiveQuizzes() {
     queryFn: async () => {
       console.log('🎯 Buscando quizzes ativos...');
       
-      const { data, error } = await supabase
+      // Buscar quizzes primeiro
+      const { data: quizzes, error } = await supabase
         .from('quizzes')
         .select('*')
         .eq('is_active', true)
@@ -68,8 +71,40 @@ export function useActiveQuizzes() {
         throw error;
       }
 
-      console.log('✅ Quizzes encontrados:', data?.length || 0);
-      return data as Quiz[];
+      if (!quizzes || quizzes.length === 0) {
+        return [];
+      }
+
+      // Buscar perfis dos criadores
+      const creatorIds = [...new Set(quizzes.map(q => q.created_by))];
+      
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, role')
+        .in('id', creatorIds);
+
+      if (profilesError) {
+        console.error('❌ Erro ao buscar criadores:', profilesError);
+        // Retornar quizzes mesmo sem informação dos criadores
+        return quizzes.map(quiz => ({
+          ...quiz,
+          creator_name: 'Desconhecido',
+          creator_role: 'student'
+        })) as Quiz[];
+      }
+
+      // Combinar dados
+      const quizzesWithCreator = quizzes.map(quiz => {
+        const creator = profiles?.find(p => p.id === quiz.created_by);
+        return {
+          ...quiz,
+          creator_name: creator?.name || 'Desconhecido',
+          creator_role: creator?.role || 'student'
+        };
+      });
+
+      console.log('✅ Quizzes encontrados:', quizzesWithCreator.length);
+      return quizzesWithCreator as Quiz[];
     },
   });
 }

@@ -4,7 +4,7 @@ import { useActiveQuizzes, useUserAttempts } from '@/hooks/quizzes/useQuizSystem
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { HelpCircle, Clock, Coins, Users } from 'lucide-react';
+import { HelpCircle, Clock, Coins, Users, User } from 'lucide-react';
 
 interface QuizSystemListProps {
   onStartQuiz: (quizId: string) => void;
@@ -104,6 +104,11 @@ export function QuizSystemList({ onStartQuiz }: QuizSystemListProps) {
               
               <CardContent className="flex-1 flex flex-col justify-between">
                 <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <User className="w-4 h-4 mr-2" />
+                    Criado por: {quiz.creator_role === 'admin' ? 'Sistema' : quiz.creator_name}
+                  </div>
+                  
                   {quiz.time_limit_minutes && (
                     <div className="flex items-center text-sm text-muted-foreground">
                       <Clock className="w-4 h-4 mr-2" />
