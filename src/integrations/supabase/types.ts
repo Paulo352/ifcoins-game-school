@@ -889,6 +889,10 @@ export type Database = {
         Args: { card_id: string; user_id: string }
         Returns: Json
       }
+      buy_pack: {
+        Args: { pack_id: string; user_id: string }
+        Returns: Json
+      }
       complete_quiz: {
         Args: { attempt_id: string; user_id: string }
         Returns: Json

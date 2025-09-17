@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAvailablePacks, useBuyPack } from '@/hooks/packs/usePacks';
 import { PackCard } from './PackCard';
+import { PackOpenResults } from './PackOpenResults';
 import { Card, CardContent } from '@/components/ui/card';
 import { Package } from 'lucide-react';
 
@@ -9,6 +10,8 @@ export function PackShop() {
   const { profile } = useAuth();
   const { data: packs, isLoading } = useAvailablePacks();
   const buyPack = useBuyPack();
+  const [lastPurchaseResult, setLastPurchaseResult] = useState<any>(null);
+  const [showResults, setShowResults] = useState(false);
 
   const handleBuyPack = (packId: string) => {
     if (!profile?.id) return;
@@ -16,7 +19,23 @@ export function PackShop() {
     buyPack.mutate({
       packId,
       userId: profile.id
+    }, {
+      onSuccess: (result) => {
+        if (result.cards_received && result.cards_received.length > 0) {
+          const packName = packs?.find(p => p.id === packId)?.name || 'Pacote';
+          setLastPurchaseResult({
+            packName,
+            cardsReceived: result.cards_received
+          });
+          setShowResults(true);
+        }
+      }
     });
+  };
+
+  const handleCloseResults = () => {
+    setShowResults(false);
+    setLastPurchaseResult(null);
   };
 
   if (isLoading) {
@@ -61,6 +80,14 @@ export function PackShop() {
           />
         ))}
       </div>
+
+      {/* Modal de resultados da compra */}
+      <PackOpenResults
+        isOpen={showResults}
+        onClose={handleCloseResults}
+        packName={lastPurchaseResult?.packName || ''}
+        cardsReceived={lastPurchaseResult?.cardsReceived || []}
+      />
     </div>
   );
 }

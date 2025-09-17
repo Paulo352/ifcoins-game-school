@@ -82,8 +82,21 @@ export function usePackCards(packId: string | undefined) {
     queryFn: async () => {
       if (!packId) return [];
       
-      // Temporarily return empty until migration is applied
-      return [];
+      const { data, error } = await supabase
+        .from('pack_cards')
+        .select(`
+          *,
+          card:cards (
+            id,
+            name,
+            rarity,
+            image_url
+          )
+        `)
+        .eq('pack_id', packId);
+      
+      if (error) throw error;
+      return data as PackCard[];
     },
     enabled: !!packId,
   });
@@ -95,24 +108,56 @@ export function useBuyPack() {
   
   return useMutation({
     mutationFn: async ({ packId, userId }: { packId: string; userId: string }) => {
-      // Temporarily return success until migration is applied
-      return { success: true, message: "Funcionalidade será ativada após migração" };
+      console.log('🛒 Iniciando compra de pacote:', { packId, userId });
+
+      // Usar a função do banco de dados para comprar o pacote
+      const { data, error } = await supabase.rpc('buy_pack', {
+        pack_id: packId,
+        user_id: userId
+      });
+
+      if (error) {
+        console.error('❌ Erro na compra do pacote:', error);
+        throw error;
+      }
+
+      console.log('✅ Resposta da compra:', data);
+      
+      const result = data as any;
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Erro na compra');
+      }
+
+      return result;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['packs'] });
+      queryClient.invalidateQueries({ queryKey: ['available-packs'] });
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
-      queryClient.invalidateQueries({ queryKey: ['profiles'] });
       
       toast({
-        title: "Aviso",
-        description: "Funcionalidade será ativada após aprovação da migração do banco.",
-        variant: "default",
+        title: "Pacote comprado!",
+        description: data.message || 'Pacote comprado com sucesso!',
       });
+      
+      // Mostrar cartas recebidas se disponível
+      if (data.cards_received && data.cards_received.length > 0) {
+        const cardsText = data.cards_received.map((card: any) => 
+          `${card.name} (${card.rarity}) x${card.quantity}`
+        ).join(', ');
+        toast({
+          title: "Cartas recebidas!",
+          description: cardsText,
+        });
+      }
     },
-    onError: (error) => {
-      console.error('Erro ao comprar pacote:', error);
+    onError: (error: any) => {
+      console.error('❌ Erro na compra:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível comprar o pacote.",
+        description: error.message || 'Erro ao comprar pacote',
         variant: "destructive",
       });
     },
@@ -125,6 +170,8 @@ export function useCreatePack() {
   
   return useMutation({
     mutationFn: async (packData: CreatePackData) => {
+      console.log('📦 Criando pacote:', packData);
+
       // Criar o pacote
       const { data: pack, error: packError } = await supabase
         .from('packs')
@@ -143,12 +190,25 @@ export function useCreatePack() {
       
       if (packError) throw packError;
 
-      // Se for pacote fixo, adicionar as cartas (após migração)
-      if (packData.pack_type === 'fixed' && packData.cards?.length) {
-        // Temporarily skip pack cards insertion until migration is applied
-        console.log('Pack cards will be inserted after migration');
+      // Se é um pacote fixo e há cartas específicas, criar as associações
+      if (packData.pack_type === 'fixed' && packData.cards && packData.cards.length > 0) {
+        const packCards = packData.cards.map(card => ({
+          pack_id: pack.id,
+          card_id: card.card_id,
+          quantity: card.quantity,
+        }));
+
+        const { error: cardsError } = await supabase
+          .from('pack_cards')
+          .insert(packCards);
+
+        if (cardsError) {
+          console.error('Erro ao adicionar cartas ao pacote:', cardsError);
+          throw cardsError;
+        }
       }
       
+      console.log('✅ Pacote criado com sucesso:', pack);
       return pack;
     },
     onSuccess: () => {
@@ -208,16 +268,40 @@ export function useUpdatePack() {
   });
 }
 
+// Hook para buscar histórico de compras de pacotes do usuário
+export function usePackPurchases(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['pack-purchases', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      
+      const { data, error } = await supabase
+        .from('pack_purchases')
+        .select(`
+          *,
+          pack:packs (
+            id,
+            name,
+            pack_type
+          )
+        `)
+        .eq('user_id', userId)
+        .order('purchased_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
+}
+
 // Hook para deletar pacote
 export function useDeletePack() {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (packId: string) => {
-      // Primeiro deletar as cartas do pacote (após migração)
-      // Temporarily skip pack cards deletion until migration is applied
-
-      // Depois deletar o pacote
+      // Primeiro deletar as cartas do pacote (cascade irá cuidar disso automaticamente)
       const { error } = await supabase
         .from('packs')
         .delete()

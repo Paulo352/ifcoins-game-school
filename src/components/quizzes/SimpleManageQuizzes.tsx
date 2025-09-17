@@ -419,24 +419,36 @@ export function SimpleManageQuizzes() {
             />
             
             <div className="grid grid-cols-3 gap-4">
-              <Input
-                type="number"
-                placeholder="Moedas de recompensa"
-                value={form.reward_coins}
-                onChange={(e) => setForm(prev => ({ ...prev, reward_coins: parseInt(e.target.value) || 10 }))}
-              />
-              <Input
-                type="number"
-                placeholder="Tentativas máximas"
-                value={form.max_attempts}
-                onChange={(e) => setForm(prev => ({ ...prev, max_attempts: parseInt(e.target.value) || 1 }))}
-              />
-              <Input
-                type="number"
-                placeholder="Tempo limite (min)"
-                value={form.time_limit_minutes}
-                onChange={(e) => setForm(prev => ({ ...prev, time_limit_minutes: parseInt(e.target.value) || 10 }))}
-              />
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Moedas de Recompensa</label>
+                <Input
+                  type="number"
+                  placeholder="Ex: 10"
+                  value={form.reward_coins}
+                  onChange={(e) => setForm(prev => ({ ...prev, reward_coins: parseInt(e.target.value) || 10 }))}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Quantidade de moedas que o estudante receberá ao completar o quiz</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Tentativas Máximas</label>
+                <Input
+                  type="number"
+                  placeholder="Ex: 1"
+                  value={form.max_attempts}
+                  onChange={(e) => setForm(prev => ({ ...prev, max_attempts: parseInt(e.target.value) || 1 }))}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Número máximo de tentativas permitidas por estudante</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Tempo Limite (minutos)</label>
+                <Input
+                  type="number"
+                  placeholder="Ex: 10"
+                  value={form.time_limit_minutes}
+                  onChange={(e) => setForm(prev => ({ ...prev, time_limit_minutes: parseInt(e.target.value) || 10 }))}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Tempo máximo em minutos para completar o quiz</p>
+              </div>
             </div>
 
             <div className="space-y-4">
