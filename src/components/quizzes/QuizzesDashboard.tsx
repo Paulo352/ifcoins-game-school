@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { QuizList } from './QuizList';
-import { ManageQuizzes } from './ManageQuizzes';
+import { QuizSystemMain } from './QuizSystemMain';
+import { SimpleManageQuizzes } from './SimpleManageQuizzes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HelpCircle, Settings } from 'lucide-react';
 
@@ -9,7 +9,7 @@ export function QuizzesDashboard() {
   const { profile, user, loading: authLoading } = useAuth();
   const isAdminOrTeacher = profile?.role === 'admin' || profile?.role === 'teacher';
 
-  console.log('QuizzesDashboard - Profile:', profile, 'User:', user, 'AuthLoading:', authLoading);
+  console.log('🎯 QuizzesDashboard - Profile:', profile, 'User:', user, 'AuthLoading:', authLoading);
 
   if (authLoading) {
     return (
@@ -53,15 +53,15 @@ export function QuizzesDashboard() {
           </TabsList>
 
           <TabsContent value="manage">
-            <ManageQuizzes />
+            <SimpleManageQuizzes />
           </TabsContent>
 
           <TabsContent value="student-view">
-            <QuizList onStartQuiz={() => {}} />
+            <QuizSystemMain />
           </TabsContent>
         </Tabs>
       ) : (
-        <QuizList onStartQuiz={() => {}} />
+        <QuizSystemMain />
       )}
     </div>
   );
