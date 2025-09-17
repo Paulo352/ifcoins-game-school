@@ -7,18 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Edit, Save, X } from 'lucide-react';
+import { Plus, Trash2, Edit, Save, X, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Quiz {
-  id: string;
-  title: string;
-  description?: string;
-  reward_coins: number;
-  max_attempts?: number;
-  time_limit_minutes?: number;
-  is_active: boolean;
-}
+import { QuizAttemptsList } from './QuizAttemptsList';
+import { Quiz } from '@/hooks/quizzes/useQuizSystem';
 
 interface QuizForm {
   title: string;
@@ -38,6 +30,7 @@ export function SimpleManageQuizzes() {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [selectedQuizForResults, setSelectedQuizForResults] = useState<string | null>(null);
   const [form, setForm] = useState<QuizForm>({
     title: '',
     description: '',
@@ -60,6 +53,17 @@ export function SimpleManageQuizzes() {
       return data as Quiz[];
     },
   });
+
+  const selectedQuiz = quizzes?.find(q => q.id === selectedQuizForResults);
+
+  if (selectedQuiz) {
+    return (
+      <QuizAttemptsList
+        quiz={selectedQuiz}
+        onBack={() => setSelectedQuizForResults(null)}
+      />
+    );
+  }
 
   // Mutation para criar quiz
   const createMutation = useMutation({
@@ -382,6 +386,13 @@ export function SimpleManageQuizzes() {
                   disabled={toggleMutation.isPending}
                 >
                   {quiz.is_active ? 'Desativar' : 'Ativar'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSelectedQuizForResults(quiz.id)}
+                >
+                  <BarChart3 className="w-4 h-4" />
                 </Button>
                 <Button
                   size="sm"

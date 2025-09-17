@@ -37,6 +37,7 @@ export interface QuizAttempt {
   started_at: string;
   completed_at?: string;
   is_completed: boolean;
+  time_taken_seconds?: number;
 }
 
 export interface QuizAnswer {
@@ -46,6 +47,7 @@ export interface QuizAnswer {
   user_answer: string;
   is_correct: boolean;
   points_earned: number;
+  answered_at?: string;
 }
 
 // Hook para buscar quizzes ativos
