@@ -38,11 +38,24 @@ export function useAuthState() {
 
   useEffect(() => {
     let mounted = true;
-    console.log('useAuthState - Iniciando efeito de autenticação');
+    console.log('🔧 useAuthState - Iniciando hook de autenticação');
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('useAuthState - Mudança de estado auth:', event, session?.user?.email, 'Session exists:', !!session);
+    const initializeAuth = async () => {
+      try {
+        console.log('🔧 useAuthState - Verificando sessão existente...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('🔧 useAuthState - Erro ao obter sessão:', error);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('🔧 useAuthState - Sessão inicial:', {
+          hasSession: !!session,
+          userEmail: session?.user?.email,
+          userId: session?.user?.id
+        });
         
         if (!mounted) return;
         
@@ -50,14 +63,44 @@ export function useAuthState() {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          console.log('useAuthState - Usuário encontrado, buscando perfil em 500ms');
+          console.log('🔧 useAuthState - Buscando perfil do usuário:', session.user.id);
+          await fetchProfile(session.user.id);
+        } else {
+          console.log('🔧 useAuthState - Nenhuma sessão encontrada');
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('🔧 useAuthState - Erro inesperado ao inicializar:', error);
+        setLoading(false);
+      }
+    };
+
+    // Configurar listener DEPOIS da inicialização
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('🔧 useAuthState - Mudança de estado:', {
+          event,
+          hasSession: !!session,
+          userEmail: session?.user?.email,
+          userId: session?.user?.id
+        });
+        
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          console.log('🔧 useAuthState - Nova sessão, buscando perfil...');
+          // Usar setTimeout para evitar problemas de deadlock
           setTimeout(() => {
             if (mounted) {
               fetchProfile(session.user.id);
             }
-          }, 500);
+          }, 0);
         } else {
-          console.log('useAuthState - Sem usuário, limpando perfil');
+          console.log('🔧 useAuthState - Sessão removida, limpando perfil');
           setProfile(null);
         }
         
@@ -65,34 +108,11 @@ export function useAuthState() {
       }
     );
 
-    const initializeAuth = async () => {
-      try {
-        console.log('useAuthState - Inicializando autenticação...');
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        console.log('useAuthState - Session inicial:', !!session, session?.user?.email);
-        
-        if (!mounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          console.log('useAuthState - Usuário inicial encontrado, buscando perfil');
-          await fetchProfile(session.user.id);
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('useAuthState - Erro ao inicializar auth:', error);
-        setLoading(false);
-      }
-    };
-
+    // Inicializar autenticação
     initializeAuth();
 
     return () => {
-      console.log('useAuthState - Limpando subscription');
+      console.log('🔧 useAuthState - Cleanup do hook');
       mounted = false;
       subscription.unsubscribe();
     };
