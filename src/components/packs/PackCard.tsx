@@ -1,108 +1,121 @@
 import React from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Coins, Package, Sparkles } from 'lucide-react';
-import { Pack } from '@/hooks/packs/usePacks';
+import { Button } from '@/components/ui/button';
+import { Package, ShoppingCart, Coins } from 'lucide-react';
+import { Pack } from '@/hooks/packs/usePackQueries';
 
 interface PackCardProps {
   pack: Pack;
-  onBuy?: (packId: string) => void;
-  userCoins?: number;
-  loading?: boolean;
+  onPurchase?: (packId: string) => void;
+  isPurchasing?: boolean;
+  showPurchaseButton?: boolean;
+  userPurchases?: number;
 }
 
-export function PackCard({ pack, onBuy, userCoins = 0, loading = false }: PackCardProps) {
-  const canAfford = userCoins >= pack.price;
-  
-  const getRarityColor = (probability: number) => {
-    if (probability >= 50) return 'text-gray-600';
-    if (probability >= 25) return 'text-blue-600';
-    if (probability >= 10) return 'text-purple-600';
-    return 'text-yellow-600';
+export function PackCard({ 
+  pack, 
+  onPurchase, 
+  isPurchasing = false, 
+  showPurchaseButton = true,
+  userPurchases = 0 
+}: PackCardProps) {
+  const canPurchase = userPurchases < pack.limit_per_student && pack.available;
+  const remainingPurchases = pack.limit_per_student - userPurchases;
+
+  const getRarityColor = (rarity: string) => {
+    switch (rarity) {
+      case 'common': return 'bg-gray-500';
+      case 'rare': return 'bg-blue-500';
+      case 'legendary': return 'bg-purple-500';
+      case 'mythic': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
   };
 
   return (
-    <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg">
-      <div className="absolute top-2 right-2">
-        <Badge variant={pack.pack_type === 'random' ? 'default' : 'secondary'}>
-          {pack.pack_type === 'random' ? 'Aleatório' : 'Fixo'}
-        </Badge>
-      </div>
-      
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <Package className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">{pack.name}</CardTitle>
+    <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-lg">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Package className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">{pack.name}</CardTitle>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant={pack.pack_type === 'random' ? 'default' : 'secondary'}>
+                  {pack.pack_type === 'random' ? 'Aleatório' : 'Fixo'}
+                </Badge>
+                <Badge variant={pack.available ? 'default' : 'secondary'}>
+                  {pack.available ? 'Disponível' : 'Indisponível'}
+                </Badge>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-right">
+            <div className="flex items-center gap-1 text-lg font-bold text-primary">
+              <Coins className="w-4 h-4" />
+              {pack.price}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {remainingPurchases > 0 ? `${remainingPurchases} restantes` : 'Limite atingido'}
+            </p>
+          </div>
         </div>
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <Coins className="w-4 h-4 text-yellow-500" />
-            <span className="font-bold text-lg">{pack.price}</span>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            Limite: {pack.limit_per_student}
-          </div>
-        </div>
-        
         {pack.pack_type === 'random' && (
           <div className="space-y-2">
-            <div className="flex items-center gap-1 text-sm font-medium">
-              <Sparkles className="w-4 h-4" />
-              Probabilidades:
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className={`flex justify-between ${getRarityColor(pack.probability_common)}`}>
-                <span>Comum:</span>
-                <span>{pack.probability_common}%</span>
+            <p className="text-sm font-medium text-muted-foreground">Probabilidades:</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${getRarityColor('common')}`} />
+                <span className="text-sm">Comum: {pack.probability_common}%</span>
               </div>
-              <div className={`flex justify-between ${getRarityColor(pack.probability_rare)}`}>
-                <span>Rara:</span>
-                <span>{pack.probability_rare}%</span>
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${getRarityColor('rare')}`} />
+                <span className="text-sm">Rara: {pack.probability_rare}%</span>
               </div>
-              <div className={`flex justify-between ${getRarityColor(pack.probability_legendary)}`}>
-                <span>Lendária:</span>
-                <span>{pack.probability_legendary}%</span>
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${getRarityColor('legendary')}`} />
+                <span className="text-sm">Lendária: {pack.probability_legendary}%</span>
               </div>
-              <div className={`flex justify-between ${getRarityColor(pack.probability_mythic)}`}>
-                <span>Mítica:</span>
-                <span>{pack.probability_mythic}%</span>
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${getRarityColor('mythic')}`} />
+                <span className="text-sm">Mítica: {pack.probability_mythic}%</span>
               </div>
             </div>
           </div>
         )}
-
+        
         {pack.pack_type === 'fixed' && (
           <div className="text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Package className="w-4 h-4" />
-              Contém cartas específicas escolhidas pelo admin
-            </div>
+            <p>Contém cartas específicas pré-definidas</p>
           </div>
         )}
-      </CardContent>
-      
-      {onBuy && (
-        <CardFooter>
-          <Button
-            onClick={() => onBuy(pack.id)}
-            disabled={!canAfford || loading}
+        
+        {showPurchaseButton && (
+          <Button 
+            onClick={() => onPurchase?.(pack.id)}
+            disabled={!canPurchase || isPurchasing}
             className="w-full"
-            variant={canAfford ? 'default' : 'outline'}
+            variant={canPurchase ? "default" : "secondary"}
           >
-            {loading ? (
-              'Comprando...'
-            ) : canAfford ? (
-              'Comprar Pacote'
-            ) : (
-              'Moedas insuficientes'
-            )}
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            {isPurchasing 
+              ? 'Comprando...' 
+              : !pack.available 
+                ? 'Indisponível' 
+                : remainingPurchases === 0 
+                  ? 'Limite atingido'  
+                  : `Comprar por ${pack.price} moedas`
+            }
           </Button>
-        </CardFooter>
-      )}
+        )}
+      </CardContent>
     </Card>
   );
 }

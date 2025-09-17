@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAvailableCards } from '@/hooks/cards/useCards';
+import { useAvailableCards } from '@/hooks/useNewCards';
 import { useCreatePack, CreatePackData } from '@/hooks/packs/usePacks';
 import { Plus, Minus, Package } from 'lucide-react';
 
@@ -152,6 +152,9 @@ export function PackForm({ onSuccess }: PackFormProps) {
           {packType === 'random' && (
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Probabilidades (%)</h3>
+              <p className="text-sm text-muted-foreground">
+                A soma das probabilidades deve ser 100%. Ajuste os valores conforme necessário.
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="common">Comum</Label>
@@ -200,7 +203,12 @@ export function PackForm({ onSuccess }: PackFormProps) {
           {packType === 'fixed' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Cartas do Pacote</h3>
+                <div>
+                  <h3 className="text-lg font-medium">Cartas do Pacote</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Selecione as cartas específicas que estarão neste pacote.
+                  </p>
+                </div>
                 <Button type="button" onClick={handleAddCard} size="sm">
                   <Plus className="w-4 h-4 mr-1" />
                   Adicionar Carta
@@ -252,9 +260,12 @@ export function PackForm({ onSuccess }: PackFormProps) {
                 ))}
 
                 {selectedCards.length === 0 && (
-                  <p className="text-muted-foreground text-center py-4">
-                    Nenhuma carta adicionada. Clique em "Adicionar Carta" para começar.
-                  </p>
+                  <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
+                    <Package className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-muted-foreground">
+                      Nenhuma carta adicionada. Clique em "Adicionar Carta" para começar.
+                    </p>
+                  </div>
                 )}
               </div>
             </div>

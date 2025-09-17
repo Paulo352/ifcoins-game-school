@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAvailablePacks, useBuyPack } from '@/hooks/packs/usePacks';
+import { useAvailablePacks, useBuyPack, usePackPurchases } from '@/hooks/packs/usePacks';
 import { PackCard } from './PackCard';
 import { PackOpenResults } from './PackOpenResults';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,9 +9,15 @@ import { Package } from 'lucide-react';
 export function PackShop() {
   const { profile } = useAuth();
   const { data: packs, isLoading } = useAvailablePacks();
+  const { data: userPurchases } = usePackPurchases(profile?.id);
   const buyPack = useBuyPack();
   const [lastPurchaseResult, setLastPurchaseResult] = useState<any>(null);
   const [showResults, setShowResults] = useState(false);
+
+  // Calcular quantas vezes o usuário comprou cada pacote
+  const getUserPurchaseCount = (packId: string) => {
+    return userPurchases?.filter(purchase => purchase.pack_id === packId).length || 0;
+  };
 
   const handleBuyPack = (packId: string) => {
     if (!profile?.id) return;
@@ -74,9 +80,9 @@ export function PackShop() {
           <PackCard
             key={pack.id}
             pack={pack}
-            onBuy={handleBuyPack}
-            userCoins={profile?.coins || 0}
-            loading={buyPack.isPending}
+            onPurchase={handleBuyPack}
+            isPurchasing={buyPack.isPending}
+            userPurchases={getUserPurchaseCount(pack.id)}
           />
         ))}
       </div>
