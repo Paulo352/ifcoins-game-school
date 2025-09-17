@@ -124,6 +124,14 @@ export function QuizSystemAttempt({
   };
 
   const renderQuestionOptions = (question: QuizQuestion) => {
+    console.log('🎯 Renderizando pergunta:', {
+      id: question.id,
+      type: question.question_type,
+      options: question.options,
+      optionsType: typeof question.options,
+      isArray: Array.isArray(question.options)
+    });
+
     if (question.question_type === 'multiple_choice' && question.options) {
       // Handle both array and object options
       if (Array.isArray(question.options)) {

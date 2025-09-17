@@ -164,6 +164,9 @@ export function useQuizQuestions(quizId: string | null) {
       }
 
       console.log('✅ Perguntas encontradas:', data?.length || 0);
+      if (data && data.length > 0) {
+        console.log('🎯 Primeira pergunta exemplo:', data[0]);
+      }
       return data as QuizQuestion[];
     },
     enabled: !!quizId,
