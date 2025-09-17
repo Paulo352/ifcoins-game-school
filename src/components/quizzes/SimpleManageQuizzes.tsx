@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Edit, Save, X, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -20,6 +21,8 @@ interface QuizForm {
   time_limit_minutes: number;
   questions: {
     question_text: string;
+    question_type: 'multiple_choice' | 'true_false' | 'open_text';
+    options?: string[];
     correct_answer: string;
     points: number;
   }[];
@@ -38,7 +41,13 @@ export function SimpleManageQuizzes() {
     reward_coins: 10,
     max_attempts: 1,
     time_limit_minutes: 10,
-    questions: [{ question_text: '', correct_answer: '', points: 1 }]
+    questions: [{ 
+      question_text: '', 
+      question_type: 'multiple_choice',
+      options: ['', '', '', ''],
+      correct_answer: '', 
+      points: 1 
+    }]
   });
 
   console.log('🎯 [SimpleManageQuizzes] Renderizando - Profile:', profile?.role, 'selectedQuizForResults:', selectedQuizForResults);
@@ -107,10 +116,11 @@ export function SimpleManageQuizzes() {
       const questions = quizData.questions.map((q, index) => ({
         quiz_id: quiz.id,
         question_text: q.question_text,
+        question_type: q.question_type,
+        options: q.question_type === 'multiple_choice' ? q.options?.filter(opt => opt.trim()) : null,
         correct_answer: q.correct_answer,
         points: q.points,
-        question_order: index,
-        question_type: 'text'
+        question_order: index
       }));
 
       const { error: questionsError } = await supabase
@@ -163,10 +173,11 @@ export function SimpleManageQuizzes() {
       const questions = quizData.questions.map((q, index) => ({
         quiz_id: quizId,
         question_text: q.question_text,
+        question_type: q.question_type,
+        options: q.question_type === 'multiple_choice' ? q.options?.filter(opt => opt.trim()) : null,
         correct_answer: q.correct_answer,
         points: q.points,
-        question_order: index,
-        question_type: 'text'
+        question_order: index
       }));
 
       const { error: questionsError } = await supabase
@@ -266,14 +277,26 @@ export function SimpleManageQuizzes() {
       reward_coins: 10,
       max_attempts: 1,
       time_limit_minutes: 10,
-      questions: [{ question_text: '', correct_answer: '', points: 1 }]
+      questions: [{
+        question_text: '', 
+        question_type: 'multiple_choice',
+        options: ['', '', '', ''],
+        correct_answer: '', 
+        points: 1 
+      }]
     });
   };
 
   const handleAddQuestion = () => {
     setForm(prev => ({
       ...prev,
-      questions: [...prev.questions, { question_text: '', correct_answer: '', points: 1 }]
+      questions: [...prev.questions, { 
+        question_text: '', 
+        question_type: 'multiple_choice',
+        options: ['', '', '', ''],
+        correct_answer: '', 
+        points: 1 
+      }]
     }));
   };
 
@@ -293,7 +316,13 @@ export function SimpleManageQuizzes() {
       reward_coins: quiz.reward_coins,
       max_attempts: quiz.max_attempts || 1,
       time_limit_minutes: quiz.time_limit_minutes || 10,
-      questions: [{ question_text: '', correct_answer: '', points: 1 }] // Será preenchido após carregar as perguntas
+      questions: [{ 
+        question_text: '', 
+        question_type: 'multiple_choice',
+        options: ['', '', '', ''],
+        correct_answer: '', 
+        points: 1 
+      }] // Será preenchido após carregar as perguntas
     });
     setShowForm(true);
     
@@ -318,6 +347,10 @@ export function SimpleManageQuizzes() {
         ...prev,
         questions: questions.map(q => ({
           question_text: q.question_text,
+          question_type: q.question_type as 'multiple_choice' | 'true_false' | 'open_text',
+          options: q.options && Array.isArray(q.options) 
+            ? q.options.map(opt => String(opt)) 
+            : ['', '', '', ''],
           correct_answer: q.correct_answer,
           points: q.points
         }))
@@ -433,16 +466,103 @@ export function SimpleManageQuizzes() {
                     }}
                   />
                   
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      placeholder="Resposta correta"
-                      value={question.correct_answer}
-                      onChange={(e) => {
+                  {/* Tipo de pergunta */}
+                  <div>
+                    <label className="text-sm font-medium">Tipo da Pergunta</label>
+                    <Select
+                      value={question.question_type}
+                      onValueChange={(value: 'multiple_choice' | 'true_false' | 'open_text') => {
                         const newQuestions = [...form.questions];
-                        newQuestions[index].correct_answer = e.target.value;
+                        newQuestions[index].question_type = value;
+                        // Resetar opções baseado no tipo
+                        if (value === 'multiple_choice') {
+                          newQuestions[index].options = ['', '', '', ''];
+                        } else {
+                          newQuestions[index].options = undefined;
+                        }
                         setForm(prev => ({ ...prev, questions: newQuestions }));
                       }}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="multiple_choice">Múltipla Escolha</SelectItem>
+                        <SelectItem value="true_false">Verdadeiro/Falso</SelectItem>
+                        <SelectItem value="open_text">Texto Aberto</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Opções para múltipla escolha */}
+                  {question.question_type === 'multiple_choice' && (
+                    <div>
+                      <label className="text-sm font-medium">Opções de Resposta</label>
+                      <div className="space-y-2">
+                        {question.options?.map((option, optionIndex) => (
+                          <Input
+                            key={optionIndex}
+                            placeholder={`Opção ${String.fromCharCode(65 + optionIndex)}`}
+                            value={option}
+                            onChange={(e) => {
+                              const newQuestions = [...form.questions];
+                              if (newQuestions[index].options) {
+                                newQuestions[index].options![optionIndex] = e.target.value;
+                                setForm(prev => ({ ...prev, questions: newQuestions }));
+                              }
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Campo de resposta correta adaptado */}
+                  {question.question_type === 'true_false' ? (
+                    <div>
+                      <label className="text-sm font-medium">Resposta Correta</label>
+                      <Select
+                        value={question.correct_answer}
+                        onValueChange={(value) => {
+                          const newQuestions = [...form.questions];
+                          newQuestions[index].correct_answer = value;
+                          setForm(prev => ({ ...prev, questions: newQuestions }));
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a resposta correta" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="true">Verdadeiro</SelectItem>
+                          <SelectItem value="false">Falso</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="text-sm font-medium">
+                        {question.question_type === 'multiple_choice' 
+                          ? 'Resposta Correta (digite exatamente como nas opções)' 
+                          : 'Resposta Correta'
+                        }
+                      </label>
+                      <Input
+                        placeholder={
+                          question.question_type === 'multiple_choice'
+                            ? "Digite exatamente como aparece nas opções"
+                            : "Resposta esperada"
+                        }
+                        value={question.correct_answer}
+                        onChange={(e) => {
+                          const newQuestions = [...form.questions];
+                          newQuestions[index].correct_answer = e.target.value;
+                          setForm(prev => ({ ...prev, questions: newQuestions }));
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 gap-2">
                     <Input
                       type="number"
                       placeholder="Pontos"
