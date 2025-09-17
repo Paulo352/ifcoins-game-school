@@ -240,17 +240,26 @@ export function QuizSystemAttempt({
         </CardHeader>
         
         <CardContent className="space-y-4">
-          {currentQuestion?.question_type === 'multiple_choice' && currentQuestion.options ? (
+          {currentQuestion?.question_type === 'multiple_choice' && currentQuestion.options && typeof currentQuestion.options === 'object' ? (
             <RadioGroup 
               value={answers[currentQuestion.id] || ''} 
               onValueChange={handleAnswerChange}
             >
-              {Object.entries(currentQuestion.options).map(([key, value]) => (
-                <div key={key} className="flex items-center space-x-2">
-                  <RadioGroupItem value={String(value)} id={key} />
-                  <Label htmlFor={key}>{String(value)}</Label>
-                </div>
-              ))}
+              {Array.isArray(currentQuestion.options) ? (
+                currentQuestion.options.map((option: string, index: number) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`option-${index}`} />
+                    <Label htmlFor={`option-${index}`}>{option}</Label>
+                  </div>
+                ))
+              ) : (
+                Object.entries(currentQuestion.options).map(([key, value]) => (
+                  <div key={key} className="flex items-center space-x-2">
+                    <RadioGroupItem value={String(value)} id={key} />
+                    <Label htmlFor={key}>{String(value)}</Label>
+                  </div>
+                ))
+              )}
             </RadioGroup>
           ) : currentQuestion?.question_type === 'true_false' ? (
             <RadioGroup 
