@@ -68,7 +68,18 @@ export function QuizResults({
         <CardContent className="space-y-4">
           {questions.map((question, index) => {
             const userAnswer = userAnswers[question.id] || '';
-            const isCorrect = userAnswer.toLowerCase().trim() === question.correct_answer.toLowerCase().trim();
+            
+            // Normalizar respostas de verdadeiro/falso para comparação
+            const normalizeAnswer = (answer: string) => {
+              const normalized = answer.toLowerCase().trim();
+              if (normalized === 'verdadeiro' || normalized === 'true') return 'true';
+              if (normalized === 'falso' || normalized === 'false') return 'false';
+              return normalized;
+            };
+
+            const normalizedUserAnswer = normalizeAnswer(userAnswer);
+            const normalizedCorrectAnswer = normalizeAnswer(question.correct_answer);
+            const isCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
             
             return (
               <div key={question.id} className="border rounded-lg p-4 space-y-2">

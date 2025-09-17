@@ -205,7 +205,18 @@ export function useAnswerQuestion() {
     }) => {
       console.log('🎯 Respondendo pergunta:', { attemptId, questionId, userAnswer });
 
-      const isCorrect = userAnswer.toLowerCase().trim() === correctAnswer.toLowerCase().trim();
+      // Normalizar respostas de verdadeiro/falso
+      const normalizeAnswer = (answer: string) => {
+        const normalized = answer.toLowerCase().trim();
+        if (normalized === 'verdadeiro' || normalized === 'true') return 'true';
+        if (normalized === 'falso' || normalized === 'false') return 'false';
+        return normalized;
+      };
+
+      const normalizedUserAnswer = normalizeAnswer(userAnswer);
+      const normalizedCorrectAnswer = normalizeAnswer(correctAnswer);
+      
+      const isCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
       const pointsEarned = isCorrect ? points : 0;
 
       // Inserir resposta
