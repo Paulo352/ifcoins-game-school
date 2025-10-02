@@ -5,6 +5,7 @@ import { PackCard } from './PackCard';
 import { PackOpenResults } from './PackOpenResults';
 import { Card, CardContent } from '@/components/ui/card';
 import { Package } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 export function PackShop() {
   const { profile } = useAuth();
@@ -20,13 +21,23 @@ export function PackShop() {
   };
 
   const handleBuyPack = (packId: string) => {
-    if (!profile?.id) return;
+    if (!profile?.id) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para comprar pacotes",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log('🛒 Comprando pacote:', packId, 'para usuário:', profile.id);
     
     buyPack.mutate({
       packId,
       userId: profile.id
     }, {
       onSuccess: (result) => {
+        console.log('✅ Compra realizada com sucesso:', result);
         if (result.cards_received && result.cards_received.length > 0) {
           const packName = packs?.find(p => p.id === packId)?.name || 'Pacote';
           setLastPurchaseResult({
@@ -35,6 +46,9 @@ export function PackShop() {
           });
           setShowResults(true);
         }
+      },
+      onError: (error) => {
+        console.error('❌ Erro na compra:', error);
       }
     });
   };

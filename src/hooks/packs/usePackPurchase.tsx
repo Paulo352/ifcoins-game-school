@@ -22,26 +22,38 @@ export function useBuyPack() {
     mutationFn: async ({ packId, userId }: { packId: string; userId: string }): Promise<PackPurchaseResult> => {
       console.log('🛒 Iniciando compra de pacote:', { packId, userId });
 
-      // Usar a função do banco de dados para comprar o pacote
-      const { data, error } = await supabase.rpc('buy_pack', {
-        pack_id: packId,
-        user_id: userId
-      });
+      try {
+        // Usar a função do banco de dados para comprar o pacote
+        const { data, error } = await supabase.rpc('buy_pack', {
+          pack_id: packId,
+          user_id: userId
+        });
 
-      if (error) {
-        console.error('❌ Erro na compra do pacote:', error);
-        throw error;
+        console.log('📦 Resposta do RPC buy_pack:', { data, error });
+
+        if (error) {
+          console.error('❌ Erro na compra do pacote:', error);
+          throw new Error(error.message || 'Erro ao comprar pacote');
+        }
+
+        if (!data) {
+          console.error('❌ Resposta vazia do servidor');
+          throw new Error('Resposta vazia do servidor');
+        }
+
+        console.log('✅ Resposta da compra:', data);
+        
+        const result = data as unknown as PackPurchaseResult;
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Erro na compra');
+        }
+
+        return result;
+      } catch (err: any) {
+        console.error('❌ Exceção capturada:', err);
+        throw err;
       }
-
-      console.log('✅ Resposta da compra:', data);
-      
-      const result = data as unknown as PackPurchaseResult;
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Erro na compra');
-      }
-
-      return result;
     },
     onSuccess: (data: PackPurchaseResult) => {
       // Invalidar queries relacionadas
