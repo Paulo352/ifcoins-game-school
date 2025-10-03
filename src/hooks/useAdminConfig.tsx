@@ -34,17 +34,36 @@ export const useAdminConfig = () => {
 
   const updateConfig = async (key: string, value: string) => {
     try {
-      const { error } = await supabase
+      // Primeiro, verificar se já existe
+      const { data: existing } = await supabase
         .from('admin_config')
-        .upsert({ 
-          config_key: key, 
-          config_value: value,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'config_key'
-        });
+        .select('id')
+        .eq('config_key', key)
+        .single();
 
-      if (error) throw error;
+      if (existing) {
+        // Atualizar registro existente
+        const { error } = await supabase
+          .from('admin_config')
+          .update({ 
+            config_value: value,
+            updated_at: new Date().toISOString()
+          })
+          .eq('config_key', key);
+
+        if (error) throw error;
+      } else {
+        // Inserir novo registro
+        const { error } = await supabase
+          .from('admin_config')
+          .insert({ 
+            config_key: key, 
+            config_value: value,
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+      }
 
       setConfig(prev => ({ ...prev, [key]: value }));
       toast.success('Configuração atualizada com sucesso');
