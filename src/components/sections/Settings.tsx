@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { UserSettings } from '@/components/settings/UserSettings';
-import { SystemResetButton } from '@/components/admin/SystemResetButton';
+import { SelectiveResetButton } from '@/components/admin/SelectiveResetButton';
 import { MaintenanceControl } from '@/components/admin/MaintenanceControl';
 import { TeacherDailyLimitConfig } from '@/components/admin/TeacherDailyLimitConfig';
 import { DailyCoinsConfig } from '@/components/admin/DailyCoinsConfig';
@@ -249,8 +249,8 @@ export function Settings() {
             </Card>
           </div>
 
-          {/* Zona de Perigo */}
-          <SystemResetButton />
+          {/* Zona de Perigo - Reset Seletivo */}
+          <SelectiveResetButton />
         </TabsContent>
 
         <TabsContent value="user">

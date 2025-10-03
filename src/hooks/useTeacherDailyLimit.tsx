@@ -16,8 +16,9 @@ export function useTeacherDailyLimit() {
     return limit;
   }, [config.teacher_daily_limit, getConfig]);
   
+  // Incluir dailyLimit no queryKey para forçar refetch quando mudar
   const { data: dailyCoins = 0, refetch } = useQuery({
-    queryKey: ['teacher-daily-coins', profile?.id, config.teacher_daily_limit],
+    queryKey: ['teacher-daily-coins', profile?.id, dailyLimit],
     queryFn: async () => {
       if (!profile?.id) return 0;
       
