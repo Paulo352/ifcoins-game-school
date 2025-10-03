@@ -40,12 +40,15 @@ export const useAdminConfig = () => {
           config_key: key, 
           config_value: value,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'config_key'
         });
 
       if (error) throw error;
 
       setConfig(prev => ({ ...prev, [key]: value }));
       toast.success('Configuração atualizada com sucesso');
+      await fetchConfig(); // Atualizar o config após salvar
     } catch (error) {
       console.error('Erro ao atualizar configuração:', error);
       toast.error('Erro ao atualizar configuração');
