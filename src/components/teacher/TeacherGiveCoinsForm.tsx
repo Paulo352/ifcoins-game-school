@@ -23,7 +23,7 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
   const [coinsAmount, setCoinsAmount] = useState('');
   const [reason, setReason] = useState('');
   const { giveCoins, loading, calculateBonusCoins } = useUpdateCoins();
-  const { dailyCoins, dailyLimit, refetch: refetchLimit } = useTeacherDailyLimit();
+  const { dailyCoins, dailyLimit, remainingCoins, percentageUsed, refetch: refetchLimit } = useTeacherDailyLimit();
   const { activeEvent, multiplier, hasActiveEvent } = useActiveEvent();
 
   const handleGiveCoins = async () => {
@@ -91,19 +91,30 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
           <Award className="h-5 w-5" />
           Atribuir Moedas IFCoins
         </CardTitle>
-        <CardDescription className="flex items-center justify-between">
-          <span>Recompense estudantes por bom comportamento e participação</span>
-          <div className="flex gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {dailyCoins}/{dailyLimit} moedas hoje
-            </Badge>
-            {hasActiveEvent && (
-              <Badge variant="default" className="bg-purple-600 text-xs">
-                <Calendar className="h-3 w-3 mr-1" />
-                Evento: {multiplier}x
+        <CardDescription>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <span>Recompense estudantes por bom comportamento e participação</span>
+            <div className="flex gap-2">
+              <Badge 
+                variant={percentageUsed >= 100 ? "destructive" : percentageUsed >= 80 ? "secondary" : "outline"} 
+                className="text-xs font-medium"
+              >
+                <Coins className="h-3 w-3 mr-1" />
+                {dailyCoins}/{dailyLimit} hoje ({percentageUsed}%)
               </Badge>
-            )}
+              {hasActiveEvent && (
+                <Badge variant="default" className="bg-purple-600 text-xs">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  Evento: {multiplier}x
+                </Badge>
+              )}
+            </div>
           </div>
+          {remainingCoins > 0 && remainingCoins <= dailyLimit * 0.2 && (
+            <div className="mt-2 text-xs text-orange-600 font-medium">
+              ⚠️ Restam apenas {remainingCoins} moedas do seu limite diário
+            </div>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

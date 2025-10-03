@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminConfig } from './useAdminConfig';
@@ -7,18 +7,24 @@ import { useAdminConfig } from './useAdminConfig';
 export function useTeacherDailyLimit() {
   const { profile } = useAuth();
   const { getConfig, config } = useAdminConfig();
+  const queryClient = useQueryClient();
   
-  // Buscar o limite configurado pelo admin (padrão: 500) - reativo ao config
-  // Usa useMemo para recalcular quando config mudar
+  // Buscar o limite configurado pelo admin (padrão: 500) - 100% reativo ao config
   const dailyLimit = React.useMemo(() => {
     const limit = parseInt(getConfig('teacher_daily_limit', '500'));
-    console.log('Daily limit atualizado:', limit);
+    console.log('✅ Daily limit atualizado para:', limit);
     return limit;
   }, [config.teacher_daily_limit, getConfig]);
+
+  // Força invalidação quando o limite mudar
+  useEffect(() => {
+    console.log('🔄 Limite mudou, invalidando queries...');
+    queryClient.invalidateQueries({ queryKey: ['teacher-daily-coins'] });
+  }, [dailyLimit, queryClient]);
   
-  // Incluir dailyLimit no queryKey para forçar refetch quando mudar
+  // Query das moedas já distribuídas hoje
   const { data: dailyCoins = 0, refetch } = useQuery({
-    queryKey: ['teacher-daily-coins', profile?.id, dailyLimit],
+    queryKey: ['teacher-daily-coins', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return 0;
       
@@ -35,14 +41,18 @@ export function useTeacherDailyLimit() {
       
       if (error) throw error;
       
-      return data?.reduce((total, log) => total + log.coins, 0) || 0;
+      const total = data?.reduce((total, log) => total + log.coins, 0) || 0;
+      console.log('💰 Moedas distribuídas hoje:', total);
+      return total;
     },
     enabled: !!profile?.id && profile.role === 'teacher',
+    refetchInterval: 30000, // Revalidar a cada 30s para garantir sincronia
   });
 
   const remainingCoins = Math.max(0, dailyLimit - dailyCoins);
   const canGiveSpecialCoins = remainingCoins > 0;
   const limitReached = dailyCoins >= dailyLimit;
+  const percentageUsed = dailyLimit > 0 ? Math.round((dailyCoins / dailyLimit) * 100) : 0;
 
   return {
     dailyCoins,
@@ -50,6 +60,7 @@ export function useTeacherDailyLimit() {
     canGiveSpecialCoins,
     limitReached,
     dailyLimit,
+    percentageUsed,
     refetch
   };
 }

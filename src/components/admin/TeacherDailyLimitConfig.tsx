@@ -35,9 +35,10 @@ export function TeacherDailyLimitConfig() {
     setIsSaving(true);
     try {
       await updateConfig('teacher_daily_limit', dailyLimit);
-      toast.success('Limite diário atualizado! Os professores verão a mudança imediatamente.');
+      toast.success('✅ Limite atualizado! Professores verão a mudança instantaneamente.');
+      console.log('✅ Admin salvou novo limite:', dailyLimit);
     } catch (error) {
-      console.error('Erro ao atualizar limite:', error);
+      console.error('❌ Erro ao atualizar limite:', error);
       toast.error('Erro ao atualizar limite diário');
     } finally {
       setIsSaving(false);
@@ -110,17 +111,24 @@ export function TeacherDailyLimitConfig() {
           )}
         </Button>
 
-        <div className="bg-muted p-3 rounded-lg">
+        <div className="bg-muted p-3 rounded-lg space-y-2">
           <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
             <RefreshCw className="h-4 w-4" />
-            Informações Importantes
+            Como Funciona a Sincronização
           </h4>
           <ul className="text-xs text-muted-foreground space-y-1">
-            <li>• Este limite se aplica a todos os professores simultaneamente</li>
-            <li>• O contador é resetado diariamente à meia-noite</li>
-            <li>• Professores veem em tempo real quanto já distribuíram no dia</li>
-            <li>• A mudança é sincronizada automaticamente sem refresh da página</li>
+            <li>✅ Atualização instantânea: mudanças aparecem para professores em tempo real</li>
+            <li>🔄 Sincronização automática: sem necessidade de recarregar a página</li>
+            <li>📊 Limite compartilhado: vale para todos os professores ao mesmo tempo</li>
+            <li>🕐 Reset diário: contador zera automaticamente à meia-noite</li>
+            <li>👀 Visibilidade total: professores veem limite atual e porcentagem usada</li>
           </ul>
+        </div>
+
+        <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+          <p className="text-xs text-green-700 font-medium">
+            💡 Exemplo: Se você alterar de 500 para 400 moedas, os professores verão "400" como novo limite instantaneamente, sem precisar atualizar a página.
+          </p>
         </div>
       </CardContent>
     </Card>

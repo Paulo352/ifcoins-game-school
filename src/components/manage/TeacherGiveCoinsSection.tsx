@@ -32,7 +32,7 @@ export function TeacherGiveCoinsSection({ users, teacherId, onSuccess }: Teacher
   const [selectedUserId, setSelectedUserId] = useState('');
   const [selectedReason, setSelectedReason] = useState<string>('');
   const { giveCoins, loading } = useUpdateCoins();
-  const { dailyCoins, dailyLimit, refetch: refetchLimit } = useTeacherDailyLimit();
+  const { dailyCoins, dailyLimit, remainingCoins, percentageUsed, refetch: refetchLimit } = useTeacherDailyLimit();
 
   const studentUsers = users?.filter(u => u.role === 'student') || [];
   const selectedReasonData = PREDEFINED_REASONS.find(r => r.reason === selectedReason);
@@ -76,11 +76,22 @@ export function TeacherGiveCoinsSection({ users, teacherId, onSuccess }: Teacher
           <Coins className="h-5 w-5" />
           Recompensar Estudante
         </CardTitle>
-        <CardDescription className="flex items-center justify-between">
-          <span>Use motivos pré-definidos para recompensas rápidas e consistentes</span>
-          <Badge variant="secondary" className="text-xs">
-            {dailyCoins}/{dailyLimit} moedas hoje
-          </Badge>
+        <CardDescription>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <span>Use motivos pré-definidos para recompensas rápidas e consistentes</span>
+            <Badge 
+              variant={percentageUsed >= 100 ? "destructive" : percentageUsed >= 80 ? "secondary" : "outline"}
+              className="text-xs font-medium"
+            >
+              <Coins className="h-3 w-3 mr-1" />
+              {dailyCoins}/{dailyLimit} hoje ({percentageUsed}%)
+            </Badge>
+          </div>
+          {remainingCoins > 0 && remainingCoins <= dailyLimit * 0.2 && (
+            <div className="mt-2 text-xs text-orange-600 font-medium">
+              ⚠️ Restam apenas {remainingCoins} moedas do seu limite diário
+            </div>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
