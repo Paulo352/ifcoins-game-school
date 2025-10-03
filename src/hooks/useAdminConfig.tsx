@@ -80,6 +80,28 @@ export const useAdminConfig = () => {
 
   useEffect(() => {
     fetchConfig();
+
+    // Configurar realtime subscription para sincronizar mudanças
+    const channel = supabase
+      .channel('admin_config_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'admin_config'
+        },
+        (payload) => {
+          console.log('Config change detected:', payload);
+          // Recarregar configurações quando houver mudanças
+          fetchConfig();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {
