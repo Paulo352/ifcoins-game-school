@@ -46,6 +46,17 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
       return;
     }
 
+    // Verificar limite diário do professor
+    const finalAmount = calculateBonusCoins(amount);
+    if (dailyCoins + finalAmount > dailyLimit) {
+      toast({
+        title: "Limite diário atingido",
+        description: `Você já distribuiu ${dailyCoins} de ${dailyLimit} moedas hoje. Esta ação ultrapassaria seu limite.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     const selectedStudent = students?.find(s => s.email === selectedStudentEmail);
     if (!selectedStudent) {
       toast({
@@ -96,6 +107,27 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Daily Limit Warning */}
+        {dailyCoins >= dailyLimit * 0.8 && (
+          <div className={`p-3 border rounded-lg ${
+            dailyCoins >= dailyLimit 
+              ? 'bg-red-50 border-red-200' 
+              : 'bg-yellow-50 border-yellow-200'
+          }`}>
+            <div className={`flex items-center gap-2 ${
+              dailyCoins >= dailyLimit ? 'text-red-700' : 'text-yellow-700'
+            }`}>
+              <Award className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                {dailyCoins >= dailyLimit 
+                  ? `Você atingiu o limite diário de ${dailyLimit} moedas!`
+                  : `Atenção: Você já distribuiu ${dailyCoins} de ${dailyLimit} moedas hoje.`
+                }
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Event Active Notice */}
         {hasActiveEvent && (
           <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
@@ -159,10 +191,15 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
         <Button 
           onClick={handleGiveCoins}
           className="bg-ifpr-green hover:bg-ifpr-green-dark"
-          disabled={loading}
+          disabled={loading || dailyCoins >= dailyLimit}
         >
           <Coins className="h-4 w-4 mr-2" />
-          {loading ? 'Atribuindo Moedas...' : 'Atribuir Moedas'}
+          {dailyCoins >= dailyLimit 
+            ? 'Limite Diário Atingido' 
+            : loading 
+              ? 'Atribuindo Moedas...' 
+              : 'Atribuir Moedas'
+          }
         </Button>
       </CardContent>
     </Card>
