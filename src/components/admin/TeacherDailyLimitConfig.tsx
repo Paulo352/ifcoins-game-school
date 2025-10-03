@@ -34,9 +34,9 @@ export function TeacherDailyLimitConfig() {
 
     setIsSaving(true);
     try {
-      await updateConfig('teacher_daily_limit', dailyLimit);
+      await updateConfig('teacher_daily_limit', String(limitValue));
       toast.success('✅ Limite atualizado! Professores verão a mudança instantaneamente.');
-      console.log('✅ Admin salvou novo limite:', dailyLimit);
+      console.log('✅ Admin salvou novo limite:', limitValue);
     } catch (error) {
       console.error('❌ Erro ao atualizar limite:', error);
       toast.error('Erro ao atualizar limite diário');
@@ -78,7 +78,7 @@ export function TeacherDailyLimitConfig() {
               value={dailyLimit}
               onChange={(e) => setDailyLimit(e.target.value)}
               placeholder="500"
-              disabled={isSaving}
+              disabled={isSaving || loading}
             />
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
