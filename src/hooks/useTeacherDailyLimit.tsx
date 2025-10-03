@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +9,12 @@ export function useTeacherDailyLimit() {
   const { getConfig, config } = useAdminConfig();
   
   // Buscar o limite configurado pelo admin (padrão: 500) - reativo ao config
-  const dailyLimit = parseInt(getConfig('teacher_daily_limit', '500'));
+  // Usa useMemo para recalcular quando config mudar
+  const dailyLimit = React.useMemo(() => {
+    const limit = parseInt(getConfig('teacher_daily_limit', '500'));
+    console.log('Daily limit atualizado:', limit);
+    return limit;
+  }, [config.teacher_daily_limit, getConfig]);
   
   const { data: dailyCoins = 0, refetch } = useQuery({
     queryKey: ['teacher-daily-coins', profile?.id, config.teacher_daily_limit],
