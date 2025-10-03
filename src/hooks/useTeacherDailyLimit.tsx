@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-
-const DAILY_LIMIT = 500;
+import { useAdminConfig } from './useAdminConfig';
 
 export function useTeacherDailyLimit() {
   const { profile } = useAuth();
+  const { getConfig } = useAdminConfig();
+  
+  // Buscar o limite configurado pelo admin (padrão: 500)
+  const dailyLimit = parseInt(getConfig('teacher_daily_limit', '500'));
   
   const { data: dailyCoins = 0, refetch } = useQuery({
     queryKey: ['teacher-daily-coins', profile?.id],
@@ -31,16 +34,16 @@ export function useTeacherDailyLimit() {
     enabled: !!profile?.id && profile.role === 'teacher',
   });
 
-  const remainingCoins = Math.max(0, DAILY_LIMIT - dailyCoins);
+  const remainingCoins = Math.max(0, dailyLimit - dailyCoins);
   const canGiveSpecialCoins = remainingCoins > 0;
-  const limitReached = dailyCoins >= DAILY_LIMIT;
+  const limitReached = dailyCoins >= dailyLimit;
 
   return {
     dailyCoins,
     remainingCoins,
     canGiveSpecialCoins,
     limitReached,
-    dailyLimit: DAILY_LIMIT,
+    dailyLimit,
     refetch
   };
 }

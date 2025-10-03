@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import { UserSettings } from '@/components/settings/UserSettings';
 import { SystemResetButton } from '@/components/admin/SystemResetButton';
 import { MaintenanceControl } from '@/components/admin/MaintenanceControl';
+import { TeacherDailyLimitConfig } from '@/components/admin/TeacherDailyLimitConfig';
+import { DailyCoinsConfig } from '@/components/admin/DailyCoinsConfig';
 import { 
   Database, 
   Download, 
@@ -131,6 +133,12 @@ export function Settings() {
         <TabsContent value="admin" className="space-y-6">
           {/* Controle de Manutenção */}
           <MaintenanceControl />
+
+          {/* Configurações de Moedas */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TeacherDailyLimitConfig />
+            <DailyCoinsConfig />
+          </div>
 
           {/* Outras Configurações Administrativas */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
