@@ -6,13 +6,13 @@ import { useAdminConfig } from './useAdminConfig';
 
 export function useTeacherDailyLimit() {
   const { profile } = useAuth();
-  const { getConfig } = useAdminConfig();
+  const { getConfig, config } = useAdminConfig();
   
-  // Buscar o limite configurado pelo admin (padrão: 500)
+  // Buscar o limite configurado pelo admin (padrão: 500) - reativo ao config
   const dailyLimit = parseInt(getConfig('teacher_daily_limit', '500'));
   
   const { data: dailyCoins = 0, refetch } = useQuery({
-    queryKey: ['teacher-daily-coins', profile?.id],
+    queryKey: ['teacher-daily-coins', profile?.id, config.teacher_daily_limit],
     queryFn: async () => {
       if (!profile?.id) return 0;
       

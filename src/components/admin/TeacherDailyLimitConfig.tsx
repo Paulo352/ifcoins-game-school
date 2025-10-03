@@ -8,13 +8,13 @@ import { useAdminConfig } from '@/hooks/useAdminConfig';
 import { toast } from 'sonner';
 
 export function TeacherDailyLimitConfig() {
-  const { getConfig, updateConfig, loading } = useAdminConfig();
+  const { getConfig, updateConfig, loading, config } = useAdminConfig();
   const [dailyLimit, setDailyLimit] = useState('500');
 
   useEffect(() => {
     const currentLimit = getConfig('teacher_daily_limit', '500');
     setDailyLimit(currentLimit);
-  }, [getConfig]);
+  }, [config]);
 
   const handleSave = async () => {
     const limitValue = parseInt(dailyLimit);
