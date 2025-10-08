@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { Wrench, AlertTriangle, Calendar } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export function MaintenanceControl() {
   const { status, toggleMaintenanceMode, scheduleMaintenanceNotification } = useMaintenanceMode();
@@ -97,6 +98,9 @@ export function MaintenanceControl() {
         <CardTitle className="flex items-center gap-2">
           <Wrench className="h-5 w-5" />
           Controle de Manutenção
+          <Badge variant="secondary" className="ml-auto text-xs">
+            em manutenção
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">

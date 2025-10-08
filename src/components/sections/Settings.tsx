@@ -150,6 +150,9 @@ export function Settings() {
                 <CardTitle className="flex items-center gap-2">
                   <Database className="h-5 w-5" />
                   Backup do Banco
+                  <Badge variant="secondary" className="ml-auto text-xs">
+                    em manutenção
+                  </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -173,6 +176,9 @@ export function Settings() {
                 <CardTitle className="flex items-center gap-2">
                   <Download className="h-5 w-5" />
                   Exportar Dados
+                  <Badge variant="secondary" className="ml-auto text-xs">
+                    em manutenção
+                  </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -197,6 +203,9 @@ export function Settings() {
                 <CardTitle className="flex items-center gap-2">
                   <Mail className="h-5 w-5" />
                   Teste de Email
+                  <Badge variant="secondary" className="ml-auto text-xs">
+                    em manutenção
+                  </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">

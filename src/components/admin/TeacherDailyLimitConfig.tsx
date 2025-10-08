@@ -51,14 +51,17 @@ export function TeacherDailyLimitConfig() {
   return (
     <Card className="border-primary/20">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             <Coins className="h-5 w-5 text-primary" />
             Limite Diário de Professores
+            <Badge variant="secondary" className="text-xs">
+              em manutenção
+            </Badge>
           </div>
           <Badge variant="outline" className="text-xs">
             <RefreshCw className="h-3 w-3 mr-1" />
-            Sincronizado em tempo real
+            Sincronizado
           </Badge>
         </CardTitle>
       </CardHeader>

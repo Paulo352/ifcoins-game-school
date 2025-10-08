@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Coins, Calendar, Users, Settings } from 'lucide-react';
 import { useAdminConfig } from '@/hooks/useAdminConfig';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 
 export function DailyCoinsConfig() {
   const { getConfig, updateConfig, loading } = useAdminConfig();
@@ -47,6 +48,9 @@ export function DailyCoinsConfig() {
         <CardTitle className="flex items-center gap-2">
           <Coins className="h-5 w-5 text-yellow-600" />
           Distribuição Automática de Moedas
+          <Badge variant="secondary" className="ml-auto text-xs">
+            em manutenção
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
