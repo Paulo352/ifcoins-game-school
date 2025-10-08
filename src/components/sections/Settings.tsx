@@ -19,8 +19,10 @@ import {
   Loader2,
   Settings as SettingsIcon,
   Mail,
-  User
+  User,
+  Package
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export function Settings() {
   const { profile } = useAuth();
@@ -220,6 +222,31 @@ export function Settings() {
                 >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Enviar Email de Teste
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Pacote de Cartas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Pacote de Cartas
+                  <Badge variant="secondary" className="ml-auto text-xs">
+                    em breve
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Gerencie pacotes de cartas especiais e promoções para estudantes.
+                </p>
+                <Button 
+                  disabled
+                  variant="outline"
+                  className="w-full"
+                >
+                  Configurar Pacotes
                 </Button>
               </CardContent>
             </Card>
