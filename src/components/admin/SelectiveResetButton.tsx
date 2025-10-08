@@ -23,59 +23,86 @@ interface ResetOption {
   id: string;
   label: string;
   description: string;
-  table?: string;
-  action?: string;
+  action: string;
   danger: 'high' | 'medium' | 'low';
 }
 
 const RESET_OPTIONS: ResetOption[] = [
   {
+    id: 'events',
+    label: 'Eventos Completos',
+    description: 'Remove TODOS os eventos e suas dependências (polls, votações, cartas associadas)',
+    action: 'delete_events',
+    danger: 'high'
+  },
+  {
+    id: 'packs_system',
+    label: 'Sistema de Pacotes',
+    description: 'Remove TODOS os pacotes e suas dependências (cartas associadas, histórico de compras)',
+    action: 'delete_packs',
+    danger: 'high'
+  },
+  {
+    id: 'quizzes_system',
+    label: 'Sistema de Quizzes',
+    description: 'Remove TODOS os quizzes e suas dependências (perguntas, tentativas, respostas)',
+    action: 'delete_quizzes',
+    danger: 'high'
+  },
+  {
+    id: 'polls',
+    label: 'Votações (Polls)',
+    description: 'Remove TODAS as votações independentes (não associadas a eventos)',
+    action: 'delete_polls',
+    danger: 'high'
+  },
+  {
     id: 'user_cards',
     label: 'Cartas dos Usuários',
     description: 'Remove todas as cartas das coleções dos usuários',
-    table: 'user_cards',
+    action: 'delete_user_cards',
     danger: 'high'
   },
   {
     id: 'cards',
     label: 'Cartas do Sistema',
     description: 'Deleta todas as cartas criadas no sistema',
-    table: 'cards',
+    action: 'delete_cards',
     danger: 'high'
   },
   {
     id: 'coins',
     label: 'Moedas dos Usuários',
-    description: 'Reseta moedas de todos para 100',
+    description: 'Reseta moedas de todos os usuários para 100',
     action: 'reset_coins',
     danger: 'medium'
   },
   {
     id: 'reward_logs',
     label: 'Histórico de Recompensas',
-    description: 'Limpa todo o histórico de recompensas',
-    table: 'reward_logs',
+    description: 'Limpa todo o histórico de recompensas dos professores',
+    action: 'delete_reward_logs',
     danger: 'medium'
   },
   {
     id: 'trades',
     label: 'Trocas',
     description: 'Remove todas as trocas (pendentes, aceitas e recusadas)',
-    table: 'trades',
+    action: 'delete_trades',
     danger: 'low'
   },
   {
-    id: 'packs',
-    label: 'Compras de Pacotes',
-    description: 'Limpa histórico de compras de pacotes',
-    table: 'pack_purchases',
+    id: 'pack_purchases',
+    label: 'Histórico de Compras',
+    description: 'Limpa apenas o histórico de compras de pacotes (mantém os pacotes)',
+    action: 'delete_pack_purchases',
     danger: 'low'
   },
   {
-    id: 'quizzes',
-    label: 'Tentativas de Quizzes',
-    description: 'Remove todas as tentativas de quizzes',
-    action: 'reset_quizzes',
+    id: 'notifications',
+    label: 'Notificações',
+    description: 'Remove todas as notificações do sistema',
+    action: 'delete_notifications',
     danger: 'low'
   }
 ];
@@ -130,46 +157,111 @@ export function SelectiveResetButton() {
         if (!option) continue;
 
         try {
-          if (option.action === 'reset_coins') {
-            // Reset moedas via UPDATE
-            const { error } = await supabase
-              .from('profiles')
-              .update({ coins: 100 })
-              .neq('id', '00000000-0000-0000-0000-000000000000');
+          switch (option.action) {
+            case 'delete_events':
+              // Deletar eventos e suas dependências na ordem correta
+              // 1. Primeiro os votos
+              const { data: eventPolls } = await supabase
+                .from('polls')
+                .select('id')
+                .not('event_id', 'is', null);
+              
+              if (eventPolls && eventPolls.length > 0) {
+                const pollIds = eventPolls.map(p => p.id);
+                await supabase.from('poll_votes').delete().in('poll_id', pollIds);
+                await supabase.from('poll_options').delete().in('poll_id', pollIds);
+              }
+              
+              // 2. Depois as polls
+              await supabase.from('polls').delete().not('event_id', 'is', null);
+              
+              // 3. Event cards
+              await supabase.from('event_cards').delete().neq('event_id', '00000000-0000-0000-0000-000000000000');
+              
+              // 4. Finalmente os eventos
+              await supabase.from('events').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              
+              results.push({ step: option.label, status: 'success' });
+              break;
 
-            if (error) throw error;
-            results.push({ step: option.label, status: 'success' });
-          } else if (option.action === 'reset_quizzes') {
-            // Reset quizzes (tentativas e respostas)
-            await supabase.from('quiz_answers').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            await supabase.from('quiz_attempts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            results.push({ step: option.label, status: 'success' });
-          } else if (option.table) {
-            // Reset via DELETE com type casting para tabelas específicas
-            let deleteResult;
-            
-            switch (option.table) {
-              case 'user_cards':
-                deleteResult = await supabase.from('user_cards').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                break;
-              case 'cards':
-                deleteResult = await supabase.from('cards').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                break;
-              case 'reward_logs':
-                deleteResult = await supabase.from('reward_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                break;
-              case 'trades':
-                deleteResult = await supabase.from('trades').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                break;
-              case 'pack_purchases':
-                deleteResult = await supabase.from('pack_purchases').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                break;
-              default:
-                throw new Error(`Tabela desconhecida: ${option.table}`);
-            }
+            case 'delete_packs':
+              // Deletar pacotes e suas dependências na ordem correta
+              await supabase.from('pack_purchases').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              await supabase.from('pack_cards').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              await supabase.from('packs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              results.push({ step: option.label, status: 'success' });
+              break;
 
-            if (deleteResult?.error) throw deleteResult.error;
-            results.push({ step: option.label, status: 'success' });
+            case 'delete_quizzes':
+              // Deletar quizzes e suas dependências
+              await supabase.from('quiz_answers').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              await supabase.from('quiz_attempts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              await supabase.from('quiz_questions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              await supabase.from('quizzes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              results.push({ step: option.label, status: 'success' });
+              break;
+
+            case 'delete_polls':
+              // Deletar apenas polls independentes (sem event_id)
+              const { data: independentPolls } = await supabase
+                .from('polls')
+                .select('id')
+                .is('event_id', null);
+              
+              if (independentPolls && independentPolls.length > 0) {
+                const pollIds = independentPolls.map(p => p.id);
+                await supabase.from('poll_votes').delete().in('poll_id', pollIds);
+                await supabase.from('poll_options').delete().in('poll_id', pollIds);
+                await supabase.from('polls').delete().in('id', pollIds);
+              }
+              results.push({ step: option.label, status: 'success' });
+              break;
+
+            case 'delete_user_cards':
+              await supabase.from('user_cards').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              results.push({ step: option.label, status: 'success' });
+              break;
+
+            case 'delete_cards':
+              // Primeiro remover dependências
+              await supabase.from('user_cards').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              await supabase.from('pack_cards').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              await supabase.from('event_cards').delete().neq('card_id', '00000000-0000-0000-0000-000000000000');
+              // Depois deletar as cartas
+              await supabase.from('cards').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              results.push({ step: option.label, status: 'success' });
+              break;
+
+            case 'reset_coins':
+              await supabase
+                .from('profiles')
+                .update({ coins: 100 })
+                .neq('id', '00000000-0000-0000-0000-000000000000');
+              results.push({ step: option.label, status: 'success' });
+              break;
+
+            case 'delete_reward_logs':
+              await supabase.from('reward_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              results.push({ step: option.label, status: 'success' });
+              break;
+
+            case 'delete_trades':
+              await supabase.from('trades').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              results.push({ step: option.label, status: 'success' });
+              break;
+
+            case 'delete_pack_purchases':
+              await supabase.from('pack_purchases').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              results.push({ step: option.label, status: 'success' });
+              break;
+
+            case 'delete_notifications':
+              await supabase.from('notifications').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              results.push({ step: option.label, status: 'success' });
+              break;
+
+            default:
+              throw new Error(`Ação desconhecida: ${option.action}`);
           }
         } catch (error) {
           console.error(`Erro ao resetar ${option.label}:`, error);
@@ -224,7 +316,7 @@ export function SelectiveResetButton() {
           Zona de Perigo - Reset Seletivo
         </CardTitle>
         <CardDescription>
-          Escolha exatamente o que deseja resetar no sistema
+          Escolha exatamente o que deseja resetar no sistema. Eventos e Pacotes serão deletados com todas as suas dependências.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -232,9 +324,12 @@ export function SelectiveResetButton() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-red-900">Atenção: Reset Seletivo</h4>
+              <h4 className="font-medium text-red-900">⚠️ Atenção: Reset Seletivo</h4>
               <p className="text-sm text-red-700 mt-1">
-                Selecione apenas os itens que deseja resetar. Esta ação é irreversível para os itens selecionados.
+                Selecione apenas os itens que deseja resetar. Esta ação é IRREVERSÍVEL para os itens selecionados.
+              </p>
+              <p className="text-xs text-red-600 mt-2">
+                <strong>Importante:</strong> Ao deletar Eventos ou Pacotes, TODAS as dependências (polls, compras, etc) também serão removidas automaticamente.
               </p>
             </div>
           </div>
