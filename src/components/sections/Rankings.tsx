@@ -1,12 +1,50 @@
 
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Medal, Award, Crown, Coins } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export function Rankings() {
+  const queryClient = useQueryClient();
+
+  // Escutar mudanças em tempo real para atualizar rankings
+  useEffect(() => {
+    const channel = supabase
+      .channel('rankings-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+        },
+        (payload) => {
+          console.log('🔄 Perfil atualizado, atualizando rankings:', payload);
+          // Atualizar rankings quando houver mudanças nas moedas
+          queryClient.invalidateQueries({ queryKey: ['rankings'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_cards',
+        },
+        (payload) => {
+          console.log('🔄 Cartas atualizadas, atualizando rankings:', payload);
+          // Atualizar rankings de cartas
+          queryClient.invalidateQueries({ queryKey: ['card-rankings'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
   const { data: rankings, isLoading } = useQuery({
     queryKey: ['rankings'],
     queryFn: async () => {

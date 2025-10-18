@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,8 @@ import { useUpdateCoins } from '@/hooks/useUpdateCoins';
 import { useTeacherDailyLimit } from '@/hooks/useTeacherDailyLimit';
 import { useActiveEvent } from '@/hooks/useActiveEvent';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface TeacherGiveCoinsFormProps {
   students: any[] | undefined;
@@ -25,6 +27,34 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
   const { giveCoins, loading, calculateBonusCoins } = useUpdateCoins();
   const { dailyCoins, dailyLimit, remainingCoins, percentageUsed, refetch: refetchLimit } = useTeacherDailyLimit();
   const { activeEvent, multiplier, hasActiveEvent } = useActiveEvent();
+  const queryClient = useQueryClient();
+
+  // Escutar mudanças em reward_logs em tempo real
+  useEffect(() => {
+    const channel = supabase
+      .channel('teacher-reward-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'reward_logs',
+          filter: `teacher_id=eq.${teacherId}`,
+        },
+        (payload) => {
+          console.log('🔄 Nova recompensa registrada:', payload);
+          // Atualizar limite diário e estatísticas
+          refetchLimit();
+          queryClient.invalidateQueries({ queryKey: ['teacher-stats'] });
+          queryClient.invalidateQueries({ queryKey: ['teacher-recent-rewards'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [teacherId, refetchLimit, queryClient]);
 
   const handleGiveCoins = async () => {
     if (!selectedStudentEmail || !coinsAmount || !reason) {

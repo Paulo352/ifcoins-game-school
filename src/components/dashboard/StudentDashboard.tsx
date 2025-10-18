@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CoinBalance } from '@/components/ui/coin-balance';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,49 @@ interface StudentDashboardProps {
 
 export function StudentDashboard({ onSectionChange }: StudentDashboardProps) {
   const { profile } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Escutar mudanças em tempo real para atualizar dados do estudante
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const channel = supabase
+      .channel(`student-updates-${profile.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'reward_logs',
+          filter: `student_id=eq.${profile.id}`,
+        },
+        (payload) => {
+          console.log('🔄 Nova recompensa recebida:', payload);
+          // Atualizar recompensas recentes
+          queryClient.invalidateQueries({ queryKey: ['student-recent-rewards', profile.id] });
+          // Perfil já será atualizado pelo useAuthState com realtime
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_cards',
+          filter: `user_id=eq.${profile.id}`,
+        },
+        (payload) => {
+          console.log('🔄 Cartas atualizadas:', payload);
+          // Atualizar cartas do usuário
+          queryClient.invalidateQueries({ queryKey: ['user-cards', profile.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.id, queryClient]);
 
   const { data: userCards, isLoading } = useQuery({
     queryKey: ['user-cards', profile?.id],

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Coins, Users, Clock, Award, TrendingUp, Calendar } from 'lucide-react';
@@ -8,6 +8,49 @@ import { Badge } from '@/components/ui/badge';
 
 export function TeacherDashboard() {
   const { profile } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Escutar mudanças em tempo real para atualizar dados do professor
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const channel = supabase
+      .channel(`teacher-updates-${profile.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'reward_logs',
+          filter: `teacher_id=eq.${profile.id}`,
+        },
+        (payload) => {
+          console.log('🔄 Nova recompensa dada:', payload);
+          // Atualizar estatísticas do professor
+          queryClient.invalidateQueries({ queryKey: ['today-rewards', profile.id] });
+          queryClient.invalidateQueries({ queryKey: ['weekly-rewards', profile.id] });
+          queryClient.invalidateQueries({ queryKey: ['recent-rewards', profile.id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles',
+        },
+        (payload) => {
+          console.log('🔄 Perfis atualizados:', payload);
+          // Atualizar contagem de estudantes se necessário
+          queryClient.invalidateQueries({ queryKey: ['students-count'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.id, queryClient]);
 
   const { data: students } = useQuery({
     queryKey: ['students-count'],

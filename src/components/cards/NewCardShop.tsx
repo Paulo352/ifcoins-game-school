@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAvailableCards } from '@/hooks/useNewCards';
 import { useCardPurchase } from '@/hooks/cards/useCardPurchase';
@@ -8,11 +8,38 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Package } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function NewCardShop() {
   const { profile } = useAuth();
   const { data: cards, isLoading } = useAvailableCards();
   const { buyCard, loading: purchasing } = useCardPurchase();
+  const queryClient = useQueryClient();
+
+  // Escutar mudanças em tempo real no estoque de cartas
+  useEffect(() => {
+    const channel = supabase
+      .channel('card-shop-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'cards',
+        },
+        (payload) => {
+          console.log('🔄 Estoque de cartas atualizado:', payload);
+          // Atualizar lista de cartas disponíveis
+          queryClient.invalidateQueries({ queryKey: ['available-cards'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const handleBuyCard = async (cardId: string) => {
     if (!profile) return;
