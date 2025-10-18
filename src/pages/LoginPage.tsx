@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Coins, Mail, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import logo from '@/assets/logo.png';
 
 export default function LoginPage() {
   const { signIn, signUp, user } = useAuth();
@@ -125,9 +126,11 @@ export default function LoginPage() {
         <Card className="shadow-2xl border-0 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
           <CardHeader className="text-center space-y-4 pb-6">
             <div className="flex justify-center">
-              <div className="bg-primary text-primary-foreground rounded-full p-4 shadow-lg">
-                <Coins className="h-8 w-8" />
-              </div>
+              <img 
+                src={logo} 
+                alt="IFCoins Logo" 
+                className="h-24 w-24 object-contain"
+              />
             </div>
             <div>
               <CardTitle className="text-3xl font-bold text-primary">IFCoins</CardTitle>
