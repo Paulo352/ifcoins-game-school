@@ -11,9 +11,8 @@ export function Rankings() {
     queryKey: ['rankings'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('rankings_secure')
         .select('*')
-        .eq('role', 'student')
         .order('coins', { ascending: false })
         .limit(50);
       
@@ -127,11 +126,7 @@ export function Rankings() {
                     {getPositionIcon(index + 1)}
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium">{user.name}</p>
-                      {getRoleBadge(user.role)}
-                    </div>
-                    <p className="text-sm text-gray-600">{user.email}</p>
+                    <p className="font-medium">{user.name}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-ifpr-green text-lg">
@@ -166,11 +161,7 @@ export function Rankings() {
                     {getPositionIcon(index + 1)}
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium">{item.user.name}</p>
-                      {getRoleBadge(item.user.role)}
-                    </div>
-                    <p className="text-sm text-gray-600">{item.user.email}</p>
+                    <p className="font-medium">{item.user.name}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-purple-600 text-lg">

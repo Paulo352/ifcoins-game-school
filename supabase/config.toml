@@ -10,7 +10,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.delete-user]
-verify_jwt = false
+verify_jwt = true
 
 [functions.fix-buy-card]
 verify_jwt = false

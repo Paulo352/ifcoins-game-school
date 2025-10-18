@@ -675,6 +675,13 @@ export type Database = {
             foreignKeyName: "reward_logs_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "rankings_view"
             referencedColumns: ["id"]
           },
@@ -683,6 +690,13 @@ export type Database = {
             columns: ["teacher_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_logs_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
             referencedColumns: ["id"]
           },
           {
@@ -776,6 +790,13 @@ export type Database = {
             foreignKeyName: "trades_from_user_id_fkey"
             columns: ["from_user_id"]
             isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trades_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
             referencedRelation: "rankings_view"
             referencedColumns: ["id"]
           },
@@ -784,6 +805,13 @@ export type Database = {
             columns: ["to_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trades_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
             referencedColumns: ["id"]
           },
           {
@@ -836,10 +864,38 @@ export type Database = {
             foreignKeyName: "user_cards_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_cards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "rankings_view"
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -858,6 +914,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rankings_secure: {
+        Row: {
+          coins: number | null
+          created_at: string | null
+          id: string | null
+          name: string | null
+        }
+        Insert: {
+          coins?: number | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+        }
+        Update: {
+          coins?: number | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+        }
+        Relationships: []
       }
       rankings_view: {
         Row: {
@@ -939,6 +1016,13 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: string
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_admin_email: {
         Args: { email_to_check: string }
         Returns: boolean
@@ -976,6 +1060,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "teacher" | "student"
       card_rarity: "common" | "rare" | "legendary" | "mythic"
       trade_status: "pending" | "accepted" | "rejected"
       user_role: "student" | "teacher" | "admin"
@@ -1106,6 +1191,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "teacher", "student"],
       card_rarity: ["common", "rare", "legendary", "mythic"],
       trade_status: ["pending", "accepted", "rejected"],
       user_role: ["student", "teacher", "admin"],

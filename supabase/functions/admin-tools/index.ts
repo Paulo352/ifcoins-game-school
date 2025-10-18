@@ -1,11 +1,29 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 import { Resend } from "npm:resend@2.0.0";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schemas
+const AdminToolsSchema = z.object({
+  action: z.enum([
+    'backup_database',
+    'export_data',
+    'cleanup_logs',
+    'maintenance_mode',
+    'schedule_maintenance',
+    'cancel_scheduled_maintenance',
+    'send_test_email'
+  ]),
+  enabled: z.boolean().optional(),
+  message: z.string().max(500).optional(),
+  to_email: z.string().email('Invalid email format').optional(),
+  scheduled_at: z.string().datetime().optional()
+});
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -21,7 +39,21 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { action, ...params } = await req.json();
+    // Validate input
+    const body = await req.json();
+    const validation = AdminToolsSchema.safeParse(body);
+    
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input',
+          details: validation.error.errors 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { action, ...params } = validation.data;
     console.log('Admin tools action:', action, params);
 
     switch (action) {
@@ -32,9 +64,9 @@ serve(async (req) => {
       case 'cleanup_logs':
         return await handleCleanupLogs();
       case 'maintenance_mode':
-        return await handleMaintenanceMode(params.enabled, params.message);
+        return await handleMaintenanceMode(params.enabled!, params.message!);
       case 'schedule_maintenance':
-        return await handleScheduleMaintenance(params.scheduled_at, params.message);
+        return await handleScheduleMaintenance(params.scheduled_at!, params.message!);
       case 'cancel_scheduled_maintenance':
         try {
           const { error } = await supabase
@@ -54,7 +86,7 @@ serve(async (req) => {
           );
         }
       case 'send_test_email':
-        return await handleSendTestEmail(params.to_email);
+        return await handleSendTestEmail(params.to_email!);
       default:
         return new Response(
           JSON.stringify({ error: 'Ação não reconhecida' }),
@@ -64,7 +96,6 @@ serve(async (req) => {
 
   async function handleBackupDatabase() {
     try {
-      // Exportar dados das principais tabelas
       const tables = ['profiles', 'cards', 'user_cards', 'events', 'reward_logs', 'polls', 'poll_options', 'poll_votes', 'trades', 'admin_config'];
       const backupData: any = {};
 
@@ -87,7 +118,6 @@ serve(async (req) => {
         }
       }
 
-      // Adicionar metadados do backup
       const backupMetadata = {
         timestamp: new Date().toISOString(),
         version: '1.0',
@@ -99,7 +129,6 @@ serve(async (req) => {
         data: backupData
       };
 
-      // Salvar backup no storage
       const fileName = `backup_${new Date().toISOString().split('T')[0]}_${Date.now()}.json`;
       const backupJson = JSON.stringify(fullBackup, null, 2);
       
@@ -128,7 +157,7 @@ serve(async (req) => {
     } catch (error: any) {
       console.error('Erro ao fazer backup:', error);
       return new Response(
-        JSON.stringify({ error: 'Erro ao fazer backup: ' + error.message }),
+        JSON.stringify({ error: 'Erro ao fazer backup' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -138,10 +167,8 @@ serve(async (req) => {
     try {
       console.log('Exporting system data...');
       
-      // Exportar dados resumidos para análise
       const exportData: any = {};
 
-      // Estatísticas de usuários
       const { data: userStats } = await supabase
         .from('profiles')
         .select('role, coins, created_at');
@@ -155,7 +182,6 @@ serve(async (req) => {
         total_coins: userStats?.reduce((sum, user) => sum + (user.coins || 0), 0) || 0
       };
 
-      // Estatísticas de cartas
       const { data: cardStats } = await supabase
         .from('cards')
         .select('rarity, price, available');
@@ -169,7 +195,6 @@ serve(async (req) => {
         available_cards: cardStats?.filter(c => c.available).length || 0
       };
 
-      // Estatísticas de atividade
       const { data: rewardStats } = await supabase
         .from('reward_logs')
         .select('coins, created_at')
@@ -180,14 +205,9 @@ serve(async (req) => {
         coins_distributed_last_30_days: rewardStats?.reduce((sum, reward) => sum + (reward.coins || 0), 0) || 0
       };
 
-      // Criar timestamp único para o arquivo
       const timestamp = Date.now();
       const fileName = `system_export_${new Date().toISOString().split('T')[0]}_${timestamp}.json`;
       const exportJson = JSON.stringify(exportData, null, 2);
-
-      // Verificar se o bucket existe
-      const { data: buckets } = await supabase.storage.listBuckets();
-      console.log('Available buckets:', buckets?.map(b => b.name));
 
       const { error: uploadError } = await supabase.storage
         .from('backups')
@@ -215,7 +235,7 @@ serve(async (req) => {
     } catch (error: any) {
       console.error('Erro ao exportar dados:', error);
       return new Response(
-        JSON.stringify({ error: 'Erro ao exportar dados: ' + error.message }),
+        JSON.stringify({ error: 'Erro ao exportar dados' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -223,7 +243,6 @@ serve(async (req) => {
 
   async function handleCleanupLogs() {
     try {
-      // Limpar logs antigos (mais de 30 dias)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -254,7 +273,7 @@ serve(async (req) => {
     } catch (error: any) {
       console.error('Erro ao limpar logs:', error);
       return new Response(
-        JSON.stringify({ error: 'Erro ao limpar logs: ' + error.message }),
+        JSON.stringify({ error: 'Erro ao limpar logs' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -262,7 +281,6 @@ serve(async (req) => {
 
   async function handleMaintenanceMode(enabled: boolean, message: string) {
     try {
-      // Atualizar configuração de manutenção
       const { error: maintenanceError } = await supabase
         .from('admin_config')
         .upsert({ 
@@ -283,7 +301,6 @@ serve(async (req) => {
 
       if (messageError) throw messageError;
 
-      // Se ativando manutenção, enviar emails para usuários
       if (enabled) {
         await notifyUsersAboutMaintenance(message);
       }
@@ -301,7 +318,7 @@ serve(async (req) => {
     } catch (error: any) {
       console.error('Erro ao alterar modo manutenção:', error);
       return new Response(
-        JSON.stringify({ error: 'Erro ao alterar modo manutenção: ' + error.message }),
+        JSON.stringify({ error: 'Erro ao alterar modo manutenção' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -309,7 +326,6 @@ serve(async (req) => {
 
   async function handleScheduleMaintenance(scheduledAt: string, message: string) {
     try {
-      // Salvar agendamento
       const { error } = await supabase
         .from('admin_config')
         .upsert({ 
@@ -320,7 +336,6 @@ serve(async (req) => {
 
       if (error) throw error;
 
-      // Enviar emails de notificação
       await notifyUsersAboutScheduledMaintenance(scheduledAt, message);
 
       console.log('Manutenção agendada e usuários notificados');
@@ -336,7 +351,7 @@ serve(async (req) => {
     } catch (error: any) {
       console.error('Erro ao agendar manutenção:', error);
       return new Response(
-        JSON.stringify({ error: 'Erro ao agendar manutenção: ' + error.message }),
+        JSON.stringify({ error: 'Erro ao agendar manutenção' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -344,7 +359,6 @@ serve(async (req) => {
 
   async function notifyUsersAboutMaintenance(message: string) {
     try {
-      // Buscar usuários não-admin
       const { data: users, error } = await supabase
         .from('profiles')
         .select('id')
@@ -359,7 +373,6 @@ serve(async (req) => {
 
       console.log(`Enviando notificações para ${users.length} usuários`);
       
-      // Criar notificações internas para todos os usuários
       const notifications = users.map(user => ({
         user_id: user.id,
         title: 'Sistema em Manutenção',
@@ -407,7 +420,6 @@ serve(async (req) => {
       
       console.log(`Criando notificações de agendamento para ${users.length} usuários`);
 
-      // Criar notificações imediatas de agendamento
       const immediateNotifications = users.map(user => ({
         user_id: user.id,
         title: 'Manutenção Agendada',
@@ -424,9 +436,8 @@ serve(async (req) => {
         throw immediateError;
       }
 
-      // Agendar notificação 24h antes
       const maintenanceDate = new Date(scheduledAt);
-      const reminderDate = new Date(maintenanceDate.getTime() - 24 * 60 * 60 * 1000); // 24h antes
+      const reminderDate = new Date(maintenanceDate.getTime() - 24 * 60 * 60 * 1000);
       
       if (reminderDate > new Date()) {
         const { error: scheduleError } = await supabase
@@ -441,7 +452,6 @@ serve(async (req) => {
 
         if (scheduleError) {
           console.error('Erro ao agendar lembrete:', scheduleError);
-          // Não falhar por causa do lembrete
         } else {
           console.log('Lembrete 24h agendado com sucesso');
         }
@@ -456,18 +466,9 @@ serve(async (req) => {
 
   async function handleSendTestEmail(toEmail: string) {
     try {
-      if (!toEmail) {
-        return new Response(
-          JSON.stringify({ error: 'Parâmetro to_email é obrigatório' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
       const fromEmail = Deno.env.get('MAINTENANCE_FROM_EMAIL') || 'onboarding@resend.dev';
       console.log(`Enviando email de teste para ${toEmail} de: ${fromEmail}`);
-      console.log('RESEND_API_KEY exists:', !!Deno.env.get('RESEND_API_KEY'));
 
-      // Verificar se o Resend foi inicializado corretamente
       if (!resend) {
         throw new Error('Resend não foi inicializado corretamente');
       }
@@ -491,33 +492,31 @@ serve(async (req) => {
 
       if (emailError) {
         console.error('Erro ao enviar email de teste:', emailError);
-        console.error('Detalhes do erro:', JSON.stringify(emailError));
         return new Response(
           JSON.stringify({ 
             success: false, 
-            error: emailError.message || JSON.stringify(emailError),
-            details: {
-              from: fromEmail,
-              to: toEmail,
-              hasApiKey: !!Deno.env.get('RESEND_API_KEY')
-            }
+            error: 'Erro ao enviar email de teste' 
           }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      console.log('Email enviado com sucesso:', data);
+      console.log('Email de teste enviado com sucesso:', data);
+
       return new Response(
-        JSON.stringify({ success: true, message: 'Email de teste enviado com sucesso', data }),
+        JSON.stringify({ 
+          success: true, 
+          message: 'Email de teste enviado com sucesso',
+          email_id: data?.id
+        }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (error: any) {
-      console.error('Erro ao enviar email de teste:', error);
+      console.error('Erro ao enviar email:', error);
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: error.message || 'Falha ao enviar email de teste',
-          stack: error.stack
+          error: 'Erro ao enviar email de teste' 
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -525,17 +524,10 @@ serve(async (req) => {
   }
 
   } catch (error: any) {
-    console.error('Admin tools error:', error);
-    
+    console.error('Error in admin-tools function:', error);
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message || 'Internal server error'
-      }),
-      { 
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
