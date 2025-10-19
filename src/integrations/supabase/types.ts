@@ -922,18 +922,6 @@ export type Database = {
           id: string | null
           name: string | null
         }
-        Insert: {
-          coins?: number | null
-          created_at?: string | null
-          id?: string | null
-          name?: string | null
-        }
-        Update: {
-          coins?: number | null
-          created_at?: string | null
-          id?: string | null
-          name?: string | null
-        }
         Relationships: []
       }
       rankings_view: {
@@ -942,21 +930,18 @@ export type Database = {
           created_at: string | null
           id: string | null
           name: string | null
-          role: Database["public"]["Enums"]["user_role"] | null
         }
         Insert: {
           coins?: number | null
           created_at?: string | null
           id?: string | null
           name?: string | null
-          role?: Database["public"]["Enums"]["user_role"] | null
         }
         Update: {
           coins?: number | null
           created_at?: string | null
           id?: string | null
           name?: string | null
-          role?: Database["public"]["Enums"]["user_role"] | null
         }
         Relationships: []
       }
