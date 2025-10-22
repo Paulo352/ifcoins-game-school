@@ -287,6 +287,19 @@ export function NewManageCards() {
                 showPrice
               />
               
+              {/* Info do Criador */}
+              <div className="mt-2 px-3 py-2 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  {card.creator ? (
+                    card.creator.role === 'admin' ? 
+                      'Criado pelo Sistema' : 
+                      `Criado por ${card.creator.name}`
+                  ) : (
+                    'Criado pelo Sistema'
+                  )}
+                </p>
+              </div>
+              
               {/* Action Buttons */}
               <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="flex gap-1">

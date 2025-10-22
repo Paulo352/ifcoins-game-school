@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Trophy, Medal, Award, Crown, Coins } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -52,7 +51,7 @@ export function Rankings() {
         .from('rankings_secure')
         .select('*')
         .order('coins', { ascending: false })
-        .limit(50);
+        .limit(5);
       
       if (error) throw error;
       return data;
@@ -66,9 +65,10 @@ export function Rankings() {
         .from('user_cards')
         .select(`
           user_id,
-          profiles(name, email, role),
+          profiles!inner(name, email, role),
           total_cards:quantity
         `)
+        .eq('profiles.role', 'student')
         .order('quantity', { ascending: false });
       
       if (error) throw error;
@@ -88,7 +88,7 @@ export function Rankings() {
 
       return Object.values(userCardCounts)
         .sort((a: any, b: any) => b.totalCards - a.totalCards)
-        .slice(0, 20);
+        .slice(0, 5);
     },
   });
 
@@ -105,26 +105,6 @@ export function Rankings() {
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    const variants = {
-      admin: 'destructive' as const,
-      teacher: 'default' as const,
-      student: 'secondary' as const,
-    };
-    
-    const labels = {
-      admin: 'Admin',
-      teacher: 'Professor',
-      student: 'Estudante',
-    };
-
-    return (
-      <Badge variant={variants[role as keyof typeof variants] || 'outline'}>
-        {labels[role as keyof typeof labels] || role}
-      </Badge>
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="text-center py-12">
@@ -136,9 +116,9 @@ export function Rankings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Rankings IFCoins</h1>
-        <p className="text-gray-600 mt-1">
-          Veja quem está no topo da classificação
+        <h1 className="text-3xl font-bold text-foreground">Rankings IFCoins</h1>
+        <p className="text-muted-foreground mt-1">
+          Confira o Top 5 de estudantes
         </p>
       </div>
 
@@ -147,33 +127,36 @@ export function Rankings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Coins className="h-5 w-5 text-yellow-600" />
-              Ranking por IFCoins
+              Top 5 - IFCoins
             </CardTitle>
             <CardDescription>
-              Estudantes com mais moedas acumuladas
+              Top 5 estudantes com mais moedas
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {rankings?.map((user, index) => (
-                <div key={user.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                <div key={user.id} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-gray-600 w-6">
+                    <span className="text-lg font-bold text-muted-foreground w-6">
                       {index + 1}
                     </span>
                     {getPositionIcon(index + 1)}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium">{user.name}</p>
+                    <p className="font-medium text-foreground">{user.name}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-ifpr-green text-lg">
+                    <p className="font-bold text-primary text-lg">
                       {user.coins}
                     </p>
-                    <p className="text-xs text-gray-500">IFCoins</p>
+                    <p className="text-xs text-muted-foreground">IFCoins</p>
                   </div>
                 </div>
               ))}
+              {(!rankings || rankings.length === 0) && (
+                <p className="text-center text-muted-foreground py-4">Nenhum estudante no ranking ainda</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -182,33 +165,36 @@ export function Rankings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-purple-600" />
-              Ranking por Cartas
+              Top 5 - Cartas
             </CardTitle>
             <CardDescription>
-              Usuários com mais cartas na coleção
+              Top 5 estudantes com mais cartas
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {cardRankings?.map((item: any, index) => (
-                <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-gray-600 w-6">
+                    <span className="text-lg font-bold text-muted-foreground w-6">
                       {index + 1}
                     </span>
                     {getPositionIcon(index + 1)}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium">{item.user.name}</p>
+                    <p className="font-medium text-foreground">{item.user.name}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-purple-600 text-lg">
                       {item.totalCards}
                     </p>
-                    <p className="text-xs text-gray-500">Cartas</p>
+                    <p className="text-xs text-muted-foreground">Cartas</p>
                   </div>
                 </div>
               ))}
+              {(!cardRankings || cardRankings.length === 0) && (
+                <p className="text-center text-muted-foreground py-4">Nenhum estudante no ranking ainda</p>
+              )}
             </div>
           </CardContent>
         </Card>

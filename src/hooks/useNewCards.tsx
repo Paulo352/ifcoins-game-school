@@ -13,6 +13,11 @@ export interface NewCardData {
   copies_available: number | null;
   created_at: string;
   updated_at: string;
+  created_by: string | null;
+  creator?: {
+    name: string;
+    role: string;
+  } | null;
 }
 
 export interface CreateCardData {
@@ -40,8 +45,30 @@ export function useNewCards() {
         throw error;
       }
 
-      console.log('✅ Cards fetched successfully:', data?.length, 'cards');
-      return data as NewCardData[];
+      // Buscar informações do criador
+      const cardsWithCreator = await Promise.all(
+        (data || []).map(async (card) => {
+          if (card.created_by) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('name, role')
+              .eq('id', card.created_by)
+              .single();
+            
+            return {
+              ...card,
+              creator: profile
+            };
+          }
+          return {
+            ...card,
+            creator: null
+          };
+        })
+      );
+
+      console.log('✅ Cards fetched successfully:', cardsWithCreator?.length, 'cards');
+      return cardsWithCreator as NewCardData[];
     },
   });
 }
@@ -69,6 +96,9 @@ export function useCreateCard() {
     mutationFn: async (cardData: CreateCardData) => {
       console.log('🃏 Creating new card:', cardData);
       
+      // Pegar o usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from('cards')
         .insert([{
@@ -79,6 +109,7 @@ export function useCreateCard() {
           description: cardData.description || null,
           available: cardData.available ?? true,
           copies_available: cardData.copies_available || null,
+          created_by: user?.id || null,
         }])
         .select()
         .single();

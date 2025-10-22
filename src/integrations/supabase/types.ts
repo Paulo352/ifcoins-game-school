@@ -43,6 +43,7 @@ export type Database = {
           available: boolean
           copies_available: number | null
           created_at: string | null
+          created_by: string | null
           description: string | null
           event_id: string | null
           id: string
@@ -56,6 +57,7 @@ export type Database = {
           available?: boolean
           copies_available?: number | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           event_id?: string | null
           id?: string
@@ -69,6 +71,7 @@ export type Database = {
           available?: boolean
           copies_available?: number | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           event_id?: string | null
           id?: string
