@@ -46,6 +46,22 @@ export function useTrades() {
   });
 }
 
+// Hook para admins buscarem todas as trades
+export function useAllTrades() {
+  return useQuery({
+    queryKey: ['all-trades'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('trades')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as Trade[];
+    },
+  });
+}
+
 // Hook para criar trade
 export function useCreateTrade() {
   const queryClient = useQueryClient();

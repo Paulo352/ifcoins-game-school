@@ -26,6 +26,8 @@ import { Polls } from '@/components/sections/Polls';
 import { Quizzes } from '@/components/sections/Quizzes';
 import { QuizzesDashboard } from '@/components/quizzes/QuizzesDashboard';
 import { AITutor } from '@/components/sections/AITutor';
+import { Trades } from '@/components/sections/Trades';
+import { AdminTrades } from '@/components/admin/AdminTrades';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -126,6 +128,10 @@ const Index = () => {
         return <Polls />;
       case 'ai-tutor':
         return <AITutor />;
+      case 'trades':
+        return <Trades />;
+      case 'admin-trades':
+        return <AdminTrades />;
       default:
         if (profile.role === 'student') return <StudentDashboard onSectionChange={setActiveSection} />;
         if (profile.role === 'teacher') return <TeacherDashboard />;
