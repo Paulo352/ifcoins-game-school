@@ -13,6 +13,11 @@ interface Quiz {
   description: string | null;
   reward_coins: number;
   is_active: boolean;
+  created_by: string;
+  profiles?: {
+    name: string;
+    role: string;
+  } | null;
 }
 
 interface QuizReportsProps {
@@ -26,13 +31,31 @@ export function QuizReports({ onBack }: QuizReportsProps) {
   const { data: quizzes, isLoading: loadingQuizzes } = useQuery({
     queryKey: ['quizzes-for-reports'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Buscar quizzes
+      const { data: quizzesData, error: quizzesError } = await supabase
         .from('quizzes')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data as Quiz[];
+      if (quizzesError) throw quizzesError;
+
+      // Buscar dados dos criadores
+      const creatorIds = [...new Set(quizzesData?.map(q => q.created_by))];
+      const { data: creatorsData, error: creatorsError } = await supabase
+        .from('profiles')
+        .select('id, name, role')
+        .in('id', creatorIds);
+
+      if (creatorsError) throw creatorsError;
+
+      // Combinar dados
+      const creatorsMap = new Map(creatorsData?.map(c => [c.id, c]));
+      const quizzesWithCreators = quizzesData?.map(quiz => ({
+        ...quiz,
+        profiles: creatorsMap.get(quiz.created_by) || null,
+      }));
+
+      return quizzesWithCreators as Quiz[];
     },
   });
 
@@ -206,7 +229,7 @@ export function QuizReports({ onBack }: QuizReportsProps) {
                         {quiz.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 mt-2 text-sm">
+                    <div className="flex items-center gap-4 mt-2 text-sm flex-wrap">
                       <span className="text-muted-foreground">
                         Recompensa: {quiz.reward_coins} moedas
                       </span>
@@ -216,6 +239,9 @@ export function QuizReports({ onBack }: QuizReportsProps) {
                         }
                       >
                         {quiz.is_active ? 'Ativo' : 'Inativo'}
+                      </span>
+                      <span className="text-muted-foreground">
+                        Criado por: {quiz.profiles?.role === 'admin' ? 'Sistema' : quiz.profiles?.name || 'Desconhecido'}
                       </span>
                     </div>
                   </CardContent>

@@ -1,14 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Coins, Users, Clock, Award, TrendingUp, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { QuizReports } from '@/components/quizzes/QuizReports';
 
 export function TeacherDashboard() {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
+  const [showQuizReports, setShowQuizReports] = useState(false);
 
   // Escutar mudanças em tempo real para atualizar dados do professor
   useEffect(() => {
@@ -127,6 +129,10 @@ export function TeacherDashboard() {
   });
 
   if (!profile || profile.role !== 'teacher') return null;
+
+  if (showQuizReports) {
+    return <QuizReports onBack={() => setShowQuizReports(false)} />;
+  }
 
   const todayCoinsGiven = todayRewards?.reduce((acc, reward) => acc + reward.coins, 0) || 0;
   const todayStudentsRewarded = new Set(todayRewards?.map(r => r.student_id)).size;
@@ -247,7 +253,10 @@ export function TeacherDashboard() {
                 <p className="text-xs text-muted-foreground">Ver classificações de estudantes</p>
               </div>
               
-              <div className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+              <div 
+                className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                onClick={() => setShowQuizReports(true)}
+              >
                 <TrendingUp className="h-6 w-6 mb-2 text-orange-600" />
                 <p className="font-medium text-sm">Relatórios de Quiz</p>
                 <p className="text-xs text-muted-foreground">Ver desempenho dos alunos</p>

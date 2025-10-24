@@ -1,14 +1,17 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AdminStats } from '../admin/AdminStats';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Coins, Award, Calendar, BookOpen, Package, HelpCircle } from 'lucide-react';
+import { Users, Coins, Award, Calendar, BookOpen, Package, HelpCircle, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { QuizReports } from '@/components/quizzes/QuizReports';
 
 export function AdminDashboard() {
   const { profile } = useAuth();
   const { stats, loading } = useAdminStats();
+  const [showQuizReports, setShowQuizReports] = useState(false);
 
   if (!profile || profile.role !== 'admin') return null;
 
@@ -18,6 +21,10 @@ export function AdminDashboard() {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  if (showQuizReports) {
+    return <QuizReports onBack={() => setShowQuizReports(false)} />;
   }
 
   return (
@@ -84,29 +91,47 @@ export function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Atividade Recente */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Atividade Recente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {stats.recentActivity.length > 0 ? (
-            <div className="space-y-3">
-              {stats.recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-center justify-between py-2 border-b last:border-b-0">
-                  <div>
-                    <p className="text-sm font-medium">{activity.action}</p>
-                    <p className="text-xs text-muted-foreground">por {activity.user}</p>
+      {/* Quick Actions & Atividade Recente */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Ações Rápidas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={() => setShowQuizReports(true)}
+              className="w-full justify-start gap-2"
+              variant="outline"
+            >
+              <FileText className="h-5 w-5" />
+              Ver Relatórios de Quiz
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Atividade Recente</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats.recentActivity.length > 0 ? (
+              <div className="space-y-3">
+                {stats.recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                    <div>
+                      <p className="text-sm font-medium">{activity.action}</p>
+                      <p className="text-xs text-muted-foreground">por {activity.user}</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{activity.time}</span>
                   </div>
-                  <span className="text-xs text-muted-foreground">{activity.time}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-center py-4">Nenhuma atividade recente</p>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-center py-4">Nenhuma atividade recente</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
