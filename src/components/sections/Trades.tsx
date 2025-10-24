@@ -27,6 +27,7 @@ export function Trades() {
 
   const { data: trades = [], isLoading: tradesLoading } = useTrades();
   const { data: userCards = [] } = useUserCards(user?.id);
+  const { data: targetUserCards = [] } = useUserCards(newTrade.to_user_id || undefined);
   const { data: students = [] } = useStudents();
   const createTradeMutation = useCreateTrade();
   const updateTradeStatusMutation = useUpdateTradeStatus();
@@ -208,13 +209,19 @@ export function Trades() {
                   />
                 </div>
                 
-                <CardSelector
-                  userCards={userCards}
-                  selectedCards={newTrade.requestedCards}
-                  onCardChange={(cardId, quantity) => handleCardChange('requested', cardId, quantity)}
-                  title="Cartas que você solicita"
-                  variant="request"
-                />
+                {newTrade.to_user_id ? (
+                  <CardSelector
+                    userCards={targetUserCards}
+                    selectedCards={newTrade.requestedCards}
+                    onCardChange={(cardId, quantity) => handleCardChange('requested', cardId, quantity)}
+                    title="Cartas que você solicita"
+                    variant="request"
+                  />
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Selecione um estudante para ver suas cartas disponíveis
+                  </div>
+                )}
               </div>
             </div>
 
