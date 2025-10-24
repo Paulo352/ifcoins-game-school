@@ -4,9 +4,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Medal, Award, Crown, Coins } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Rankings() {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
+  const isTeacherOrAdmin = profile?.role === 'teacher' || profile?.role === 'admin';
 
   // Escutar mudanças em tempo real para atualizar rankings
   useEffect(() => {
@@ -44,51 +47,67 @@ export function Rankings() {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
+  
   const { data: rankings, isLoading } = useQuery({
-    queryKey: ['rankings'],
+    queryKey: ['rankings-coins', isTeacherOrAdmin],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('rankings_secure')
-        .select('*')
-        .order('coins', { ascending: false })
-        .limit(5);
-      
-      if (error) throw error;
-      return data;
+      if (isTeacherOrAdmin) {
+        // Admin/teacher can see all students
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, name, coins, created_at')
+          .eq('role', 'student')
+          .order('coins', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+        return data;
+      } else {
+        // Students see limited ranking
+        const { data, error } = await supabase
+          .from('rankings_secure')
+          .select('*')
+          .order('coins', { ascending: false })
+          .limit(5);
+
+        if (error) throw error;
+        return data;
+      }
     },
   });
 
   const { data: cardRankings } = useQuery({
-    queryKey: ['card-rankings'],
+    queryKey: ['card-rankings', isTeacherOrAdmin],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_cards')
         .select(`
           user_id,
-          profiles!inner(name, role),
-          total_cards:quantity
+          quantity,
+          profiles!inner(id, name, role)
         `)
-        .eq('profiles.role', 'student')
-        .order('quantity', { ascending: false });
+        .eq('profiles.role', 'student');
       
       if (error) throw error;
       
       // Agrupar por usuário e somar total de cartas
-      const userCardCounts = data.reduce((acc, item) => {
-        const userId = item.user_id;
+      const userCardCounts = data.reduce((acc: any, card: any) => {
+        const userId = card.user_id;
         if (!acc[userId]) {
           acc[userId] = {
-            user: item.profiles,
-            totalCards: 0
+            user_id: userId,
+            name: card.profiles.name,
+            total_cards: 0,
           };
         }
-        acc[userId].totalCards += item.total_cards;
+        acc[userId].total_cards += card.quantity;
         return acc;
-      }, {} as Record<string, any>);
+      }, {});
 
+      const limit = isTeacherOrAdmin ? 10 : 5;
       return Object.values(userCardCounts)
-        .sort((a: any, b: any) => b.totalCards - a.totalCards)
-        .slice(0, 5);
+        .sort((a: any, b: any) => b.total_cards - a.total_cards)
+        .slice(0, limit);
     },
   });
 
@@ -127,10 +146,10 @@ export function Rankings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Coins className="h-5 w-5 text-yellow-600" />
-              Top 5 - IFCoins
+              Top {isTeacherOrAdmin ? '10' : '5'} - IFCoins
             </CardTitle>
             <CardDescription>
-              Top 5 estudantes com mais moedas
+              Top {isTeacherOrAdmin ? '10' : '5'} estudantes com mais moedas
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -165,10 +184,10 @@ export function Rankings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-purple-600" />
-              Top 5 - Cartas
+              Top {isTeacherOrAdmin ? '10' : '5'} - Cartas
             </CardTitle>
             <CardDescription>
-              Top 5 estudantes com mais cartas
+              Top {isTeacherOrAdmin ? '10' : '5'} estudantes com mais cartas
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -182,11 +201,11 @@ export function Rankings() {
                     {getPositionIcon(index + 1)}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-foreground">{item.user.name}</p>
+                    <p className="font-medium text-foreground">{item.name}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-purple-600 text-lg">
-                      {item.totalCards}
+                      {item.total_cards}
                     </p>
                     <p className="text-xs text-muted-foreground">Cartas</p>
                   </div>
