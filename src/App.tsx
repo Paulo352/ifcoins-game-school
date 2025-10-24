@@ -10,6 +10,7 @@ import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
@@ -18,6 +19,31 @@ import { ResetPasswordPage } from "./components/auth/ResetPasswordPage";
 
 const queryClient = new QueryClient();
 
+// Componente interno para usar hooks
+const AppContent = () => {
+  useRealtimeUpdates();
+  
+  return (
+    <>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <div id="main-content">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+      <Analytics />
+      <SpeedInsights />
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -25,21 +51,7 @@ const App = () => (
         <TooltipProvider>
           <AuthProvider>
             <NotificationProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <div id="main-content">
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                    <Route path="/reset-password" element={<ResetPasswordPage />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </div>
-              </BrowserRouter>
-              <Analytics />
-              <SpeedInsights />
+              <AppContent />
             </NotificationProvider>
           </AuthProvider>
         </TooltipProvider>

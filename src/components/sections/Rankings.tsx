@@ -65,7 +65,7 @@ export function Rankings() {
         .from('user_cards')
         .select(`
           user_id,
-          profiles!inner(name, email, role),
+          profiles!inner(name, role),
           total_cards:quantity
         `)
         .eq('profiles.role', 'student')

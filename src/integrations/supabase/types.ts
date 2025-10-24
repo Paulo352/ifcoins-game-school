@@ -925,6 +925,18 @@ export type Database = {
           id: string | null
           name: string | null
         }
+        Insert: {
+          coins?: number | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+        }
+        Update: {
+          coins?: number | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+        }
         Relationships: []
       }
       rankings_view: {
@@ -950,14 +962,8 @@ export type Database = {
       }
     }
     Functions: {
-      buy_card: {
-        Args: { card_id: string; user_id: string }
-        Returns: Json
-      }
-      buy_pack: {
-        Args: { pack_id: string; user_id: string }
-        Returns: Json
-      }
+      buy_card: { Args: { card_id: string; user_id: string }; Returns: Json }
+      buy_pack: { Args: { pack_id: string; user_id: string }; Returns: Json }
       complete_quiz: {
         Args: { attempt_id: string; user_id: string }
         Returns: Json
@@ -983,14 +989,8 @@ export type Database = {
         }
         Returns: string
       }
-      delete_event: {
-        Args: { event_id: string }
-        Returns: boolean
-      }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      delete_event: { Args: { event_id: string }; Returns: boolean }
+      get_current_user_role: { Args: never; Returns: string }
       get_poll_results: {
         Args: { poll_id: string }
         Returns: {
@@ -1000,10 +1000,7 @@ export type Database = {
           vote_count: number
         }[]
       }
-      get_user_role_secure: {
-        Args: { user_uuid: string }
-        Returns: string
-      }
+      get_user_role_secure: { Args: { user_uuid: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1011,10 +1008,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin_email: {
-        Args: { email_to_check: string }
-        Returns: boolean
-      }
+      is_admin_email: { Args: { email_to_check: string }; Returns: boolean }
       update_event: {
         Args: {
           bonus_multiplier: number
