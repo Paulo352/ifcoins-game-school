@@ -13,9 +13,11 @@ import { useTrades, useCreateTrade, useUpdateTradeStatus, useStudents } from '@/
 import { useUserCards } from '@/hooks/cards/useCards';
 import { CardSelector } from '@/components/trades/CardSelector';
 import { TradeCard } from '@/components/trades/TradeCard';
+import { useRealtimeTrades } from '@/hooks/useRealtimeTrades';
 
 export function Trades() {
   const { profile, user } = useAuth();
+  useRealtimeTrades();
   const [isCreating, setIsCreating] = useState(false);
   const [newTrade, setNewTrade] = useState({
     to_user_id: '',
