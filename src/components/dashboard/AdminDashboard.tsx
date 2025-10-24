@@ -1,140 +1,112 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Users, Gift, Trophy, FileText, Package, Calendar, Vote, MessageSquare, Settings as SettingsIcon, BarChart3 } from 'lucide-react';
-import { ManageStudents } from '@/components/sections/ManageStudents';
-import { AdminGiveCoins } from '@/components/sections/AdminGiveCoins';
-import { Trades } from '@/components/sections/Trades';
-import { Rankings } from '@/components/sections/Rankings';
-import { NewManageCards } from '@/components/cards/NewManageCards';
-import { ManagePacks } from '@/components/packs/ManagePacks';
-import { Events } from '@/components/sections/Events';
-import { Polls } from '@/components/sections/Polls';
-import { Quizzes } from '@/components/sections/Quizzes';
-import { Settings } from '@/components/sections/Settings';
-import { AITutor } from '@/components/sections/AITutor';
-import { QuizReports } from '@/components/quizzes/QuizReports';
+
+import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { AdminStats } from '../admin/AdminStats';
+import { useAdminStats } from '@/hooks/useAdminStats';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Users, Coins, Award, Calendar, BookOpen, Package, HelpCircle } from 'lucide-react';
 
 export function AdminDashboard() {
-  const [activeSection, setActiveSection] = useState<'manage' | 'give-coins' | 'trades' | 'rankings' | 'cards' | 'packs' | 'events' | 'polls' | 'quizzes' | 'quiz-reports' | 'ai-tutor' | 'settings'>('manage');
+  const { profile } = useAuth();
+  const { stats, loading } = useAdminStats();
+
+  if (!profile || profile.role !== 'admin') return null;
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
-      <aside className="w-full md:w-64 space-y-2">
-        <h2 className="text-lg font-semibold px-4 py-2">Menu Admin</h2>
-        <nav className="space-y-1">
-          <Button
-            variant={activeSection === 'manage' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('manage')}
-            className="w-full justify-start"
-          >
-            <Users className="mr-2 h-4 w-4" />
-            Gerenciar Usuários
-          </Button>
-          <Button
-            variant={activeSection === 'give-coins' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('give-coins')}
-            className="w-full justify-start"
-          >
-            <Gift className="mr-2 h-4 w-4" />
-            Dar Moedas
-          </Button>
-          <Button
-            variant={activeSection === 'trades' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('trades')}
-            className="w-full justify-start"
-          >
-            <Trophy className="mr-2 h-4 w-4" />
-            Trocas
-          </Button>
-          <Button
-            variant={activeSection === 'rankings' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('rankings')}
-            className="w-full justify-start"
-          >
-            <Trophy className="mr-2 h-4 w-4" />
-            Rankings
-          </Button>
-          <Button
-            variant={activeSection === 'cards' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('cards')}
-            className="w-full justify-start"
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            Cartas
-          </Button>
-          <Button
-            variant={activeSection === 'packs' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('packs')}
-            className="w-full justify-start"
-          >
-            <Package className="mr-2 h-4 w-4" />
-            Pacotes
-          </Button>
-          <Button
-            variant={activeSection === 'events' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('events')}
-            className="w-full justify-start"
-          >
-            <Calendar className="mr-2 h-4 w-4" />
-            Eventos
-          </Button>
-          <Button
-            variant={activeSection === 'polls' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('polls')}
-            className="w-full justify-start"
-          >
-            <Vote className="mr-2 h-4 w-4" />
-            Votações
-          </Button>
-          <Button
-            variant={activeSection === 'quizzes' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('quizzes')}
-            className="w-full justify-start"
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            Quizzes
-          </Button>
-          <Button
-            variant={activeSection === 'quiz-reports' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('quiz-reports')}
-            className="w-full justify-start"
-          >
-            <BarChart3 className="mr-2 h-4 w-4" />
-            Relatórios de Quiz
-          </Button>
-          <Button
-            variant={activeSection === 'ai-tutor' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('ai-tutor')}
-            className="w-full justify-start"
-          >
-            <MessageSquare className="mr-2 h-4 w-4" />
-            AI Tutor
-          </Button>
-          <Button
-            variant={activeSection === 'settings' ? 'default' : 'outline'}
-            onClick={() => setActiveSection('settings')}
-            className="w-full justify-start"
-          >
-            <SettingsIcon className="mr-2 h-4 w-4" />
-            Configurações
-          </Button>
-        </nav>
-      </aside>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard Administrativo</h1>
+        <p className="text-muted-foreground">Visão geral do sistema e estatísticas</p>
+      </div>
 
-      <main className="flex-1">
-        {activeSection === 'manage' && <ManageStudents />}
-        {activeSection === 'give-coins' && <AdminGiveCoins />}
-        {activeSection === 'trades' && <Trades />}
-        {activeSection === 'rankings' && <Rankings />}
-        {activeSection === 'cards' && <NewManageCards />}
-        {activeSection === 'packs' && <ManagePacks />}
-        {activeSection === 'events' && <Events />}
-        {activeSection === 'polls' && <Polls />}
-        {activeSection === 'quizzes' && <Quizzes />}
-        {activeSection === 'quiz-reports' && <QuizReports onBack={() => setActiveSection('quizzes')} />}
-        {activeSection === 'ai-tutor' && <AITutor />}
-        {activeSection === 'settings' && <Settings />}
-      </main>
+      {/* Estatísticas principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">Total de Usuários</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-primary">{stats.totalUsers}</p>
+            <p className="text-sm text-muted-foreground">
+              {stats.totalStudents} estudantes, {stats.totalTeachers} professores
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Coins className="h-5 w-5 text-yellow-600" />
+              <CardTitle className="text-lg">Moedas em Circulação</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-yellow-600">{stats.totalCoinsInCirculation}</p>
+            <p className="text-sm text-muted-foreground">Total no sistema</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-blue-600" />
+              <CardTitle className="text-lg">Cartas Criadas</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-blue-600">{stats.totalCards}</p>
+            <p className="text-sm text-muted-foreground">No sistema</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-green-600" />
+              <CardTitle className="text-lg">Eventos Ativos</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-green-600">{stats.totalEvents}</p>
+            <p className="text-sm text-muted-foreground">Em andamento</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Atividade Recente */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Atividade Recente</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {stats.recentActivity.length > 0 ? (
+            <div className="space-y-3">
+              {stats.recentActivity.map((activity, index) => (
+                <div key={index} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                  <div>
+                    <p className="text-sm font-medium">{activity.action}</p>
+                    <p className="text-xs text-muted-foreground">por {activity.user}</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{activity.time}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-center py-4">Nenhuma atividade recente</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
