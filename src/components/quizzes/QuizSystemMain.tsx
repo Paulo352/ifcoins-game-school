@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useStartQuizAttempt, useActiveQuizzes } from '@/hooks/quizzes/useQuizSystem';
+import { useStartQuizAttempt, useActiveQuizzes, useUserAttempts } from '@/hooks/quizzes/useQuizSystem';
 import { QuizSystemList } from './QuizSystemList';
 import { QuizSystemAttempt } from './QuizSystemAttempt';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function QuizSystemMain() {
   const { profile, user, loading: authLoading } = useAuth();
   const { data: quizzes } = useActiveQuizzes();
+  const { data: userAttempts } = useUserAttempts(profile?.id || null);
   const startQuizMutation = useStartQuizAttempt();
   
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
@@ -43,6 +45,16 @@ export function QuizSystemMain() {
 
   const handleStartQuiz = async (quizId: string) => {
     console.log('🎯 Iniciando quiz:', quizId);
+    
+    // Verificar se o estudante já completou este quiz
+    const completedAttempt = userAttempts?.find(
+      (attempt: any) => attempt.quiz_id === quizId && attempt.is_completed
+    );
+    
+    if (completedAttempt) {
+      toast.error('Você já completou este quiz!');
+      return;
+    }
     
     try {
       const attempt = await startQuizMutation.mutateAsync({ quizId });

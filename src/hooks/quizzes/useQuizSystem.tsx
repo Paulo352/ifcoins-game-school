@@ -119,21 +119,16 @@ export function useActiveQuizzes() {
 
       if (profilesError) {
         console.error('❌ Erro ao buscar criadores:', profilesError);
-        // Retornar quizzes mesmo sem informação dos criadores
-        return quizzes.map(quiz => ({
-          ...quiz,
-          creator_name: 'Desconhecido',
-          creator_role: 'student'
-        })) as Quiz[];
       }
 
-      // Combinar dados
+      // Combinar dados - se admin, mostrar "Sistema", se teacher mostrar nome, senão "Sistema"
       const quizzesWithCreator = quizzes.map(quiz => {
         const creator = profiles?.find(p => p.id === quiz.created_by);
+        const creatorRole = creator?.role || 'admin';
         return {
           ...quiz,
-          creator_name: creator?.name || 'Desconhecido',
-          creator_role: creator?.role || 'student'
+          creator_name: creatorRole === 'admin' ? 'Sistema' : (creator?.name || 'Sistema'),
+          creator_role: creatorRole
         };
       });
 

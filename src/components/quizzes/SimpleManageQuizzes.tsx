@@ -58,7 +58,7 @@ export function SimpleManageQuizzes() {
     queryFn: async () => {
       console.log('🎯 [SimpleManageQuizzes] Buscando todos os quizzes...');
       
-      const { data, error } = await supabase
+      const { data: quizzes, error } = await supabase
         .from('quizzes')
         .select('*')
         .order('created_at', { ascending: false });
@@ -67,9 +67,36 @@ export function SimpleManageQuizzes() {
         console.error('❌ [SimpleManageQuizzes] Erro ao buscar quizzes:', error);
         throw error;
       }
+
+      if (!quizzes || quizzes.length === 0) {
+        return [];
+      }
+
+      // Buscar perfis dos criadores
+      const creatorIds = [...new Set(quizzes.map(q => q.created_by))];
       
-      console.log('✅ [SimpleManageQuizzes] Quizzes encontrados:', data?.length || 0, data);
-      return data as Quiz[];
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, role')
+        .in('id', creatorIds);
+
+      if (profilesError) {
+        console.error('❌ Erro ao buscar criadores:', profilesError);
+      }
+
+      // Combinar dados
+      const quizzesWithCreator = quizzes.map(quiz => {
+        const creator = profiles?.find(p => p.id === quiz.created_by);
+        const creatorRole = creator?.role || 'admin';
+        return {
+          ...quiz,
+          creator_name: creatorRole === 'admin' ? 'Sistema' : (creator?.name || 'Sistema'),
+          creator_role: creatorRole
+        };
+      });
+      
+      console.log('✅ [SimpleManageQuizzes] Quizzes encontrados:', quizzesWithCreator?.length || 0, quizzesWithCreator);
+      return quizzesWithCreator as Quiz[];
     },
   });
 
@@ -632,6 +659,7 @@ export function SimpleManageQuizzes() {
             
             <CardContent className="space-y-4">
               <div className="text-sm space-y-1">
+                <p><strong>Criado por:</strong> {quiz.creator_role === 'admin' ? 'Sistema' : quiz.creator_name}</p>
                 <p><strong>Recompensa:</strong> {quiz.reward_coins} moedas</p>
                 {quiz.max_attempts && (
                   <p><strong>Tentativas:</strong> {quiz.max_attempts}</p>
@@ -642,6 +670,17 @@ export function SimpleManageQuizzes() {
               </div>
               
               <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    console.log('🎯 [SimpleManageQuizzes] Visualizando resultados do quiz:', quiz.id, quiz.title);
+                    setSelectedQuizForResults(quiz.id);
+                  }}
+                  title="Ver Relatório"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"
@@ -656,16 +695,6 @@ export function SimpleManageQuizzes() {
                   onClick={() => handleEditQuiz(quiz)}
                 >
                   <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    console.log('🎯 [SimpleManageQuizzes] Visualizando resultados do quiz:', quiz.id, quiz.title);
-                    setSelectedQuizForResults(quiz.id);
-                  }}
-                >
-                  <BarChart3 className="w-4 h-4" />
                 </Button>
                 <Button
                   size="sm"
