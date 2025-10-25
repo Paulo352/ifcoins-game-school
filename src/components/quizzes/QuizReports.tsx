@@ -191,13 +191,13 @@ export function QuizReports({ onBack }: QuizReportsProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={onBack}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <Button variant="ghost" size="sm" onClick={onBack} className="self-start">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Button>
-        <h2 className="text-2xl font-bold">Relatórios de Quiz</h2>
-        <div className="w-20" />
+        <h2 className="text-xl sm:text-2xl font-bold">Relatórios de Quiz</h2>
+        <div className="hidden sm:block w-20" />
       </div>
 
       <Card>
@@ -229,7 +229,7 @@ export function QuizReports({ onBack }: QuizReportsProps) {
                         {quiz.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 mt-2 text-sm flex-wrap">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-sm">
                       <span className="text-muted-foreground">
                         Recompensa: {quiz.reward_coins} moedas
                       </span>

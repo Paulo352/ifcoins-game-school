@@ -269,21 +269,19 @@ export function QuizSystemAttempt({
   return (
     <div className="space-y-4">
       {/* Header com progresso e timer */}
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-sm font-medium">
-              Pergunta {currentQuestionIndex + 1} de {questions.length}
-            </span>
-            {timeLeft !== null && (
-              <Badge variant="outline" className="ml-auto">
-                <Clock className="w-3 h-3 mr-1" />
-                {formatTime(timeLeft)}
-              </Badge>
-            )}
-          </div>
-          <Progress value={progress} className="h-2" />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-sm font-medium">
+            Pergunta {currentQuestionIndex + 1} de {questions.length}
+          </span>
+          {timeLeft !== null && (
+            <Badge variant="outline">
+              <Clock className="w-3 h-3 mr-1" />
+              {formatTime(timeLeft)}
+            </Badge>
+          )}
         </div>
+        <Progress value={progress} className="h-2" />
       </div>
 
       {/* Pergunta atual */}

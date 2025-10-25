@@ -445,7 +445,7 @@ export function SimpleManageQuizzes() {
               onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
             />
             
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Moedas de Recompensa</label>
                 <Input
@@ -669,7 +669,7 @@ export function SimpleManageQuizzes() {
                 )}
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant="outline"
@@ -678,14 +678,17 @@ export function SimpleManageQuizzes() {
                     setSelectedQuizForResults(quiz.id);
                   }}
                   title="Ver Relatório"
+                  className="flex-1 sm:flex-none"
                 >
-                  <BarChart3 className="w-4 h-4" />
+                  <BarChart3 className="w-4 h-4 sm:mr-0" />
+                  <span className="sm:hidden ml-2">Relatório</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => toggleMutation.mutate({ quizId: quiz.id, isActive: quiz.is_active })}
                   disabled={toggleMutation.isPending}
+                  className="flex-1 sm:flex-none"
                 >
                   {quiz.is_active ? 'Desativar' : 'Ativar'}
                 </Button>
@@ -693,16 +696,20 @@ export function SimpleManageQuizzes() {
                   size="sm"
                   variant="outline"
                   onClick={() => handleEditQuiz(quiz)}
+                  className="flex-1 sm:flex-none"
                 >
-                  <Edit className="w-4 h-4" />
+                  <Edit className="w-4 h-4 sm:mr-0" />
+                  <span className="sm:hidden ml-2">Editar</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
                   onClick={() => deleteMutation.mutate(quiz.id)}
                   disabled={deleteMutation.isPending}
+                  className="flex-1 sm:flex-none"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4 sm:mr-0" />
+                  <span className="sm:hidden ml-2">Deletar</span>
                 </Button>
               </div>
             </CardContent>
