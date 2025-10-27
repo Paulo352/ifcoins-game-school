@@ -23,6 +23,14 @@ export function useBuyPack() {
       console.log('🛒 Iniciando compra de pacote:', { packId, userId });
 
       try {
+        // Verificar autenticação
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log('👤 Usuário autenticado:', user?.id);
+        
+        if (!user) {
+          throw new Error('Usuário não autenticado');
+        }
+
         // Usar a função do banco de dados para comprar o pacote
         const { data, error } = await supabase.rpc('buy_pack', {
           pack_id: packId,
@@ -56,33 +64,20 @@ export function useBuyPack() {
       }
     },
     onSuccess: (data: PackPurchaseResult) => {
+      console.log('✅ Compra concluída com sucesso:', data);
+      
       // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['packs'] });
       queryClient.invalidateQueries({ queryKey: ['available-packs'] });
-      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['user-cards'] });
       queryClient.invalidateQueries({ queryKey: ['pack-purchases'] });
+      queryClient.invalidateQueries({ queryKey: ['collection'] });
       
       toast({
-        title: "Pacote comprado!",
+        title: "🎉 Pacote comprado!",
         description: data.message || 'Pacote comprado com sucesso!',
       });
-      
-      // Mostrar cartas recebidas se disponível
-      if (data.cards_received && data.cards_received.length > 0) {
-        const cardsText = data.cards_received.map((card) => 
-          `${card.name} (${card.rarity}) x${card.quantity}`
-        ).join(', ');
-        
-        // Criar uma notificação adicional para as cartas recebidas
-        setTimeout(() => {
-          toast({
-            title: "Cartas recebidas!",
-            description: cardsText,
-            duration: 5000,
-          });
-        }, 1000);
-      }
     },
     onError: (error: any) => {
       console.error('❌ Erro na compra:', error);
