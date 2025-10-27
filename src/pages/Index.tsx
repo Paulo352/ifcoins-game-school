@@ -19,6 +19,7 @@ import { Rankings } from '@/components/sections/Rankings';
 import { Events } from '@/components/sections/Events';
 import { ManageStudents } from '@/components/sections/ManageStudents';
 import { ManagePacks } from '@/components/packs/ManagePacks';
+import { NewManagePacks } from '@/components/packs/NewManagePacks';
 import { ManageQuizzes } from '@/components/quizzes/ManageQuizzes';
 import { NewCollection } from '@/components/cards/NewCollection';
 import { Settings } from '@/components/sections/Settings';
@@ -114,7 +115,7 @@ const Index = () => {
       case 'manage-cards':
         return <NewManageCards />;
       case 'manage-packs':
-        return <ManagePacks />;
+        return <NewManagePacks />;
       case 'quizzes':
         return <QuizzesDashboard />;
       case 'settings':

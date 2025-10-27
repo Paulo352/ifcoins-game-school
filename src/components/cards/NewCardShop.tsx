@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAvailableCards } from '@/hooks/useNewCards';
 import { useCardPurchase } from '@/hooks/cards/useCardPurchase';
 import { NewCard } from './NewCard';
-import { PackShop } from '../packs/PackShop';
+import { NewPackShop } from '../packs/NewPackShop';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -92,9 +92,6 @@ export function NewCardShop() {
           <TabsTrigger value="packs" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Pacotes de Cartas
-            <Badge variant="secondary" className="text-xs ml-1">
-              em breve
-            </Badge>
           </TabsTrigger>
         </TabsList>
 
@@ -113,7 +110,7 @@ export function NewCardShop() {
         </TabsContent>
 
         <TabsContent value="packs" className="mt-6">
-          <PackShop />
+          <NewPackShop />
         </TabsContent>
       </Tabs>
     </div>
