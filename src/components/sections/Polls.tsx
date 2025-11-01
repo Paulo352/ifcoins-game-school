@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { PollForm } from '@/components/polls/PollForm';
-import { PollsList } from '@/components/polls/PollsList';
+import { NewPollForm } from '@/components/polls/NewPollForm';
+import { NewPollsList } from '@/components/polls/NewPollsList';
 import { 
   useActivePolls, 
   useAllPolls, 
@@ -90,7 +90,7 @@ export function Polls() {
 
       {/* Form de criação */}
       {isCreating && isAdmin && (
-        <PollForm
+        <NewPollForm
           onSubmit={handleCreatePoll}
           onCancel={() => setIsCreating(false)}
           loading={createPollMutation.isPending}
@@ -98,7 +98,7 @@ export function Polls() {
       )}
 
       {/* Lista de votações */}
-      <PollsList
+      <NewPollsList
         polls={polls}
         userVotes={userVotes}
         isLoading={isLoading}

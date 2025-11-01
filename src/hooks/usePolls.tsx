@@ -21,6 +21,7 @@ export interface PollOption {
   poll_id: string;
   option_text: string;
   option_order: number;
+  image_url?: string;
   created_at: string;
 }
 
