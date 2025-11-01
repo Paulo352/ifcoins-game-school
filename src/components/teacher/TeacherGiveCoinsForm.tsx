@@ -78,10 +78,20 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
 
     // Verificar limite diário do professor
     const finalAmount = calculateBonusCoins(amount);
-    if (dailyCoins + finalAmount > dailyLimit) {
+    const newTotal = dailyCoins + finalAmount;
+    
+    console.log('🔍 Verificando limite:', {
+      dailyCoins,
+      finalAmount,
+      newTotal,
+      dailyLimit,
+      excedeLimite: newTotal > dailyLimit
+    });
+    
+    if (newTotal > dailyLimit) {
       toast({
         title: "Limite diário atingido",
-        description: `Você já distribuiu ${dailyCoins} de ${dailyLimit} moedas hoje. Esta ação ultrapassaria seu limite.`,
+        description: `Você já distribuiu ${dailyCoins} de ${dailyLimit} moedas hoje. Esta ação ultrapassaria seu limite (${newTotal} moedas no total).`,
         variant: "destructive"
       });
       return;

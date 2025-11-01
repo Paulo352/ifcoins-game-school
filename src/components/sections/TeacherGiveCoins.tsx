@@ -15,6 +15,7 @@ import { useUpdateCoins } from '@/hooks/useUpdateCoins';
 import { useTeacherDailyLimit } from '@/hooks/useTeacherDailyLimit';
 import { useActiveEvent } from '@/hooks/useActiveEvent';
 import { Profile } from '@/types/supabase';
+import { TeacherDailyLimitDisplay } from '@/components/teacher/TeacherDailyLimitDisplay';
 
 export function TeacherGiveCoins() {
   const { profile } = useAuth();
@@ -148,6 +149,9 @@ export function TeacherGiveCoins() {
           )}
         </div>
       </div>
+
+      {/* Display do Limite Diário */}
+      <TeacherDailyLimitDisplay />
 
       {/* Active Event Notice */}
       {hasActiveEvent && (

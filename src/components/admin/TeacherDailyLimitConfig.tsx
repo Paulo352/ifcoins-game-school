@@ -55,13 +55,10 @@ export function TeacherDailyLimitConfig() {
           <div className="flex items-center gap-2">
             <Coins className="h-5 w-5 text-primary" />
             Limite Diário de Professores
-            <Badge variant="secondary" className="text-xs">
-              em manutenção
-            </Badge>
           </div>
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="default" className="text-xs bg-green-600">
             <RefreshCw className="h-3 w-3 mr-1" />
-            Sincronizado
+            Sistema Ativo
           </Badge>
         </CardTitle>
       </CardHeader>

@@ -11,10 +11,11 @@ export function useTeacherDailyLimit() {
   
   // Buscar o limite configurado pelo admin (padrão: 500) - 100% reativo ao config
   const dailyLimit = React.useMemo(() => {
-    const limit = parseInt(getConfig('teacher_daily_limit', '500'));
-    console.log('✅ Daily limit atualizado para:', limit);
+    const configValue = getConfig('teacher_daily_limit', '500');
+    const limit = parseInt(configValue) || 500;
+    console.log('✅ Daily limit atualizado para:', limit, 'do config:', configValue);
     return limit;
-  }, [config.teacher_daily_limit, getConfig]);
+  }, [config, getConfig]);
 
   // Força invalidação quando o limite mudar
   useEffect(() => {
@@ -53,6 +54,14 @@ export function useTeacherDailyLimit() {
   const canGiveSpecialCoins = remainingCoins > 0;
   const limitReached = dailyCoins >= dailyLimit;
   const percentageUsed = dailyLimit > 0 ? Math.round((dailyCoins / dailyLimit) * 100) : 0;
+
+  console.log('📊 Status do limite diário:', {
+    dailyCoins,
+    dailyLimit,
+    remainingCoins,
+    percentageUsed,
+    limitReached
+  });
 
   return {
     dailyCoins,

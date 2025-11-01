@@ -47,6 +47,17 @@ export function TeacherGiveCoinsSection({ users, teacherId, onSuccess }: Teacher
       return;
     }
 
+    // Verificar limite diário ANTES de dar as moedas
+    const newTotal = dailyCoins + selectedReasonData.coins;
+    if (newTotal > dailyLimit) {
+      toast({
+        title: "Limite diário atingido",
+        description: `Você já distribuiu ${dailyCoins} de ${dailyLimit} moedas hoje. Esta ação ultrapassaria seu limite (${newTotal} moedas no total).`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     const selectedUserName = studentUsers.find(u => u.id === selectedUserId)?.name || 'Estudante';
     
     const success = await giveCoins(
@@ -157,11 +168,16 @@ export function TeacherGiveCoinsSection({ users, teacherId, onSuccess }: Teacher
         <div className="flex gap-2">
           <Button 
             onClick={handleGiveCoins} 
-            disabled={loading || !selectedUserId || !selectedReason}
+            disabled={loading || !selectedUserId || !selectedReason || dailyCoins >= dailyLimit}
             className="bg-green-600 hover:bg-green-700"
           >
             <Coins className="h-4 w-4 mr-2" />
-            {loading ? 'Dando...' : 'Dar Recompensa'}
+            {dailyCoins >= dailyLimit 
+              ? 'Limite Diário Atingido' 
+              : loading 
+                ? 'Dando...' 
+                : 'Dar Recompensa'
+            }
           </Button>
           
           {(selectedUserId || selectedReason) && (
@@ -177,11 +193,29 @@ export function TeacherGiveCoinsSection({ users, teacherId, onSuccess }: Teacher
           )}
         </div>
 
+        {/* Aviso de Limite Diário */}
+        {dailyCoins >= dailyLimit * 0.9 && dailyCoins < dailyLimit && (
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-700 font-medium">
+              ⚠️ <strong>Atenção:</strong> Você está próximo do limite diário ({dailyCoins}/{dailyLimit} moedas usadas).
+            </p>
+          </div>
+        )}
+        
+        {dailyCoins >= dailyLimit && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-700 font-medium">
+              🚫 <strong>Limite Atingido:</strong> Você já distribuiu todas as {dailyLimit} moedas disponíveis hoje. 
+              O limite será resetado à meia-noite.
+            </p>
+          </div>
+        )}
+        
         {/* Info */}
         <div className="p-3 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-700">
-            💡 <strong>Dica:</strong> Estes motivos sempre funcionam, mesmo após o limite diário de moedas especiais. 
-            Para casos únicos com mais moedas, use a aba "Dar Moedas" no menu principal.
+            💡 <strong>Dica:</strong> O limite diário é configurado pelo administrador e se aplica a todos os professores. 
+            As moedas dadas contam para este limite.
           </p>
         </div>
       </CardContent>
