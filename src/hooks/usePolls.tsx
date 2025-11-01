@@ -43,7 +43,11 @@ export interface CreatePollData {
   event_id?: string;
   allow_multiple_votes: boolean;
   end_date: string;
-  options: string[];
+  options: Array<{
+    option_text: string;
+    option_order: number;
+    image_url?: string;
+  }>;
 }
 
 // Hook para buscar todas as votações ativas
@@ -114,7 +118,7 @@ export function useCreatePoll() {
   
   return useMutation({
     mutationFn: async (pollData: CreatePollData) => {
-      const { data, error } = await supabase.rpc('create_poll_with_options', {
+      const { data, error } = await supabase.rpc('create_poll_with_options_and_images', {
         poll_title: pollData.title,
         poll_description: pollData.description || null,
         poll_event_id: pollData.event_id || null,

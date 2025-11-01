@@ -85,7 +85,7 @@ export function NewPollCard({
   };
 
   // Determinar se as opções têm imagens
-  const hasImages = poll.options.some(opt => opt.image_url);
+  const hasImages = poll.poll_options.some(opt => opt.image_url);
 
   return (
     <Card className="overflow-hidden border-2 hover:border-primary/30 transition-all duration-300 bg-card/80 backdrop-blur">
@@ -143,7 +143,7 @@ export function NewPollCard({
         {shouldShowResults ? (
           // Mostrar resultados
           <div className="space-y-3">
-            {poll.options
+            {poll.poll_options
               .sort((a, b) => a.option_order - b.option_order)
               .map((option) => {
                 const percentage = getOptionPercentage(option.id);
@@ -209,7 +209,7 @@ export function NewPollCard({
             {poll.allow_multiple_votes ? (
               // Checkboxes para múltiplos votos
               <div className="space-y-3">
-                {poll.options
+                {poll.poll_options
                   .sort((a, b) => a.option_order - b.option_order)
                   .map((option) => (
                     <Card
@@ -250,7 +250,7 @@ export function NewPollCard({
               // Radio buttons para voto único
               <RadioGroup value={selectedOptions[0] || ''} onValueChange={(value) => handleOptionSelect(value)}>
                 <div className="space-y-3">
-                  {poll.options
+                  {poll.poll_options
                     .sort((a, b) => a.option_order - b.option_order)
                     .map((option) => (
                       <Card

@@ -992,6 +992,17 @@ export type Database = {
         }
         Returns: string
       }
+      create_poll_with_options_and_images: {
+        Args: {
+          allow_multiple: boolean
+          end_date: string
+          options: Json
+          poll_description: string
+          poll_event_id: string
+          poll_title: string
+        }
+        Returns: string
+      }
       delete_event: { Args: { event_id: string }; Returns: boolean }
       get_current_user_role: { Args: never; Returns: string }
       get_poll_results: {
