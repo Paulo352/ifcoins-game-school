@@ -12,17 +12,22 @@ export function TeacherDailyLimitConfig() {
   const { getConfig, updateConfig, loading, config } = useAdminConfig();
   const [dailyLimit, setDailyLimit] = useState('500');
   const [isSaving, setIsSaving] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
 
-  // Carregar valor inicial apenas uma vez quando o componente monta
+  // Carregar valor inicial apenas na primeira vez
   useEffect(() => {
-    if (!loading) {
+    if (!loading && initialLoad && config) {
       const currentLimit = getConfig('teacher_daily_limit', '500');
+      console.log('📥 Carregando limite inicial:', currentLimit);
       setDailyLimit(currentLimit);
+      setInitialLoad(false);
     }
-  }, [loading]); // Só executa quando o loading termina
+  }, [loading, initialLoad, config, getConfig]);
 
   const handleSave = async () => {
     const limitValue = parseInt(dailyLimit);
+    
+    console.log('💾 Tentando salvar limite:', limitValue);
     
     if (isNaN(limitValue) || limitValue < 1) {
       toast.error('Por favor, insira um valor válido maior que 0');
@@ -39,6 +44,7 @@ export function TeacherDailyLimitConfig() {
       await updateConfig('teacher_daily_limit', String(limitValue));
       toast.success('✅ Limite atualizado! Professores verão a mudança instantaneamente.');
       console.log('✅ Admin salvou novo limite:', limitValue);
+      setInitialLoad(true); // Permite recarregar na próxima vez
     } catch (error) {
       console.error('❌ Erro ao atualizar limite:', error);
       toast.error('Erro ao atualizar limite diário');

@@ -12,11 +12,14 @@ export const useAdminConfig = () => {
 
   const fetchConfig = async () => {
     try {
+      console.log('🔄 Buscando todas as configurações do admin...');
       const { data, error } = await supabase
         .from('admin_config')
         .select('config_key, config_value');
 
       if (error) throw error;
+
+      console.log('✅ Configurações carregadas:', data);
 
       const configObject = data.reduce((acc, item) => {
         acc[item.config_key] = item.config_value;
@@ -24,8 +27,9 @@ export const useAdminConfig = () => {
       }, {} as AdminConfig);
 
       setConfig(configObject);
+      console.log('✅ Config object final:', configObject);
     } catch (error) {
-      console.error('Erro ao buscar configurações:', error);
+      console.error('❌ Erro ao buscar configurações:', error);
       toast.error('Erro ao carregar configurações administrativas');
     } finally {
       setLoading(false);
