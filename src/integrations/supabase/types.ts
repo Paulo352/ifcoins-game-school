@@ -262,6 +262,27 @@ export type Database = {
             referencedRelation: "packs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "pack_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pack_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pack_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       packs: {
