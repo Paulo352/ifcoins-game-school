@@ -13,11 +13,13 @@ export function TeacherDailyLimitConfig() {
   const [dailyLimit, setDailyLimit] = useState('500');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sincronizar com as mudanças do config em tempo real
+  // Carregar valor inicial apenas uma vez quando o componente monta
   useEffect(() => {
-    const currentLimit = getConfig('teacher_daily_limit', '500');
-    setDailyLimit(currentLimit);
-  }, [config, getConfig]);
+    if (!loading) {
+      const currentLimit = getConfig('teacher_daily_limit', '500');
+      setDailyLimit(currentLimit);
+    }
+  }, [loading]); // Só executa quando o loading termina
 
   const handleSave = async () => {
     const limitValue = parseInt(dailyLimit);
