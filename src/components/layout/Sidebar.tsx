@@ -29,6 +29,8 @@ const sidebarItems: SidebarItem[] = [
   { icon: Gift, label: 'Loja de Cartas', id: 'shop', roles: ['student'] },
   { icon: BookOpen, label: 'Minha Coleção', id: 'collection', roles: ['student'] },
   { icon: ArrowLeftRight, label: 'Trocas', id: 'trades', roles: ['student'] },
+  { icon: Coins, label: 'IFBank', id: 'bank', roles: ['student', 'admin'] },
+  { icon: Package, label: 'IFMarket', id: 'market', roles: ['student'] },
   { icon: HelpCircle, label: 'Quizzes', id: 'quizzes', roles: ['student', 'teacher', 'admin'] },
   { icon: Vote, label: 'Votações', id: 'polls', roles: ['admin'] },
   { icon: Bot, label: 'IA Tutor', id: 'ai-tutor', roles: ['student', 'teacher', 'admin'] },

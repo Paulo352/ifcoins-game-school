@@ -38,6 +38,30 @@ export type Database = {
         }
         Relationships: []
       }
+      bank: {
+        Row: {
+          coins_in_circulation: number
+          created_at: string | null
+          id: string
+          total_coins: number
+          updated_at: string | null
+        }
+        Insert: {
+          coins_in_circulation?: number
+          created_at?: string | null
+          id?: string
+          total_coins?: number
+          updated_at?: string | null
+        }
+        Update: {
+          coins_in_circulation?: number
+          created_at?: string | null
+          id?: string
+          total_coins?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       cards: {
         Row: {
           available: boolean
@@ -156,6 +180,174 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      loans: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          reason: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["loan_status"]
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          reason: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["loan_status"]
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          reason?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["loan_status"]
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loans_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loans_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loans_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_listings: {
+        Row: {
+          card_id: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          price: number
+          seller_id: string
+          sold_at: string | null
+          sold_to: string | null
+          status: Database["public"]["Enums"]["listing_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          card_id: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          price: number
+          seller_id: string
+          sold_at?: string | null
+          sold_to?: string | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          card_id?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          price?: number
+          seller_id?: string
+          sold_at?: string | null
+          sold_to?: string | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_listings_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_listings_sold_to_fkey"
+            columns: ["sold_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_listings_sold_to_fkey"
+            columns: ["sold_to"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_listings_sold_to_fkey"
+            columns: ["sold_to"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -850,6 +1042,82 @@ export type Database = {
           },
         ]
       }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          receiver_id: string | null
+          sender_id: string | null
+          type: Database["public"]["Enums"]["transaction_type"]
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          type: Database["public"]["Enums"]["transaction_type"]
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          type?: Database["public"]["Enums"]["transaction_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_cards: {
         Row: {
           acquired_at: string | null
@@ -898,6 +1166,58 @@ export type Database = {
             foreignKeyName: "user_cards_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_reputation: {
+        Row: {
+          created_at: string | null
+          id: string
+          purchases_count: number
+          reputation_level: string
+          sales_count: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          purchases_count?: number
+          reputation_level?: string
+          sales_count?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          purchases_count?: number
+          reputation_level?: string
+          sales_count?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_reputation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reputation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reputation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "rankings_view"
             referencedColumns: ["id"]
           },
@@ -987,6 +1307,10 @@ export type Database = {
     }
     Functions: {
       buy_card: { Args: { card_id: string; user_id: string }; Returns: Json }
+      buy_market_item: {
+        Args: { buyer_id: string; listing_id: string }
+        Returns: Json
+      }
       buy_pack: { Args: { pack_id: string; user_id: string }; Returns: Json }
       complete_quiz: {
         Args: { attempt_id: string; user_id: string }
@@ -1044,6 +1368,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin_email: { Args: { email_to_check: string }; Returns: boolean }
+      process_loan_approval: {
+        Args: { admin_id: string; loan_id: string }
+        Returns: Json
+      }
       update_event: {
         Args: {
           bonus_multiplier: number
@@ -1079,7 +1407,18 @@ export type Database = {
     Enums: {
       app_role: "admin" | "teacher" | "student"
       card_rarity: "common" | "rare" | "legendary" | "mythic"
+      listing_status: "active" | "sold" | "expired" | "removed"
+      loan_status: "pending" | "approved" | "denied" | "repaid"
       trade_status: "pending" | "accepted" | "rejected"
+      transaction_type:
+        | "send"
+        | "purchase"
+        | "reward"
+        | "loan_granted"
+        | "loan_repaid"
+        | "market_sale"
+        | "market_fee"
+        | "system_buy"
       user_role: "student" | "teacher" | "admin"
     }
     CompositeTypes: {
@@ -1210,7 +1549,19 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "teacher", "student"],
       card_rarity: ["common", "rare", "legendary", "mythic"],
+      listing_status: ["active", "sold", "expired", "removed"],
+      loan_status: ["pending", "approved", "denied", "repaid"],
       trade_status: ["pending", "accepted", "rejected"],
+      transaction_type: [
+        "send",
+        "purchase",
+        "reward",
+        "loan_granted",
+        "loan_repaid",
+        "market_sale",
+        "market_fee",
+        "system_buy",
+      ],
       user_role: ["student", "teacher", "admin"],
     },
   },
