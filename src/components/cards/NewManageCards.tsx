@@ -15,6 +15,8 @@ import { NewImageUpload } from './NewImageUpload';
 
 interface CardFormData extends Omit<CreateCardData, 'rarity'> {
   rarity: string;
+  is_special: boolean;
+  assigned_to: string;
 }
 
 export function NewManageCards() {
@@ -34,7 +36,10 @@ export function NewManageCards() {
     description: '',
     available: true,
     copies_available: null,
+    is_special: false,
+    assigned_to: '',
   });
+  const [students, setStudents] = useState<any[]>([]);
 
   if (!profile || profile.role !== 'admin') {
     return (
@@ -54,6 +59,8 @@ export function NewManageCards() {
       description: '',
       available: true,
       copies_available: null,
+      is_special: false,
+      assigned_to: '',
     });
     setEditingCard(null);
   };
@@ -72,6 +79,8 @@ export function NewManageCards() {
       description: card.description || '',
       available: card.available,
       copies_available: card.copies_available,
+      is_special: false,
+      assigned_to: '',
     });
     setEditingCard(card);
     setIsCreateDialogOpen(true);

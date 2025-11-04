@@ -13,6 +13,13 @@ export interface Loan {
   reviewed_at: string | null;
   created_at: string;
   updated_at: string;
+  installments: number;
+  interest_rate: number;
+  total_with_interest: number;
+  payment_method: 'manual' | 'automatic';
+  installments_paid: number;
+  next_payment_date: string | null;
+  is_overdue: boolean;
   student?: { name: string; email: string };
   reviewer?: { name: string; email: string };
 }
@@ -98,15 +105,24 @@ export function useRequestLoan() {
 
 export function useApproveLoan() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ loanId }: { loanId: string }) => {
-      if (!user) throw new Error('Usuário não autenticado');
-
+    mutationFn: async ({ 
+      loanId, 
+      adminId, 
+      installments = 1, 
+      paymentMethod = 'manual' 
+    }: { 
+      loanId: string; 
+      adminId: string; 
+      installments?: number;
+      paymentMethod?: 'manual' | 'automatic';
+    }) => {
       const { data, error } = await supabase.rpc('process_loan_approval', {
         loan_id: loanId,
-        admin_id: user.id
+        admin_id: adminId,
+        installments,
+        payment_method: paymentMethod
       });
       
       if (error) throw error;
@@ -140,14 +156,12 @@ export function useDenyLoan() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ loanId }: { loanId: string }) => {
-      if (!user) throw new Error('Usuário não autenticado');
-
+    mutationFn: async ({ loanId, adminId }: { loanId: string; adminId: string }) => {
       const { error } = await supabase
         .from('loans')
         .update({
           status: 'denied',
-          reviewed_by: user.id,
+          reviewed_by: adminId,
           reviewed_at: new Date().toISOString()
         })
         .eq('id', loanId);

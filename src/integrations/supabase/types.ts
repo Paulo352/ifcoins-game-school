@@ -64,6 +64,7 @@ export type Database = {
       }
       cards: {
         Row: {
+          assigned_to: string | null
           available: boolean
           copies_available: number | null
           created_at: string | null
@@ -72,12 +73,14 @@ export type Database = {
           event_id: string | null
           id: string
           image_url: string | null
+          is_special: boolean | null
           name: string
           price: number
           rarity: Database["public"]["Enums"]["card_rarity"]
           updated_at: string | null
         }
         Insert: {
+          assigned_to?: string | null
           available?: boolean
           copies_available?: number | null
           created_at?: string | null
@@ -86,12 +89,14 @@ export type Database = {
           event_id?: string | null
           id?: string
           image_url?: string | null
+          is_special?: boolean | null
           name: string
           price?: number
           rarity: Database["public"]["Enums"]["card_rarity"]
           updated_at?: string | null
         }
         Update: {
+          assigned_to?: string | null
           available?: boolean
           copies_available?: number | null
           created_at?: string | null
@@ -100,12 +105,34 @@ export type Database = {
           event_id?: string | null
           id?: string
           image_url?: string | null
+          is_special?: boolean | null
           name?: string
           price?: number
           rarity?: Database["public"]["Enums"]["card_rarity"]
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cards_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cards_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cards_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_cards_event"
             columns: ["event_id"]
@@ -181,38 +208,97 @@ export type Database = {
         }
         Relationships: []
       }
+      loan_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          installment_number: number
+          is_automatic: boolean | null
+          loan_id: string
+          paid_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          installment_number: number
+          is_automatic?: boolean | null
+          loan_id: string
+          paid_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          installment_number?: number
+          is_automatic?: boolean | null
+          loan_id?: string
+          paid_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_payments_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loans: {
         Row: {
           amount: number
           created_at: string | null
           id: string
+          installments: number | null
+          installments_paid: number | null
+          interest_rate: number | null
+          is_overdue: boolean | null
+          next_payment_date: string | null
+          payment_method: string | null
           reason: string
           reviewed_at: string | null
           reviewed_by: string | null
           status: Database["public"]["Enums"]["loan_status"]
           student_id: string
+          total_with_interest: number | null
           updated_at: string | null
         }
         Insert: {
           amount: number
           created_at?: string | null
           id?: string
+          installments?: number | null
+          installments_paid?: number | null
+          interest_rate?: number | null
+          is_overdue?: boolean | null
+          next_payment_date?: string | null
+          payment_method?: string | null
           reason: string
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["loan_status"]
           student_id: string
+          total_with_interest?: number | null
           updated_at?: string | null
         }
         Update: {
           amount?: number
           created_at?: string | null
           id?: string
+          installments?: number | null
+          installments_paid?: number | null
+          interest_rate?: number | null
+          is_overdue?: boolean | null
+          next_payment_date?: string | null
+          payment_method?: string | null
           reason?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["loan_status"]
           student_id?: string
+          total_with_interest?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -826,7 +912,9 @@ export type Database = {
           id: string
           is_active: boolean
           max_attempts: number | null
+          reward_card_id: string | null
           reward_coins: number
+          reward_type: string | null
           time_limit_minutes: number | null
           title: string
           updated_at: string | null
@@ -838,7 +926,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_attempts?: number | null
+          reward_card_id?: string | null
           reward_coins?: number
+          reward_type?: string | null
           time_limit_minutes?: number | null
           title: string
           updated_at?: string | null
@@ -850,12 +940,22 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_attempts?: number | null
+          reward_card_id?: string | null
           reward_coins?: number
+          reward_type?: string | null
           time_limit_minutes?: number | null
           title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quizzes_reward_card_id_fkey"
+            columns: ["reward_card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reward_logs: {
         Row: {
@@ -1368,10 +1468,17 @@ export type Database = {
         Returns: boolean
       }
       is_admin_email: { Args: { email_to_check: string }; Returns: boolean }
-      process_loan_approval: {
-        Args: { admin_id: string; loan_id: string }
-        Returns: Json
-      }
+      process_loan_approval:
+        | { Args: { admin_id: string; loan_id: string }; Returns: Json }
+        | {
+            Args: {
+              admin_id: string
+              installments?: number
+              loan_id: string
+              payment_method?: string
+            }
+            Returns: Json
+          }
       update_event: {
         Args: {
           bonus_multiplier: number

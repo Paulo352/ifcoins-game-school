@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useLoans, useApproveLoan, useDenyLoan } from '@/hooks/bank/useLoans';
-import { CheckCircle, XCircle, Clock, User } from 'lucide-react';
+import { useLoans, useDenyLoan } from '@/hooks/bank/useLoans';
+import { CheckCircle, XCircle, Clock, User, DollarSign, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { LoanApprovalDialog } from './LoanApprovalDialog';
+import { useAuth } from '@/contexts/AuthContext';
 
 const statusLabels = {
   pending: 'Pendente',
@@ -20,9 +23,10 @@ const statusColors = {
 };
 
 export function LoanManagement() {
+  const { user } = useAuth();
   const { data: loans, isLoading } = useLoans();
-  const approveLoan = useApproveLoan();
   const denyLoan = useDenyLoan();
+  const [selectedLoan, setSelectedLoan] = useState<any>(null);
 
   const pendingLoans = loans?.filter(l => l.status === 'pending') || [];
 
@@ -85,8 +89,7 @@ export function LoanManagement() {
                     <Button
                       variant="default"
                       size="sm"
-                      onClick={() => approveLoan.mutate({ loanId: loan.id })}
-                      disabled={approveLoan.isPending}
+                      onClick={() => setSelectedLoan(loan)}
                       className="flex-1"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
@@ -95,13 +98,41 @@ export function LoanManagement() {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => denyLoan.mutate({ loanId: loan.id })}
+                      onClick={() => user && denyLoan.mutate({ loanId: loan.id, adminId: user.id })}
                       disabled={denyLoan.isPending}
                       className="flex-1"
                     >
                       <XCircle className="h-4 w-4 mr-2" />
                       Negar
                     </Button>
+                  </div>
+                )}
+
+                {loan.status === 'approved' && loan.installments && (
+                  <div className="mt-4 p-3 bg-muted rounded-lg space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Parcelas:
+                      </span>
+                      <span className="font-medium">
+                        {loan.installments_paid}/{loan.installments}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4" />
+                        Total c/ Juros:
+                      </span>
+                      <span className="font-bold">{loan.total_with_interest?.toFixed(0)} IFC</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Taxa:</span>
+                      <span className="text-yellow-600 font-medium">{loan.interest_rate}%</span>
+                    </div>
+                    <Badge variant={loan.is_overdue ? 'destructive' : 'secondary'} className="w-full justify-center">
+                      {loan.is_overdue ? 'Em atraso' : loan.payment_method === 'automatic' ? 'Desconto automático' : 'Pagamento manual'}
+                    </Badge>
                   </div>
                 )}
 
@@ -121,6 +152,14 @@ export function LoanManagement() {
           )}
         </div>
       </CardContent>
+
+      {selectedLoan && (
+        <LoanApprovalDialog
+          loan={selectedLoan}
+          open={!!selectedLoan}
+          onOpenChange={(open) => !open && setSelectedLoan(null)}
+        />
+      )}
     </Card>
   );
 }
