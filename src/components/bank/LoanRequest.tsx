@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { useMyLoans, useRequestLoan } from '@/hooks/bank/useLoans';
+import { useMyLoans, useRequestLoan, useAcceptCounterProposal, useRejectCounterProposal } from '@/hooks/bank/useLoans';
 import { DollarSign, Clock, CheckCircle, XCircle, Calculator } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -37,6 +37,8 @@ export function LoanRequest() {
 
   const { data: loans, isLoading } = useMyLoans();
   const requestLoan = useRequestLoan();
+  const acceptCounter = useAcceptCounterProposal();
+  const rejectCounter = useRejectCounterProposal();
 
   const interestRate = installments * 2;
   const totalWithInterest = parseInt(amount || '0') * (1 + interestRate / 100);
@@ -194,7 +196,58 @@ export function LoanRequest() {
                       <p className="text-xs text-muted-foreground">
                         Solicitado em {new Date(loan.created_at).toLocaleDateString('pt-BR')}
                       </p>
-                      {loan.status === 'approved' && loan.installments && (
+                      
+                      {loan.counter_status === 'pending' && (
+                        <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg space-y-2">
+                          <p className="text-sm font-medium text-yellow-900">
+                            🔔 Você recebeu uma contraproposta!
+                          </p>
+                          <div className="space-y-1 text-xs text-yellow-800">
+                            <div className="flex justify-between">
+                              <span>Parcelas:</span>
+                              <span className="font-medium">{loan.counter_installments} semanas</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Método:</span>
+                              <span className="font-medium">
+                                {loan.counter_payment_method === 'automatic' ? 'Desconto automático' : 'Pagamento manual'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Taxa:</span>
+                              <span className="font-medium text-yellow-600">{(loan.counter_installments || 0) * 2}%</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-1">
+                              <span className="font-bold">Total c/ juros:</span>
+                              <span className="font-bold">{(loan.amount * (1 + ((loan.counter_installments || 0) * 2) / 100)).toFixed(0)} IFC</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 mt-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => acceptCounter.mutate(loan.id)}
+                              disabled={acceptCounter.isPending}
+                              className="flex-1"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Aceitar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => rejectCounter.mutate(loan.id)}
+                              disabled={rejectCounter.isPending}
+                              className="flex-1"
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Rejeitar
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {loan.status === 'approved' && loan.installments && loan.counter_status !== 'pending' && (
                         <div className="text-xs space-y-1 p-2 bg-muted rounded">
                           <div className="flex justify-between">
                             <span>Parcelas:</span>
@@ -204,6 +257,11 @@ export function LoanRequest() {
                             <span>Total c/ Juros:</span>
                             <span className="font-bold">{loan.total_with_interest?.toFixed(0)} IFC</span>
                           </div>
+                          {loan.debt_forgiven && (
+                            <Badge variant="outline" className="mt-2 bg-green-50 text-green-700 w-full justify-center">
+                              Dívida Perdoada
+                            </Badge>
+                          )}
                         </div>
                       )}
                       {loan.status === 'denied' && (

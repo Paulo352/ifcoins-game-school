@@ -249,7 +249,13 @@ export type Database = {
       loans: {
         Row: {
           amount: number
+          counter_installments: number | null
+          counter_payment_method: string | null
+          counter_status: string | null
           created_at: string | null
+          debt_forgiven: boolean | null
+          forgiven_at: string | null
+          forgiven_by: string | null
           id: string
           installments: number | null
           installments_paid: number | null
@@ -267,7 +273,13 @@ export type Database = {
         }
         Insert: {
           amount: number
+          counter_installments?: number | null
+          counter_payment_method?: string | null
+          counter_status?: string | null
           created_at?: string | null
+          debt_forgiven?: boolean | null
+          forgiven_at?: string | null
+          forgiven_by?: string | null
           id?: string
           installments?: number | null
           installments_paid?: number | null
@@ -285,7 +297,13 @@ export type Database = {
         }
         Update: {
           amount?: number
+          counter_installments?: number | null
+          counter_payment_method?: string | null
+          counter_status?: string | null
           created_at?: string | null
+          debt_forgiven?: boolean | null
+          forgiven_at?: string | null
+          forgiven_by?: string | null
           id?: string
           installments?: number | null
           installments_paid?: number | null
@@ -302,6 +320,27 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "loans_forgiven_by_fkey"
+            columns: ["forgiven_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loans_forgiven_by_fkey"
+            columns: ["forgiven_by"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loans_forgiven_by_fkey"
+            columns: ["forgiven_by"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "loans_reviewed_by_fkey"
             columns: ["reviewed_by"]
@@ -1406,6 +1445,10 @@ export type Database = {
       }
     }
     Functions: {
+      accept_loan_counter_proposal: {
+        Args: { loan_id: string; student_id: string }
+        Returns: Json
+      }
       buy_card: { Args: { card_id: string; user_id: string }; Returns: Json }
       buy_market_item: {
         Args: { buyer_id: string; listing_id: string }
@@ -1449,6 +1492,10 @@ export type Database = {
         Returns: string
       }
       delete_event: { Args: { event_id: string }; Returns: boolean }
+      forgive_loan_debt: {
+        Args: { admin_id: string; loan_id: string }
+        Returns: Json
+      }
       get_current_user_role: { Args: never; Returns: string }
       get_poll_results: {
         Args: { poll_id: string }
@@ -1479,6 +1526,10 @@ export type Database = {
             }
             Returns: Json
           }
+      reject_loan_counter_proposal: {
+        Args: { loan_id: string; student_id: string }
+        Returns: Json
+      }
       update_event: {
         Args: {
           bonus_multiplier: number

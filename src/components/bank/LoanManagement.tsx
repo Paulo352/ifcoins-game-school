@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useLoans, useDenyLoan } from '@/hooks/bank/useLoans';
-import { CheckCircle, XCircle, Clock, User, DollarSign, Calendar } from 'lucide-react';
+import { useLoans, useDenyLoan, useForgiveDebt } from '@/hooks/bank/useLoans';
+import { CheckCircle, XCircle, Clock, User, DollarSign, Calendar, Heart } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LoanApprovalDialog } from './LoanApprovalDialog';
+import { LoanHistoryDialog } from './LoanHistoryDialog';
 import { useAuth } from '@/contexts/AuthContext';
 
 const statusLabels = {
@@ -26,7 +27,9 @@ export function LoanManagement() {
   const { user } = useAuth();
   const { data: loans, isLoading } = useLoans();
   const denyLoan = useDenyLoan();
+  const forgiveDebt = useForgiveDebt();
   const [selectedLoan, setSelectedLoan] = useState<any>(null);
+  const [historyStudent, setHistoryStudent] = useState<{ id: string; name: string } | null>(null);
 
   const pendingLoans = loans?.filter(l => l.status === 'pending') || [];
 
@@ -84,6 +87,15 @@ export function LoanManagement() {
                   <p className="text-sm"><strong>Motivo:</strong> {loan.reason}</p>
                 </div>
 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setHistoryStudent({ id: loan.student_id, name: loan.student?.name || '' })}
+                  className="w-full"
+                >
+                  Ver Histórico Completo
+                </Button>
+
                 {loan.status === 'pending' && (
                   <div className="flex gap-2">
                     <Button
@@ -108,7 +120,7 @@ export function LoanManagement() {
                   </div>
                 )}
 
-                {loan.status === 'approved' && loan.installments && (
+                {loan.status === 'approved' && loan.installments && !loan.debt_forgiven && (
                   <div className="mt-4 p-3 bg-muted rounded-lg space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="flex items-center gap-2">
@@ -133,6 +145,24 @@ export function LoanManagement() {
                     <Badge variant={loan.is_overdue ? 'destructive' : 'secondary'} className="w-full justify-center">
                       {loan.is_overdue ? 'Em atraso' : loan.payment_method === 'automatic' ? 'Desconto automático' : 'Pagamento manual'}
                     </Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => user && forgiveDebt.mutate({ loanId: loan.id, adminId: user.id })}
+                      disabled={forgiveDebt.isPending}
+                      className="w-full mt-2"
+                    >
+                      <Heart className="h-4 w-4 mr-2" />
+                      Perdoar Dívida
+                    </Button>
+                  </div>
+                )}
+
+                {loan.debt_forgiven && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-700 font-medium">
+                      ✓ Dívida perdoada em {new Date(loan.forgiven_at).toLocaleDateString('pt-BR')}
+                    </p>
                   </div>
                 )}
 
@@ -158,6 +188,15 @@ export function LoanManagement() {
           loan={selectedLoan}
           open={!!selectedLoan}
           onOpenChange={(open) => !open && setSelectedLoan(null)}
+        />
+      )}
+
+      {historyStudent && (
+        <LoanHistoryDialog
+          studentId={historyStudent.id}
+          studentName={historyStudent.name}
+          open={!!historyStudent}
+          onOpenChange={(open) => !open && setHistoryStudent(null)}
         />
       )}
     </Card>

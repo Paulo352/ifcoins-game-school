@@ -4,14 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useApproveLoan } from '@/hooks/bank/useLoans';
+import { Badge } from '@/components/ui/badge';
+import { useApproveLoan, useCounterProposalLoan } from '@/hooks/bank/useLoans';
 import { useAuth } from '@/contexts/AuthContext';
-import { Calculator, Calendar } from 'lucide-react';
+import { Calculator, Calendar, AlertCircle } from 'lucide-react';
 
 interface LoanApprovalDialogProps {
   loan: {
     id: string;
     amount: number;
+    reason: string;
     student?: { name: string };
   };
   open: boolean;
@@ -21,8 +23,10 @@ interface LoanApprovalDialogProps {
 export function LoanApprovalDialog({ loan, open, onOpenChange }: LoanApprovalDialogProps) {
   const { user } = useAuth();
   const approveLoan = useApproveLoan();
+  const counterProposal = useCounterProposalLoan();
   const [installments, setInstallments] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState<'manual' | 'automatic'>('manual');
+  const [isCounterProposal, setIsCounterProposal] = useState(false);
 
   const interestRate = installments * 2;
   const totalWithInterest = loan.amount * (1 + interestRate / 100);
@@ -31,30 +35,62 @@ export function LoanApprovalDialog({ loan, open, onOpenChange }: LoanApprovalDia
   const handleApprove = () => {
     if (!user) return;
     
-    approveLoan.mutate(
-      {
-        loanId: loan.id,
-        adminId: user.id,
-        installments,
-        paymentMethod
-      },
-      {
-        onSuccess: () => onOpenChange(false)
-      }
-    );
+    if (isCounterProposal) {
+      counterProposal.mutate(
+        {
+          loanId: loan.id,
+          counterInstallments: installments,
+          counterPaymentMethod: paymentMethod
+        },
+        {
+          onSuccess: () => {
+            onOpenChange(false);
+            setIsCounterProposal(false);
+          }
+        }
+      );
+    } else {
+      approveLoan.mutate(
+        {
+          loanId: loan.id,
+          adminId: user.id,
+          installments,
+          paymentMethod
+        },
+        {
+          onSuccess: () => onOpenChange(false)
+        }
+      );
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Aprovar Empréstimo</DialogTitle>
+          <DialogTitle>{isCounterProposal ? 'Enviar Contraproposta' : 'Aprovar Empréstimo'}</DialogTitle>
           <DialogDescription>
-            Configure as condições de pagamento para {loan.student?.name}
+            {isCounterProposal 
+              ? 'O aluno receberá sua contraproposta e poderá aceitar ou rejeitar'
+              : `Configure as condições de pagamento para ${loan.student?.name}`
+            }
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
+          {!isCounterProposal && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
+                <div className="text-sm text-blue-700">
+                  <p className="font-medium mb-1">Informações do Aluno:</p>
+                  <p>• Valor solicitado: <strong>{loan.amount} IFC</strong></p>
+                  <p>• Motivo: {loan.reason}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Número de Parcelas (1-10 semanas)</Label>
             <Input
@@ -129,8 +165,25 @@ export function LoanApprovalDialog({ loan, open, onOpenChange }: LoanApprovalDia
             <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               Cancelar
             </Button>
-            <Button onClick={handleApprove} disabled={approveLoan.isPending} className="flex-1">
-              {approveLoan.isPending ? 'Aprovando...' : 'Aprovar'}
+            {!isCounterProposal && (
+              <Button 
+                variant="secondary" 
+                onClick={() => setIsCounterProposal(true)} 
+                className="flex-1"
+              >
+                Contraproposta
+              </Button>
+            )}
+            <Button 
+              onClick={handleApprove} 
+              disabled={approveLoan.isPending || counterProposal.isPending} 
+              className="flex-1"
+            >
+              {approveLoan.isPending || counterProposal.isPending 
+                ? 'Processando...' 
+                : isCounterProposal 
+                  ? 'Enviar Contraproposta'
+                  : 'Aprovar'}
             </Button>
           </div>
         </div>

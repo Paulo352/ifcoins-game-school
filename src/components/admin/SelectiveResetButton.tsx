@@ -29,6 +29,13 @@ interface ResetOption {
 
 const RESET_OPTIONS: ResetOption[] = [
   {
+    id: 'bank',
+    label: 'IFBank (Resetar Sistema Bancário)',
+    description: 'Reseta empréstimos, transações e volta banco ao estado inicial com 10000 moedas',
+    action: 'reset_bank',
+    danger: 'high'
+  },
+  {
     id: 'events',
     label: 'Eventos Completos',
     description: 'Remove TODOS os eventos e suas dependências (polls, votações, cartas associadas)',
@@ -158,6 +165,26 @@ export function SelectiveResetButton() {
 
         try {
           switch (option.action) {
+            case 'reset_bank':
+              // Deletar empréstimos e pagamentos
+              await supabase.from('loan_payments').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              await supabase.from('loans').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              
+              // Deletar transações
+              await supabase.from('transactions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              
+              // Resetar banco para valores iniciais
+              await supabase
+                .from('bank')
+                .update({ 
+                  total_coins: 10000,
+                  coins_in_circulation: 0
+                })
+                .neq('id', '00000000-0000-0000-0000-000000000000');
+              
+              results.push({ step: option.label, status: 'success' });
+              break;
+
             case 'delete_events':
               // Deletar eventos e suas dependências na ordem correta
               // 1. Primeiro os votos

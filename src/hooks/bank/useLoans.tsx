@@ -20,6 +20,12 @@ export interface Loan {
   installments_paid: number;
   next_payment_date: string | null;
   is_overdue: boolean;
+  counter_installments: number | null;
+  counter_payment_method: string | null;
+  counter_status: 'none' | 'pending' | 'accepted' | 'rejected';
+  debt_forgiven: boolean;
+  forgiven_by: string | null;
+  forgiven_at: string | null;
   student?: { name: string; email: string };
   reviewer?: { name: string; email: string };
 }
@@ -179,6 +185,154 @@ export function useDenyLoan() {
       toast({
         title: 'Erro',
         description: 'Não foi possível negar o empréstimo.',
+        variant: 'destructive'
+      });
+    }
+  });
+}
+
+export function useForgiveDebt() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ loanId, adminId }: { loanId: string; adminId: string }) => {
+      const { data, error } = await supabase.rpc('forgive_loan_debt', {
+        loan_id: loanId,
+        admin_id: adminId
+      });
+      
+      if (error) throw error;
+      const result = data as any;
+      if (!result.success) throw new Error(result.error);
+      
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      toast({
+        title: 'Dívida perdoada',
+        description: 'A dívida do aluno foi perdoada com sucesso.'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Não foi possível perdoar a dívida.',
+        variant: 'destructive'
+      });
+    }
+  });
+}
+
+export function useCounterProposalLoan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      loanId, 
+      counterInstallments, 
+      counterPaymentMethod 
+    }: { 
+      loanId: string; 
+      counterInstallments: number;
+      counterPaymentMethod: 'manual' | 'automatic';
+    }) => {
+      const { error } = await supabase
+        .from('loans')
+        .update({
+          counter_installments: counterInstallments,
+          counter_payment_method: counterPaymentMethod,
+          counter_status: 'pending'
+        })
+        .eq('id', loanId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      toast({
+        title: 'Contraproposta enviada',
+        description: 'O aluno receberá a contraproposta para análise.'
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível enviar a contraproposta.',
+        variant: 'destructive'
+      });
+    }
+  });
+}
+
+export function useAcceptCounterProposal() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (loanId: string) => {
+      if (!user) throw new Error('Usuário não autenticado');
+      
+      const { data, error } = await supabase.rpc('accept_loan_counter_proposal', {
+        loan_id: loanId,
+        student_id: user.id
+      });
+      
+      if (error) throw error;
+      const result = data as any;
+      if (!result.success) throw new Error(result.error);
+      
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-loans'] });
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      toast({
+        title: 'Contraproposta aceita',
+        description: 'As novas condições foram aplicadas ao empréstimo.'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Não foi possível aceitar a contraproposta.',
+        variant: 'destructive'
+      });
+    }
+  });
+}
+
+export function useRejectCounterProposal() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (loanId: string) => {
+      if (!user) throw new Error('Usuário não autenticado');
+      
+      const { data, error } = await supabase.rpc('reject_loan_counter_proposal', {
+        loan_id: loanId,
+        student_id: user.id
+      });
+      
+      if (error) throw error;
+      const result = data as any;
+      if (!result.success) throw new Error(result.error);
+      
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-loans'] });
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      toast({
+        title: 'Contraproposta rejeitada',
+        description: 'Você rejeitou a contraproposta do administrador.'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Não foi possível rejeitar a contraproposta.',
         variant: 'destructive'
       });
     }

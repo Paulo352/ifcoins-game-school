@@ -11,8 +11,10 @@ import { useUpdateCoins } from '@/hooks/useUpdateCoins';
 import { useTeacherDailyLimit } from '@/hooks/useTeacherDailyLimit';
 import { useActiveEvent } from '@/hooks/useActiveEvent';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 interface TeacherGiveCoinsFormProps {
   students: any[] | undefined;
@@ -24,10 +26,25 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
   const [selectedStudentEmail, setSelectedStudentEmail] = useState('');
   const [coinsAmount, setCoinsAmount] = useState('');
   const [reason, setReason] = useState('');
+  const [rewardType, setRewardType] = useState<'coins' | 'card'>('coins');
+  const [selectedCardId, setSelectedCardId] = useState('');
   const { giveCoins, loading, calculateBonusCoins } = useUpdateCoins();
   const { dailyCoins, dailyLimit, remainingCoins, percentageUsed, refetch: refetchLimit } = useTeacherDailyLimit();
   const { activeEvent, multiplier, hasActiveEvent } = useActiveEvent();
   const queryClient = useQueryClient();
+
+  const { data: cards } = useQuery({
+    queryKey: ['available-cards'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('available', true)
+        .order('name');
+      if (error) throw error;
+      return data;
+    }
+  });
 
   // Escutar mudanças em reward_logs em tempo real
   useEffect(() => {
@@ -56,13 +73,61 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
     };
   }, [teacherId, refetchLimit, queryClient]);
 
-  const handleGiveCoins = async () => {
-    if (!selectedStudentEmail || !coinsAmount || !reason) {
+  const handleGiveReward = async () => {
+    if (!selectedStudentEmail || !reason) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha todos os campos para dar moedas",
+        description: "Preencha todos os campos",
         variant: "destructive"
       });
+      return;
+    }
+
+    if (rewardType === 'coins' && !coinsAmount) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Informe a quantidade de moedas",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (rewardType === 'card' && !selectedCardId) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Selecione uma carta",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const selectedStudent = students?.find(s => s.email === selectedStudentEmail);
+    if (!selectedStudent) {
+      toast({
+        title: "Estudante não encontrado",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (rewardType === 'card') {
+      // Dar carta
+      const { error } = await supabase
+        .from('user_cards')
+        .insert({ user_id: selectedStudent.id, card_id: selectedCardId, quantity: 1 })
+        .select()
+        .single();
+
+      if (error) {
+        toast({ title: "Erro", description: "Não foi possível dar a carta", variant: "destructive" });
+        return;
+      }
+
+      toast({ title: "Carta entregue!", description: `Carta dada para ${selectedStudent.name}` });
+      setSelectedStudentEmail('');
+      setReason('');
+      setSelectedCardId('');
+      onSuccess();
       return;
     }
 
@@ -191,7 +256,20 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <div>
+            <Label>Tipo de Recompensa</Label>
+            <Select value={rewardType} onValueChange={(v: any) => setRewardType(v)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="coins">Moedas IFCoins</SelectItem>
+                <SelectItem value="card">Carta</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="student">Email do Estudante</Label>
             <Input
@@ -209,8 +287,10 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
               ))}
             </datalist>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="coins">
+
+          {rewardType === 'coins' ? (
+            <div className="space-y-2">
+              <Label htmlFor="coins">
               Quantidade de Moedas (1-50)
               {hasActiveEvent && coinsAmount && (
                 <span className="text-purple-600 font-medium ml-1">
@@ -227,7 +307,24 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
               value={coinsAmount}
               onChange={(e) => setCoinsAmount(e.target.value)}
             />
-          </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label>Selecionar Carta</Label>
+              <Select value={selectedCardId} onValueChange={setSelectedCardId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha uma carta" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cards?.map((card) => (
+                    <SelectItem key={card.id} value={card.id}>
+                      {card.name} - {card.rarity}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="reason">Motivo da Recompensa</Label>
@@ -240,17 +337,12 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
           />
         </div>
         <Button 
-          onClick={handleGiveCoins}
+          onClick={handleGiveReward}
           className="bg-ifpr-green hover:bg-ifpr-green-dark"
-          disabled={loading || dailyCoins >= dailyLimit}
+          disabled={loading || (rewardType === 'coins' && dailyCoins >= dailyLimit)}
         >
           <Coins className="h-4 w-4 mr-2" />
-          {dailyCoins >= dailyLimit 
-            ? 'Limite Diário Atingido' 
-            : loading 
-              ? 'Atribuindo Moedas...' 
-              : 'Atribuir Moedas'
-          }
+          {loading ? 'Processando...' : rewardType === 'coins' ? 'Atribuir Moedas' : 'Dar Carta'}
         </Button>
       </CardContent>
     </Card>
