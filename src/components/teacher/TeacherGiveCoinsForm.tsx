@@ -105,6 +105,7 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
     if (!selectedStudent) {
       toast({
         title: "Estudante não encontrado",
+        description: "Verifique se o email está correto",
         variant: "destructive"
       });
       return;
@@ -122,6 +123,16 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
         toast({ title: "Erro", description: "Não foi possível dar a carta", variant: "destructive" });
         return;
       }
+
+      // Registrar no reward_logs
+      await supabase
+        .from('reward_logs')
+        .insert({
+          student_id: selectedStudent.id,
+          teacher_id: teacherId,
+          coins: 0,
+          reason: `Carta recebida: ${reason}`
+        });
 
       toast({ title: "Carta entregue!", description: `Carta dada para ${selectedStudent.name}` });
       setSelectedStudentEmail('');
@@ -157,16 +168,6 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
       toast({
         title: "Limite diário atingido",
         description: `Você já distribuiu ${dailyCoins} de ${dailyLimit} moedas hoje. Esta ação ultrapassaria seu limite (${newTotal} moedas no total).`,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const selectedStudent = students?.find(s => s.email === selectedStudentEmail);
-    if (!selectedStudent) {
-      toast({
-        title: "Estudante não encontrado",
-        description: "Verifique se o email está correto",
         variant: "destructive"
       });
       return;

@@ -78,15 +78,33 @@ export function useRequestLoan() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ amount, reason }: { amount: number; reason: string }) => {
+    mutationFn: async ({ 
+      amount, 
+      reason, 
+      installments = 1,
+      paymentMethod = 'manual' 
+    }: { 
+      amount: number; 
+      reason: string;
+      installments?: number;
+      paymentMethod?: 'manual' | 'automatic';
+    }) => {
       if (!user) throw new Error('Usuário não autenticado');
+
+      // Calcular juros e total
+      const interestRate = installments * 2.0;
+      const totalWithInterest = amount * (1 + interestRate / 100.0);
 
       const { error } = await supabase
         .from('loans')
         .insert({
           student_id: user.id,
           amount,
-          reason
+          reason,
+          installments,
+          payment_method: paymentMethod,
+          interest_rate: interestRate,
+          total_with_interest: totalWithInterest
         });
       
       if (error) throw error;
