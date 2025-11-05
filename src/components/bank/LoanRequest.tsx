@@ -34,6 +34,7 @@ export function LoanRequest() {
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [installments, setInstallments] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState<'manual' | 'automatic'>('manual');
 
   const { data: loans, isLoading } = useMyLoans();
   const requestLoan = useRequestLoan();
@@ -57,10 +58,11 @@ export function LoanRequest() {
       return;
     }
     
-    requestLoan.mutate({ amount: amountNum, reason });
+    requestLoan.mutate({ amount: amountNum, reason, installments, paymentMethod });
     setAmount('');
     setReason('');
     setInstallments(1);
+    setPaymentMethod('manual');
   };
 
   return (
@@ -119,6 +121,34 @@ export function LoanRequest() {
               />
               <p className="text-xs text-muted-foreground">
                 ⚠️ O admin pode ajustar ao aprovar. Taxa: 2% por parcela
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Método de Pagamento Preferido</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={paymentMethod === 'manual' ? 'default' : 'outline'}
+                  onClick={() => setPaymentMethod('manual')}
+                  className="flex-1"
+                >
+                  Manual
+                </Button>
+                <Button
+                  type="button"
+                  variant={paymentMethod === 'automatic' ? 'default' : 'outline'}
+                  onClick={() => setPaymentMethod('automatic')}
+                  className="flex-1"
+                >
+                  Automático
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {paymentMethod === 'manual' 
+                  ? '💡 Você decide quando pagar (taxa adicional se atrasar)'
+                  : '💡 Desconto semanal automático do seu saldo'
+                }
               </p>
             </div>
 

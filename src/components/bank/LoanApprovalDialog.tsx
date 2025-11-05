@@ -14,6 +14,8 @@ interface LoanApprovalDialogProps {
     id: string;
     amount: number;
     reason: string;
+    installments?: number;
+    payment_method?: string;
     student?: { name: string };
   };
   open: boolean;
@@ -24,8 +26,8 @@ export function LoanApprovalDialog({ loan, open, onOpenChange }: LoanApprovalDia
   const { user } = useAuth();
   const approveLoan = useApproveLoan();
   const counterProposal = useCounterProposalLoan();
-  const [installments, setInstallments] = useState(1);
-  const [paymentMethod, setPaymentMethod] = useState<'manual' | 'automatic'>('manual');
+  const [installments, setInstallments] = useState(loan.installments || 1);
+  const [paymentMethod, setPaymentMethod] = useState<'manual' | 'automatic'>((loan.payment_method as any) || 'manual');
   const [isCounterProposal, setIsCounterProposal] = useState(false);
 
   const interestRate = installments * 2;
@@ -83,8 +85,10 @@ export function LoanApprovalDialog({ loan, open, onOpenChange }: LoanApprovalDia
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
                 <div className="text-sm text-blue-700">
-                  <p className="font-medium mb-1">Informações do Aluno:</p>
-                  <p>• Valor solicitado: <strong>{loan.amount} IFC</strong></p>
+                  <p className="font-medium mb-2">Solicitação do Aluno:</p>
+                  <p>• Valor: <strong>{loan.amount} IFC</strong></p>
+                  <p>• Parcelas desejadas: <strong>{loan.installments || 1} semanas</strong></p>
+                  <p>• Método preferido: <strong>{loan.payment_method === 'automatic' ? 'Desconto automático' : 'Pagamento manual'}</strong></p>
                   <p>• Motivo: {loan.reason}</p>
                 </div>
               </div>

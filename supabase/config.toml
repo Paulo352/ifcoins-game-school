@@ -1,1 +1,10 @@
 project_id = "bcopgknrpjenixejhlfz"
+
+[functions.process-loan-payments]
+verify_jwt = false
+
+[functions.distribute-daily-coins]
+verify_jwt = false
+
+[functions.send-loan-notifications]
+verify_jwt = false

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,10 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, User } from 'lucide-react';
 import { useNewCards, useCreateCard, useUpdateCard, useDeleteCard, CreateCardData, NewCardData } from '@/hooks/useNewCards';
 import { NewCard } from './NewCard';
 import { NewImageUpload } from './NewImageUpload';
+import { supabase } from '@/integrations/supabase/client';
+import { Switch } from '@/components/ui/switch';
 
 interface CardFormData extends Omit<CreateCardData, 'rarity'> {
   rarity: string;
@@ -40,6 +42,21 @@ export function NewManageCards() {
     assigned_to: '',
   });
   const [students, setStudents] = useState<any[]>([]);
+  const [isSpecialCard, setIsSpecialCard] = useState(false);
+
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
+  const loadStudents = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, name, email')
+      .eq('role', 'student')
+      .order('name');
+    
+    if (data) setStudents(data);
+  };
 
   if (!profile || profile.role !== 'admin') {
     return (
@@ -63,6 +80,7 @@ export function NewManageCards() {
       assigned_to: '',
     });
     setEditingCard(null);
+    setIsSpecialCard(false);
   };
 
   const openCreateDialog = () => {
@@ -96,25 +114,50 @@ export function NewManageCards() {
     
     if (!formData.name.trim()) return;
 
-    const cardData: CreateCardData = {
+    // Se é carta especial, precisa ter um aluno atribuído
+    if (isSpecialCard && !formData.assigned_to) {
+      alert('Selecione um aluno para receber esta carta especial');
+      return;
+    }
+
+    const cardData: any = {
       name: formData.name.trim(),
       rarity: formData.rarity as 'common' | 'rare' | 'legendary' | 'mythic',
       image_url: formData.image_url?.trim() || undefined,
       price: formData.price,
       description: formData.description?.trim() || undefined,
-      available: formData.available,
+      available: isSpecialCard ? false : formData.available, // Cartas especiais não ficam disponíveis para todos
       copies_available: formData.copies_available,
+      is_special: isSpecialCard,
+      assigned_to: isSpecialCard ? formData.assigned_to : null,
     };
 
     try {
       if (editingCard) {
         await updateCard.mutateAsync({ id: editingCard.id, ...cardData });
       } else {
-        await createCard.mutateAsync(cardData);
+        // Criar carta
+        const { data: newCard, error } = await supabase
+          .from('cards')
+          .insert(cardData)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Se é carta especial, adicionar diretamente ao aluno
+        if (isSpecialCard && newCard && formData.assigned_to) {
+          await supabase.from('user_cards').insert({
+            user_id: formData.assigned_to,
+            card_id: newCard.id,
+            quantity: 1
+          });
+        }
       }
       closeDialog();
     } catch (error) {
       console.error('Error saving card:', error);
+      alert('Erro ao salvar carta');
     }
   };
 
@@ -235,6 +278,44 @@ export function NewManageCards() {
                       placeholder="Descrição da carta"
                       rows={3}
                     />
+                  </div>
+
+                  <div className="space-y-3 p-3 bg-muted rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        <Label htmlFor="special-card">Carta Especial (exclusiva para um aluno)</Label>
+                      </div>
+                      <Switch
+                        id="special-card"
+                        checked={isSpecialCard}
+                        onCheckedChange={setIsSpecialCard}
+                      />
+                    </div>
+                    
+                    {isSpecialCard && (
+                      <div>
+                        <Label htmlFor="assigned-student">Aluno</Label>
+                        <Select
+                          value={formData.assigned_to}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, assigned_to: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o aluno" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {students.map((student) => (
+                              <SelectItem key={student.id} value={student.id}>
+                                {student.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Esta carta será criada e entregue diretamente ao aluno
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
