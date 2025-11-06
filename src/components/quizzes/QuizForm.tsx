@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { useCreateQuiz, CreateQuizData } from '@/hooks/quizzes/useQuizzes';
 import { Plus, Minus, HelpCircle, Trash2 } from 'lucide-react';
+import { useNewCards } from '@/hooks/useNewCards';
 
 const questionSchema = z.object({
   question_text: z.string().min(1, 'Pergunta é obrigatória'),
@@ -23,7 +24,9 @@ const questionSchema = z.object({
 const quizSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
+  reward_type: z.enum(['coins', 'card']),
   reward_coins: z.number().min(1, 'Recompensa deve ser maior que 0'),
+  reward_card_id: z.string().optional(),
   max_attempts: z.number().min(1).optional(),
   time_limit_minutes: z.number().min(1).optional(),
   questions: z.array(questionSchema).min(1, 'Adicione pelo menos uma pergunta'),
@@ -35,13 +38,17 @@ interface QuizFormProps {
 
 export function QuizForm({ onSuccess }: QuizFormProps) {
   const createQuiz = useCreateQuiz();
+  const { data: cards } = useNewCards();
+  const [rewardType, setRewardType] = useState<'coins' | 'card'>('coins');
 
   const form = useForm<z.infer<typeof quizSchema>>({
     resolver: zodResolver(quizSchema),
     defaultValues: {
       title: '',
       description: '',
+      reward_type: 'coins',
       reward_coins: 10,
+      reward_card_id: undefined,
       max_attempts: 1,
       time_limit_minutes: undefined,
       questions: [{
@@ -79,7 +86,9 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
     const quizData: CreateQuizData = {
       title: data.title,
       description: data.description,
-      reward_coins: data.reward_coins,
+      reward_type: data.reward_type,
+      reward_coins: data.reward_type === 'coins' ? data.reward_coins : 0,
+      reward_card_id: data.reward_type === 'card' ? data.reward_card_id : undefined,
       max_attempts: data.max_attempts,
       time_limit_minutes: data.time_limit_minutes,
       questions: data.questions.map(question => ({
@@ -112,7 +121,7 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Informações básicas do quiz */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div className="md:col-span-2">
               <Label htmlFor="title">Título do Quiz</Label>
               <Input
                 id="title"
@@ -125,17 +134,57 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
             </div>
 
             <div>
-              <Label htmlFor="reward_coins">Recompensa (moedas)</Label>
-              <Input
-                id="reward_coins"
-                type="number"
-                {...form.register('reward_coins', { valueAsNumber: true })}
-                placeholder="10"
-              />
-              {form.formState.errors.reward_coins && (
-                <p className="text-sm text-red-500 mt-1">{form.formState.errors.reward_coins.message}</p>
-              )}
+              <Label htmlFor="reward_type">Tipo de Recompensa</Label>
+              <Select
+                value={rewardType}
+                onValueChange={(value: 'coins' | 'card') => {
+                  setRewardType(value);
+                  form.setValue('reward_type', value);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="coins">Moedas</SelectItem>
+                  <SelectItem value="card">Carta</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {rewardType === 'coins' ? (
+              <div>
+                <Label htmlFor="reward_coins">Quantidade de Moedas</Label>
+                <Input
+                  id="reward_coins"
+                  type="number"
+                  {...form.register('reward_coins', { valueAsNumber: true })}
+                  placeholder="10"
+                />
+                {form.formState.errors.reward_coins && (
+                  <p className="text-sm text-red-500 mt-1">{form.formState.errors.reward_coins.message}</p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="reward_card">Carta Recompensa</Label>
+                <Select
+                  value={form.watch('reward_card_id')}
+                  onValueChange={(value) => form.setValue('reward_card_id', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma carta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cards?.filter(c => c.available).map((card) => (
+                      <SelectItem key={card.id} value={card.id}>
+                        {card.name} ({card.rarity})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div>
               <Label htmlFor="max_attempts">Máximo de Tentativas</Label>

@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Download, FileText, Calendar, Coins } from 'lucide-react';
+import ifprLogo from '@/assets/ifpr-logo.png';
 
 interface RewardLogData {
   id: string;
@@ -52,11 +53,14 @@ export function RewardsHistoryReport() {
       const dateStr = now.toLocaleDateString('pt-BR');
       const timeStr = now.toLocaleTimeString('pt-BR');
       
+      // Logo IFPR
+      doc.addImage(ifprLogo, 'PNG', 15, 10, 30, 30);
+      
       // Cabeçalho
       doc.setFontSize(18);
-      doc.text('IFPR Cards - Histórico Completo de Moedas', 20, 20);
+      doc.text('IFPR Cards - Histórico Completo de Moedas', 50, 25);
       doc.setFontSize(12);
-      doc.text(`Relatório gerado em: ${dateStr} às ${timeStr}`, 20, 30);
+      doc.text(`Relatório gerado em: ${dateStr} às ${timeStr}`, 50, 35);
       
       // Estatísticas resumidas
       const totalCoinsGiven = rewardLogs.reduce((sum, log) => sum + log.coins, 0);

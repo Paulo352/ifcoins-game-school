@@ -4,23 +4,28 @@ import { LoanManagement } from '@/components/bank/LoanManagement';
 import { LoanRequest } from '@/components/bank/LoanRequest';
 import { LoanManagementPanel } from '@/components/admin/LoanManagementPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BankManagement } from '@/components/bank/BankManagement';
 
 export function BankSection() {
   const { profile } = useAuth();
 
   if (!profile) return null;
 
-  // Admin vê dashboard completo
   if (profile.role === 'admin') {
     return (
       <div className="space-y-6">
         <Tabs defaultValue="management" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="management">Gestão de Empréstimos</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="management">Gestão do Banco</TabsTrigger>
+            <TabsTrigger value="loans">Empréstimos</TabsTrigger>
             <TabsTrigger value="approval">Aprovar Solicitações</TabsTrigger>
           </TabsList>
           
           <TabsContent value="management" className="space-y-6 mt-6">
+            <BankManagement />
+          </TabsContent>
+          
+          <TabsContent value="loans" className="space-y-6 mt-6">
             <LoanManagementPanel />
           </TabsContent>
           

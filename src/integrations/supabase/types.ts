@@ -142,6 +142,57 @@ export type Database = {
           },
         ]
       }
+      daily_coin_config: {
+        Row: {
+          amount: number
+          created_at: string
+          enabled: boolean
+          friday: boolean
+          id: string
+          monday: boolean
+          reset_weekly: boolean
+          saturday: boolean
+          sunday: boolean
+          target_role: string
+          thursday: boolean
+          tuesday: boolean
+          updated_at: string
+          wednesday: boolean
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          enabled?: boolean
+          friday?: boolean
+          id?: string
+          monday?: boolean
+          reset_weekly?: boolean
+          saturday?: boolean
+          sunday?: boolean
+          target_role?: string
+          thursday?: boolean
+          tuesday?: boolean
+          updated_at?: string
+          wednesday?: boolean
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          enabled?: boolean
+          friday?: boolean
+          id?: string
+          monday?: boolean
+          reset_weekly?: boolean
+          saturday?: boolean
+          sunday?: boolean
+          target_role?: string
+          thursday?: boolean
+          tuesday?: boolean
+          updated_at?: string
+          wednesday?: boolean
+        }
+        Relationships: []
+      }
       event_cards: {
         Row: {
           card_id: string
@@ -776,8 +827,10 @@ export type Database = {
           class: string | null
           coins: number
           created_at: string | null
+          daily_streak: number | null
           email: string
           id: string
+          last_daily_reward: string | null
           name: string
           ra: string | null
           role: Database["public"]["Enums"]["user_role"]
@@ -787,8 +840,10 @@ export type Database = {
           class?: string | null
           coins?: number
           created_at?: string | null
+          daily_streak?: number | null
           email: string
           id?: string
+          last_daily_reward?: string | null
           name: string
           ra?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -798,8 +853,10 @@ export type Database = {
           class?: string | null
           coins?: number
           created_at?: string | null
+          daily_streak?: number | null
           email?: string
           id?: string
+          last_daily_reward?: string | null
           name?: string
           ra?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -1492,6 +1549,10 @@ export type Database = {
         Returns: string
       }
       delete_event: { Args: { event_id: string }; Returns: boolean }
+      early_loan_payment: {
+        Args: { loan_id: string; user_id: string }
+        Returns: Json
+      }
       forgive_loan_debt: {
         Args: { admin_id: string; loan_id: string }
         Returns: Json

@@ -17,7 +17,7 @@ export function useBank() {
       const { data, error } = await supabase
         .from('bank')
         .select('*')
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data as BankData;
@@ -30,10 +30,17 @@ export function useUpdateBank() {
 
   return useMutation({
     mutationFn: async ({ totalCoins }: { totalCoins: number }) => {
+      const { data: bank } = await supabase
+        .from('bank')
+        .select('id')
+        .maybeSingle();
+      
+      if (!bank) throw new Error('Banco não encontrado');
+      
       const { error } = await supabase
         .from('bank')
         .update({ total_coins: totalCoins })
-        .eq('id', (await supabase.from('bank').select('id').single()).data?.id);
+        .eq('id', bank.id);
       
       if (error) throw error;
     },

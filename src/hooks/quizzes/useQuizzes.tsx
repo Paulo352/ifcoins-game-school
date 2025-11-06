@@ -53,7 +53,9 @@ export interface QuizAnswer {
 export interface CreateQuizData {
   title: string;
   description?: string;
+  reward_type?: 'coins' | 'card';
   reward_coins: number;
+  reward_card_id?: string;
   max_attempts?: number;
   time_limit_minutes?: number;
   questions: {
@@ -153,7 +155,9 @@ export function useCreateQuiz() {
         .insert([{
           title: quizData.title,
           description: quizData.description,
+          reward_type: quizData.reward_type || 'coins',
           reward_coins: quizData.reward_coins,
+          reward_card_id: quizData.reward_card_id,
           max_attempts: quizData.max_attempts || 1,
           time_limit_minutes: quizData.time_limit_minutes,
           created_by: (await supabase.auth.getUser()).data.user?.id
