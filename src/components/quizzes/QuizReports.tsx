@@ -38,19 +38,37 @@ export function QuizReports({ onBack }: QuizReportsProps) {
         .order('created_at', { ascending: false });
 
       if (quizzesError) throw quizzesError;
+      
+      if (!quizzesData || quizzesData.length === 0) {
+        return [];
+      }
 
       // Buscar dados dos criadores
-      const creatorIds = [...new Set(quizzesData?.map(q => q.created_by))];
+      const creatorIds = [...new Set(quizzesData.map(q => q.created_by).filter(Boolean))];
+      
+      if (creatorIds.length === 0) {
+        return quizzesData.map(quiz => ({
+          ...quiz,
+          profiles: null,
+        })) as Quiz[];
+      }
+      
       const { data: creatorsData, error: creatorsError } = await supabase
         .from('profiles')
         .select('id, name, role')
         .in('id', creatorIds);
 
-      if (creatorsError) throw creatorsError;
+      if (creatorsError) {
+        console.error('Error fetching creators:', creatorsError);
+        return quizzesData.map(quiz => ({
+          ...quiz,
+          profiles: null,
+        })) as Quiz[];
+      }
 
       // Combinar dados
-      const creatorsMap = new Map(creatorsData?.map(c => [c.id, c]));
-      const quizzesWithCreators = quizzesData?.map(quiz => ({
+      const creatorsMap = new Map(creatorsData?.map(c => [c.id, c]) || []);
+      const quizzesWithCreators = quizzesData.map(quiz => ({
         ...quiz,
         profiles: creatorsMap.get(quiz.created_by) || null,
       }));

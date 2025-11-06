@@ -3,13 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useBank, useUpdateBank, BankData } from '@/hooks/bank/useBank';
+import { useBank } from '@/hooks/bank/useBank';
 import { Building2, PlusCircle, MinusCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function BankManagement() {
   const { data: bank } = useBank();
+  const queryClient = useQueryClient();
   const [addAmount, setAddAmount] = useState(0);
   const [removeAmount, setRemoveAmount] = useState(0);
   const [processing, setProcessing] = useState(false);
@@ -19,9 +21,14 @@ export function BankManagement() {
     setProcessing(true);
 
     try {
+      const newTotal = bank.total_coins + addAmount;
+      
       const { error } = await supabase
         .from('bank')
-        .update({ total_coins: bank.total_coins + addAmount })
+        .update({ 
+          total_coins: newTotal,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', bank.id);
 
       if (error) throw error;
@@ -31,7 +38,9 @@ export function BankManagement() {
         description: `${addAmount} IFCoins foram adicionados ao banco`,
       });
       setAddAmount(0);
-      window.location.reload();
+      
+      // Recarregar dados sem refresh completo
+      queryClient.invalidateQueries({ queryKey: ['bank'] });
     } catch (error) {
       toast({
         title: 'Erro',
@@ -59,9 +68,14 @@ export function BankManagement() {
     setProcessing(true);
 
     try {
+      const newTotal = bank.total_coins - removeAmount;
+      
       const { error } = await supabase
         .from('bank')
-        .update({ total_coins: bank.total_coins - removeAmount })
+        .update({ 
+          total_coins: newTotal,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', bank.id);
 
       if (error) throw error;
@@ -71,7 +85,9 @@ export function BankManagement() {
         description: `${removeAmount} IFCoins foram removidos do banco`,
       });
       setRemoveAmount(0);
-      window.location.reload();
+      
+      // Recarregar dados sem refresh completo
+      queryClient.invalidateQueries({ queryKey: ['bank'] });
     } catch (error) {
       toast({
         title: 'Erro',

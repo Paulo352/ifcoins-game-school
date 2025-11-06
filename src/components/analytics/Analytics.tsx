@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ifprLogo from '@/assets/ifpr-logo.png';
+import { TopCards } from './TopCards';
 import { 
   TrendingUp, 
   Users, 
@@ -312,6 +313,9 @@ export function Analytics() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top 10 Cartas */}
+        <TopCards />
+        
         {/* Distribuição de Moedas */}
         <Card>
           <CardHeader>
