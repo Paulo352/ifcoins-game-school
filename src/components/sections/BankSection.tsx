@@ -3,8 +3,8 @@ import { BankDashboard } from '@/components/bank/BankDashboard';
 import { LoanManagement } from '@/components/bank/LoanManagement';
 import { LoanRequest } from '@/components/bank/LoanRequest';
 import { LoanManagementPanel } from '@/components/admin/LoanManagementPanel';
+import { ImprovedBankDashboard } from '@/components/bank/ImprovedBankDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BankManagement } from '@/components/bank/BankManagement';
 
 export function BankSection() {
   const { profile } = useAuth();
@@ -14,15 +14,15 @@ export function BankSection() {
   if (profile.role === 'admin') {
     return (
       <div className="space-y-6">
-        <Tabs defaultValue="management" className="w-full">
+        <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="management">Gestão do Banco</TabsTrigger>
+            <TabsTrigger value="dashboard">Dashboard do Banco</TabsTrigger>
             <TabsTrigger value="loans">Empréstimos</TabsTrigger>
             <TabsTrigger value="approval">Aprovar Solicitações</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="management" className="space-y-6 mt-6">
-            <BankManagement />
+          <TabsContent value="dashboard" className="space-y-6 mt-6">
+            <ImprovedBankDashboard />
           </TabsContent>
           
           <TabsContent value="loans" className="space-y-6 mt-6">

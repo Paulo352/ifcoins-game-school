@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, Eye, User } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, User, Power } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useNewCards, useCreateCard, useUpdateCard, useDeleteCard, CreateCardData, NewCardData } from '@/hooks/useNewCards';
 import { NewCard } from './NewCard';
 import { NewImageUpload } from './NewImageUpload';
@@ -402,6 +403,26 @@ export function NewManageCards() {
                     <Pencil className="w-3 h-3" />
                   </Button>
                   
+                  <Button
+                    size="sm"
+                    variant={card.available ? "default" : "outline"}
+                    onClick={async () => {
+                      try {
+                        await supabase
+                          .from('cards')
+                          .update({ available: !card.available })
+                          .eq('id', card.id);
+                        window.location.reload();
+                      } catch (error) {
+                        console.error('Error toggling card:', error);
+                      }
+                    }}
+                    className="h-8 w-8 p-0"
+                    title={card.available ? 'Desativar carta' : 'Ativar carta'}
+                  >
+                    <Switch className="w-3 h-3" />
+                  </Button>
+                  
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
@@ -433,6 +454,15 @@ export function NewManageCards() {
                   </AlertDialog>
                 </div>
               </div>
+              
+              {/* Status Badge */}
+              {!card.available && (
+                <div className="absolute top-2 right-2">
+                  <Badge variant="secondary" className="bg-yellow-500 text-white">
+                    Desativada
+                  </Badge>
+                </div>
+              )}
             </div>
           ))}
         </div>

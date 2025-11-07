@@ -9,6 +9,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ifprLogo from '@/assets/ifpr-logo.png';
 import { TopCards } from './TopCards';
+import { LoanAnalytics } from './LoanAnalytics';
+import { CoinsAnalytics } from './CoinsAnalytics';
+import { DefaultAnalytics } from './DefaultAnalytics';
 import { 
   TrendingUp, 
   Users, 
@@ -311,6 +314,18 @@ export function Analytics() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Gráficos do Dashboard */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Evolução de Empréstimos */}
+        <LoanAnalytics />
+        
+        {/* Moedas Distribuídas */}
+        <CoinsAnalytics />
+      </div>
+
+      {/* Taxa de Inadimplência */}
+      <DefaultAnalytics />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top 10 Cartas */}
