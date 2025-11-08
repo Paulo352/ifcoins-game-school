@@ -9,7 +9,7 @@ export const usePasswordReset = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: 'https://ifcoins.vercel.app/reset-password',
       });
 
       if (error) throw error;

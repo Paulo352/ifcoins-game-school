@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { ResetPasswordPage } from '@/components/auth/ResetPasswordPage';
 import LoginPage from '@/pages/LoginPage';
 import { MaintenanceScreen } from '@/components/maintenance/MaintenanceScreen';
@@ -39,6 +40,9 @@ const Index = () => {
   const { status: maintenanceStatus } = useMaintenanceMode();
   const [activeSection, setActiveSection] = useState('dashboard');
   const location = useLocation();
+  
+  // Enable real-time notifications
+  useRealtimeNotifications();
 
   console.log('Index - User:', user?.email, 'Profile:', profile?.role, 'Loading:', loading);
 
