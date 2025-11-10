@@ -8,11 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, Eye, User, Power } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Pencil, Trash2, Eye, User, Power, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useNewCards, useCreateCard, useUpdateCard, useDeleteCard, CreateCardData, NewCardData } from '@/hooks/useNewCards';
 import { NewCard } from './NewCard';
 import { NewImageUpload } from './NewImageUpload';
+import { SpecialCardCreation } from './SpecialCardCreation';
 import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
 
@@ -183,7 +185,17 @@ export function NewManageCards() {
   }
 
   return (
-    <div className="space-y-6">
+    <Tabs defaultValue="manage" className="w-full">
+      <TabsList className="mb-6">
+        <TabsTrigger value="manage">Gerenciar Cartas</TabsTrigger>
+        <TabsTrigger value="special" className="gap-2">
+          <Sparkles className="w-4 h-4" />
+          Cartas Especiais
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="manage">
+        <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Gerenciar Cartas</h1>
@@ -481,6 +493,12 @@ export function NewManageCards() {
           </CardContent>
         </Card>
       )}
-    </div>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="special">
+        <SpecialCardCreation />
+      </TabsContent>
+    </Tabs>
   );
 }

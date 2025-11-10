@@ -1,17 +1,20 @@
 import React from 'react';
-import { useActiveQuizzes, type Quiz } from '@/hooks/quizzes/useQuizSystem';
+import { useActiveQuizzes, useUserAttempts, type Quiz } from '@/hooks/quizzes/useQuizSystem';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { HelpCircle, Clock, Coins, User, History, Award, BarChart3 } from 'lucide-react';
+import { HelpCircle, Clock, Coins, User, History, Award, BarChart3, GraduationCap } from 'lucide-react';
 
 interface QuizSystemListProps {
-  onStartQuiz: (quizId: string) => void;
+  onStartQuiz: (quizId: string, practiceMode?: boolean) => void;
   onViewChange: (view: 'history' | 'badges' | 'ranking') => void;
 }
 
 export function QuizSystemList({ onStartQuiz, onViewChange }: QuizSystemListProps) {
   const { data: quizzes, isLoading, error } = useActiveQuizzes();
+  const { profile } = useAuth();
+  const { data: userAttempts } = useUserAttempts(profile?.id || null);
 
   if (isLoading) {
     return (
@@ -116,12 +119,35 @@ export function QuizSystemList({ onStartQuiz, onViewChange }: QuizSystemListProp
                 )}
               </div>
               
-              <Button 
-                onClick={() => onStartQuiz(quiz.id)}
-                className="w-full"
-              >
-                Iniciar Quiz
-              </Button>
+              <div className="space-y-2">
+                {(() => {
+                  const hasCompleted = userAttempts?.some(
+                    (attempt: any) => attempt.quiz_id === quiz.id && attempt.is_completed && !attempt.practice_mode
+                  );
+                  
+                  return (
+                    <>
+                      <Button 
+                        onClick={() => onStartQuiz(quiz.id, false)}
+                        className="w-full"
+                        disabled={hasCompleted}
+                      >
+                        {hasCompleted ? '✓ Completado' : 'Iniciar Quiz'}
+                      </Button>
+                      {hasCompleted && (
+                        <Button
+                          onClick={() => onStartQuiz(quiz.id, true)}
+                          variant="outline"
+                          className="w-full gap-2"
+                        >
+                          <GraduationCap className="w-4 h-4" />
+                          Modo Prática
+                        </Button>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             </CardContent>
           </Card>
         ))}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStartQuizAttempt, useActiveQuizzes, useUserAttempts } from '@/hooks/quizzes/useQuizSystem';
+import { supabase } from '@/integrations/supabase/client';
 import { QuizSystemList } from './QuizSystemList';
 import { QuizSystemAttempt } from './QuizSystemAttempt';
 import { QuizHistory } from './QuizHistory';
@@ -21,6 +22,7 @@ export function QuizSystemMain() {
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [currentAttemptId, setCurrentAttemptId] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<View>('list');
+  const [practiceMode, setPracticeMode] = useState(false);
 
   console.log('🎯 QuizSystemMain - Estado:', {
     profile: !!profile,
@@ -50,26 +52,43 @@ export function QuizSystemMain() {
 
   const selectedQuiz = quizzes?.find(q => q.id === selectedQuizId);
 
-  const handleStartQuiz = async (quizId: string) => {
-    console.log('🎯 Iniciando quiz:', quizId);
+  const handleStartQuiz = async (quizId: string, isPracticeMode = false) => {
+    console.log('🎯 Iniciando quiz:', quizId, 'Modo prática:', isPracticeMode);
     
-    // Verificar se o estudante já completou este quiz
-    const completedAttempt = userAttempts?.find(
-      (attempt: any) => attempt.quiz_id === quizId && attempt.is_completed
-    );
+    setPracticeMode(isPracticeMode);
     
-    if (completedAttempt) {
-      toast.error('Você já completou este quiz!');
-      return;
+    // Se for modo prática, permitir sempre
+    if (!isPracticeMode) {
+      // Verificar se o estudante já completou este quiz
+      const completedAttempt = userAttempts?.find(
+        (attempt: any) => attempt.quiz_id === quizId && attempt.is_completed && !attempt.practice_mode
+      );
+      
+      if (completedAttempt) {
+        toast.error('Você já completou este quiz! Use o Modo Prática para revisar.');
+        return;
+      }
     }
     
     try {
-      const attempt = await startQuizMutation.mutateAsync({ quizId });
+      // Usar a nova função RPC se disponível
+      const { data, error } = await supabase.rpc('start_quiz_attempt', {
+        p_quiz_id: quizId,
+        p_user_id: profile!.id,
+        p_practice_mode: isPracticeMode
+      });
+
+      if (error) throw error;
+      
+      const result = data as { success: boolean; attempt_id: string; practice_mode: boolean };
+      
       setSelectedQuizId(quizId);
-      setCurrentAttemptId(attempt.id);
-      console.log('✅ Quiz iniciado com sucesso:', attempt.id);
+      setCurrentAttemptId(result.attempt_id);
+      setCurrentView('attempt');
+      console.log('✅ Quiz iniciado com sucesso:', result.attempt_id);
     } catch (error) {
       console.error('❌ Erro ao iniciar quiz:', error);
+      toast.error('Erro ao iniciar quiz');
     }
   };
 
@@ -84,6 +103,7 @@ export function QuizSystemMain() {
     setSelectedQuizId(null);
     setCurrentAttemptId(null);
     setCurrentView('list');
+    setPracticeMode(false);
   };
 
   // Renderizar views alternativas
@@ -118,6 +138,7 @@ export function QuizSystemMain() {
           userId={profile.id}
           onComplete={handleCompleteQuiz}
           onBack={handleBackToList}
+          practiceMode={practiceMode}
         />
       </div>
     );

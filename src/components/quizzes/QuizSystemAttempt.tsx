@@ -7,8 +7,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Clock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { CheckCircle, XCircle, ArrowLeft, GraduationCap } from 'lucide-react';
 import { QuizResults } from './QuizResults';
+import { QuizTimer } from './QuizTimer';
 
 interface QuizSystemAttemptProps {
   quiz: Quiz;
@@ -16,6 +17,7 @@ interface QuizSystemAttemptProps {
   userId: string;
   onComplete: () => void;
   onBack: () => void;
+  practiceMode?: boolean;
 }
 
 export function QuizSystemAttempt({ 
@@ -23,7 +25,8 @@ export function QuizSystemAttempt({
   attemptId, 
   userId, 
   onComplete, 
-  onBack 
+  onBack,
+  practiceMode = false
 }: QuizSystemAttemptProps) {
   const { data: questions, isLoading } = useQuizQuestions(quiz.id);
   const answerMutation = useAnswerQuestion();
@@ -47,20 +50,11 @@ export function QuizSystemAttempt({
     if (!quizStarted || !quiz.time_limit_minutes) return;
 
     setTimeLeft(quiz.time_limit_minutes * 60);
-    
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev === null || prev <= 1) {
-          clearInterval(timer);
-          handleCompleteQuiz();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
   }, [quizStarted, quiz.time_limit_minutes]);
+
+  const handleTimeUp = () => {
+    handleCompleteQuiz();
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -214,13 +208,28 @@ export function QuizSystemAttempt({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            {quiz.title}
+            <span className="flex items-center gap-2">
+              {practiceMode && (
+                <Badge variant="secondary" className="gap-1">
+                  <GraduationCap className="w-4 h-4" />
+                  Modo Prática
+                </Badge>
+              )}
+              {quiz.title}
+            </span>
             <Badge variant="outline">
-              {quiz.reward_coins} moedas
+              {practiceMode ? '0 moedas (prática)' : `${quiz.reward_coins} moedas`}
             </Badge>
           </CardTitle>
           {quiz.description && (
             <p className="text-muted-foreground">{quiz.description}</p>
+          )}
+          {practiceMode && (
+            <div className="mt-2 p-3 bg-secondary/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                ℹ️ No modo prática, você pode refazer o quiz quantas vezes quiser, mas não ganhará moedas ou badges.
+              </p>
+            </div>
           )}
         </CardHeader>
         
@@ -257,6 +266,7 @@ export function QuizSystemAttempt({
         passed={finalResults.passed}
         questions={questions}
         userAnswers={answers}
+        practiceMode={practiceMode}
         onBack={() => {
           setQuizCompleted(false);
           setFinalResults(null);
@@ -274,14 +284,21 @@ export function QuizSystemAttempt({
           <span className="text-sm font-medium">
             Pergunta {currentQuestionIndex + 1} de {questions.length}
           </span>
-          {timeLeft !== null && (
-            <Badge variant="outline">
-              <Clock className="w-3 h-3 mr-1" />
-              {formatTime(timeLeft)}
+          {practiceMode && (
+            <Badge variant="secondary" className="gap-1">
+              <GraduationCap className="w-4 h-4" />
+              Modo Prática
             </Badge>
           )}
         </div>
         <Progress value={progress} className="h-2" />
+        
+        {timeLeft !== null && quiz.time_limit_minutes && (
+          <QuizTimer 
+            totalSeconds={quiz.time_limit_minutes * 60} 
+            onTimeUp={handleTimeUp}
+          />
+        )}
       </div>
 
       {/* Pergunta atual */}

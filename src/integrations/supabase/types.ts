@@ -916,6 +916,7 @@ export type Database = {
           correct_answers: number
           id: string
           is_completed: boolean
+          practice_mode: boolean | null
           quiz_id: string
           score: number
           started_at: string | null
@@ -929,6 +930,7 @@ export type Database = {
           correct_answers?: number
           id?: string
           is_completed?: boolean
+          practice_mode?: boolean | null
           quiz_id: string
           score?: number
           started_at?: string | null
@@ -942,6 +944,7 @@ export type Database = {
           correct_answers?: number
           id?: string
           is_completed?: boolean
+          practice_mode?: boolean | null
           quiz_id?: string
           score?: number
           started_at?: string | null
@@ -1676,6 +1679,14 @@ export type Database = {
           }
       reject_loan_counter_proposal: {
         Args: { loan_id: string; student_id: string }
+        Returns: Json
+      }
+      start_quiz_attempt: {
+        Args: {
+          p_practice_mode?: boolean
+          p_quiz_id: string
+          p_user_id: string
+        }
         Returns: Json
       }
       update_event: {

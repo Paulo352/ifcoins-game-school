@@ -13,6 +13,7 @@ interface QuizResultsProps {
   questions: QuizQuestion[];
   userAnswers: Record<string, string>;
   onBack: () => void;
+  practiceMode?: boolean;
 }
 
 export function QuizResults({ 
@@ -22,7 +23,8 @@ export function QuizResults({
   passed, 
   questions,
   userAnswers,
-  onBack 
+  onBack,
+  practiceMode = false
 }: QuizResultsProps) {
   const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
 
@@ -39,22 +41,29 @@ export function QuizResults({
             )}
           </div>
           <CardTitle className="text-2xl">
-            {passed ? 'Parabéns!' : 'Quiz Concluído'}
+            {practiceMode ? 'Prática Concluída' : passed ? 'Parabéns!' : 'Quiz Concluído'}
           </CardTitle>
           <div className="flex justify-center gap-4 mt-4">
             <Badge variant={passed ? 'default' : 'destructive'} className="text-lg px-4 py-2">
               {correctAnswers}/{totalQuestions} ({percentage}%)
             </Badge>
-            {coinsEarned > 0 && (
+            {coinsEarned > 0 && !practiceMode && (
               <Badge variant="outline" className="text-lg px-4 py-2">
                 +{coinsEarned} moedas
               </Badge>
             )}
+            {practiceMode && (
+              <Badge variant="secondary" className="text-lg px-4 py-2">
+                Modo Prática
+              </Badge>
+            )}
           </div>
           <p className="text-muted-foreground mt-2">
-            {passed 
-              ? `Você passou no quiz e ganhou ${coinsEarned} moedas!` 
-              : 'Você precisava de pelo menos 70% de acertos para ganhar moedas.'
+            {practiceMode 
+              ? 'Continue praticando para melhorar suas habilidades!' 
+              : passed 
+                ? `Você passou no quiz e ganhou ${coinsEarned} moedas!` 
+                : 'Você precisava de pelo menos 70% de acertos para ganhar moedas.'
             }
           </p>
         </CardHeader>
