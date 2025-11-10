@@ -959,6 +959,36 @@ export type Database = {
           },
         ]
       }
+      quiz_badges: {
+        Row: {
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          icon: string
+          id?: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Relationships: []
+      }
       quiz_questions: {
         Row: {
           correct_answer: string
@@ -1370,6 +1400,56 @@ export type Database = {
           },
         ]
       }
+      user_quiz_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_quiz_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_quiz_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_quiz_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_quiz_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_reputation: {
         Row: {
           created_at: string | null
@@ -1515,6 +1595,10 @@ export type Database = {
         Returns: Json
       }
       buy_pack: { Args: { pack_id: string; user_id: string }; Returns: Json }
+      check_and_award_quiz_badges: {
+        Args: { p_attempt_id: string; p_user_id: string }
+        Returns: undefined
+      }
       complete_quiz: {
         Args: { attempt_id: string; user_id: string }
         Returns: Json

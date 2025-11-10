@@ -3,9 +3,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useStartQuizAttempt, useActiveQuizzes, useUserAttempts } from '@/hooks/quizzes/useQuizSystem';
 import { QuizSystemList } from './QuizSystemList';
 import { QuizSystemAttempt } from './QuizSystemAttempt';
+import { QuizHistory } from './QuizHistory';
+import { QuizBadges } from './QuizBadges';
+import { QuizRanking } from './QuizRanking';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+
+type View = 'list' | 'attempt' | 'history' | 'badges' | 'ranking';
 
 export function QuizSystemMain() {
   const { profile, user, loading: authLoading } = useAuth();
@@ -15,6 +20,7 @@ export function QuizSystemMain() {
   
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [currentAttemptId, setCurrentAttemptId] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<View>('list');
 
   console.log('🎯 QuizSystemMain - Estado:', {
     profile: !!profile,
@@ -22,6 +28,7 @@ export function QuizSystemMain() {
     authLoading,
     selectedQuizId,
     currentAttemptId,
+    currentView,
     startQuizPending: startQuizMutation.isPending
   });
 
@@ -76,7 +83,21 @@ export function QuizSystemMain() {
     console.log('🎯 Voltando à lista de quizzes');
     setSelectedQuizId(null);
     setCurrentAttemptId(null);
+    setCurrentView('list');
   };
+
+  // Renderizar views alternativas
+  if (currentView === 'history') {
+    return <QuizHistory onBack={() => setCurrentView('list')} />;
+  }
+
+  if (currentView === 'badges') {
+    return <QuizBadges onBack={() => setCurrentView('list')} />;
+  }
+
+  if (currentView === 'ranking') {
+    return <QuizRanking onBack={() => setCurrentView('list')} />;
+  }
 
   // Se um quiz foi selecionado e temos o ID da tentativa, mostrar o quiz
   if (selectedQuiz && currentAttemptId) {
@@ -103,5 +124,5 @@ export function QuizSystemMain() {
   }
 
   // Caso contrário, mostrar a lista de quizzes
-  return <QuizSystemList onStartQuiz={handleStartQuiz} />;
+  return <QuizSystemList onStartQuiz={handleStartQuiz} onViewChange={setCurrentView} />;
 }

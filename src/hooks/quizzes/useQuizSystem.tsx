@@ -34,6 +34,7 @@ export interface QuizAttempt {
   quiz_id: string;
   user_id: string;
   score: number;
+  correct_answers: number;
   total_questions: number;
   coins_earned: number;
   started_at: string;
@@ -349,11 +350,19 @@ export function useCompleteQuiz() {
 
       if (error) throw error;
 
+      // Verificar e conceder badges
+      await supabase.rpc('check_and_award_quiz_badges', {
+        p_user_id: profile.id,
+        p_attempt_id: attemptId
+      });
+
       console.log('✅ Quiz completado:', data);
       return data as unknown as QuizResult;
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['user-quiz-attempts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-attempts'] });
+      queryClient.invalidateQueries({ queryKey: ['quiz-badges'] });
       
       if (result.passed) {
         toast.success(`Parabéns! Você ganhou ${result.coins_earned} moedas!`);

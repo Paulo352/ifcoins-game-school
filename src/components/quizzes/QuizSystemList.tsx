@@ -3,13 +3,14 @@ import { useActiveQuizzes, type Quiz } from '@/hooks/quizzes/useQuizSystem';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { HelpCircle, Clock, Coins, User } from 'lucide-react';
+import { HelpCircle, Clock, Coins, User, History, Award, BarChart3 } from 'lucide-react';
 
 interface QuizSystemListProps {
   onStartQuiz: (quizId: string) => void;
+  onViewChange: (view: 'history' | 'badges' | 'ranking') => void;
 }
 
-export function QuizSystemList({ onStartQuiz }: QuizSystemListProps) {
+export function QuizSystemList({ onStartQuiz, onViewChange }: QuizSystemListProps) {
   const { data: quizzes, isLoading, error } = useActiveQuizzes();
 
   if (isLoading) {
@@ -43,10 +44,37 @@ export function QuizSystemList({ onStartQuiz }: QuizSystemListProps) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold mb-4">Quizzes Disponíveis</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Quizzes Disponíveis</h2>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewChange('history')}
+          >
+            <History className="w-4 h-4 mr-2" />
+            Histórico
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewChange('badges')}
+          >
+            <Award className="w-4 h-4 mr-2" />
+            Conquistas
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewChange('ranking')}
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Ranking
+          </Button>
+        </div>
+      </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {quizzes.map((quiz: Quiz) => (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{quizzes.map((quiz: Quiz) => (
           <Card key={quiz.id} className="flex flex-col">
             <CardHeader>
               <div className="flex items-start justify-between">
