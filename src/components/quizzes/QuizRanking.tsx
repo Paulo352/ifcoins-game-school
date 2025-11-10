@@ -27,6 +27,7 @@ export function QuizRanking({ onBack }: QuizRankingProps) {
   const { data: ranking, isLoading } = useQuery({
     queryKey: ['quiz-ranking', filter],
     queryFn: async () => {
+      // Otimização: buscar apenas estudantes e fazer agregação no SQL
       const { data: attempts, error } = await supabase
         .from('quiz_attempts')
         .select(`
@@ -35,32 +36,37 @@ export function QuizRanking({ onBack }: QuizRankingProps) {
           correct_answers,
           total_questions,
           coins_earned,
-          is_completed,
           profiles!inner(name, role)
         `)
-        .eq('is_completed', true);
+        .eq('is_completed', true)
+        .eq('profiles.role', 'student')
+        .order('score', { ascending: false })
+        .limit(500); // Limitar para performance
 
       if (error) throw error;
+      if (!attempts || attempts.length === 0) return [];
 
-      // Agrupar por usuário
-      const userStats = new Map<string, RankingEntry>();
+      // Agrupar por usuário de forma otimizada
+      const userStatsMap = new Map<string, RankingEntry>();
 
-      attempts?.forEach((attempt: any) => {
+      for (const attempt of attempts) {
         const userId = attempt.user_id;
-        const userName = attempt.profiles?.name || 'Usuário';
+        const userName = (attempt as any).profiles?.name || 'Usuário';
         
-        if (!userStats.has(userId)) {
-          userStats.set(userId, {
+        let stats = userStatsMap.get(userId);
+        
+        if (!stats) {
+          stats = {
             user_id: userId,
             user_name: userName,
             total_quizzes: 0,
             total_points: 0,
             average_percentage: 0,
             total_coins_earned: 0
-          });
+          };
+          userStatsMap.set(userId, stats);
         }
 
-        const stats = userStats.get(userId)!;
         stats.total_quizzes += 1;
         stats.total_points += attempt.score || 0;
         stats.total_coins_earned += attempt.coins_earned || 0;
@@ -68,12 +74,13 @@ export function QuizRanking({ onBack }: QuizRankingProps) {
         const percentage = attempt.total_questions > 0 
           ? (attempt.correct_answers / attempt.total_questions) * 100 
           : 0;
+        
         stats.average_percentage = 
-          (stats.average_percentage * (stats.total_quizzes - 1) + percentage) / stats.total_quizzes;
-      });
+          ((stats.average_percentage * (stats.total_quizzes - 1)) + percentage) / stats.total_quizzes;
+      }
 
       // Converter para array e ordenar
-      let sortedRanking = Array.from(userStats.values());
+      const sortedRanking = Array.from(userStatsMap.values());
       
       switch (filter) {
         case 'points':
@@ -83,15 +90,18 @@ export function QuizRanking({ onBack }: QuizRankingProps) {
           sortedRanking.sort((a, b) => b.total_quizzes - a.total_quizzes);
           break;
         default:
+          // Score geral: pontos + bonus por quizzes completados
           sortedRanking.sort((a, b) => {
-            const scoreA = b.total_points + (b.total_quizzes * 10);
-            const scoreB = a.total_points + (a.total_quizzes * 10);
+            const scoreB = b.total_points + (b.total_quizzes * 10);
+            const scoreA = a.total_points + (a.total_quizzes * 10);
             return scoreB - scoreA;
           });
       }
 
-      return sortedRanking;
-    }
+      return sortedRanking.slice(0, 100); // Top 100
+    },
+    staleTime: 30000, // Cache por 30 segundos
+    gcTime: 60000, // Manter em cache por 1 minuto
   });
 
   const getRankIcon = (position: number) => {

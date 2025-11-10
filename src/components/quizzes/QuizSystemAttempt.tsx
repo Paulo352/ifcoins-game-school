@@ -79,6 +79,8 @@ export function QuizSystemAttempt({
     const userAnswer = answers[currentQuestion.id];
     
     try {
+      console.log('📝 Salvando resposta da pergunta:', currentQuestionIndex + 1);
+      
       const result = await answerMutation.mutateAsync({
         attemptId,
         questionId: currentQuestion.id,
@@ -95,25 +97,51 @@ export function QuizSystemAttempt({
       if (currentQuestionIndex < (questions?.length || 0) - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
       } else {
-        handleCompleteQuiz();
+        // Última pergunta - finalizar quiz
+        console.log('✅ Última pergunta respondida, finalizando quiz...');
+        await handleCompleteQuiz();
       }
     } catch (error) {
-      console.error('Erro ao responder pergunta:', error);
+      console.error('❌ Erro ao responder pergunta:', error);
+      // Mesmo com erro, permitir finalização se for a última pergunta
+      if (currentQuestionIndex === (questions?.length || 0) - 1) {
+        console.log('⚠️ Erro ao salvar resposta, mas finalizando quiz mesmo assim...');
+        await handleCompleteQuiz();
+      }
     }
   };
 
   const handleCompleteQuiz = async () => {
+    if (completeMutation.isPending) {
+      console.log('⏳ Já está completando o quiz, aguarde...');
+      return;
+    }
+
     try {
+      console.log('🏁 Finalizando quiz, attemptId:', attemptId);
       const result = await completeMutation.mutateAsync({ attemptId });
+      
+      console.log('✅ Quiz completado com sucesso:', result);
+      
       setFinalResults({
         correctAnswers: result.correct_answers || 0,
-        totalQuestions: result.total_questions,
-        coinsEarned: result.coins_earned,
-        passed: result.passed
+        totalQuestions: result.total_questions || questions?.length || 0,
+        coinsEarned: result.coins_earned || 0,
+        passed: result.passed || false
       });
       setQuizCompleted(true);
-    } catch (error) {
-      console.error('Erro ao completar quiz:', error);
+    } catch (error: any) {
+      console.error('❌ Erro ao completar quiz:', error);
+      
+      // Mesmo com erro, mostrar resultados parciais
+      const correctCount = Object.values(questionResults).filter(Boolean).length;
+      setFinalResults({
+        correctAnswers: correctCount,
+        totalQuestions: questions?.length || 0,
+        coinsEarned: 0,
+        passed: false
+      });
+      setQuizCompleted(true);
     }
   };
 
