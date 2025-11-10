@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuizQuestions, useAnswerQuestion, useCompleteQuiz, type Quiz, type QuizQuestion } from '@/hooks/quizzes/useQuizSystem';
+import { useQuizQuestions, useAnswerQuestion, useCompleteQuiz, type Quiz, type QuizQuestion } from '@/hooks/quizzes/useQuizzes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -119,15 +119,17 @@ export function QuizSystemAttempt({
 
     try {
       console.log('🏁 Finalizando quiz, attemptId:', attemptId);
-      const result = await completeMutation.mutateAsync({ attemptId });
+      const result = await completeMutation.mutateAsync({ attemptId, userId });
       
       console.log('✅ Quiz completado com sucesso:', result);
       
+      const resultData = result as any;
+      
       setFinalResults({
-        correctAnswers: result.correct_answers || 0,
-        totalQuestions: result.total_questions || questions?.length || 0,
-        coinsEarned: result.coins_earned || 0,
-        passed: result.passed || false
+        correctAnswers: resultData.correct_answers || 0,
+        totalQuestions: resultData.total_questions || questions?.length || 0,
+        coinsEarned: resultData.coins_earned || 0,
+        passed: resultData.passed || false
       });
       setQuizCompleted(true);
     } catch (error: any) {

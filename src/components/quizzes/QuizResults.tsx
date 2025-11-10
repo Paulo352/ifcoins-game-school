@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, ArrowLeft, Trophy } from 'lucide-react';
-import { QuizQuestion } from '@/hooks/quizzes/useQuizSystem';
+import { QuizQuestion } from '@/hooks/quizzes/useQuizzes';
 
 interface QuizResultsProps {
   correctAnswers: number;

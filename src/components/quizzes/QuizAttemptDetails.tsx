@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAttemptAnswers } from '@/hooks/quizzes/useQuizSystem';
+import { useAttemptAnswers } from '@/hooks/quizzes/useQuizzes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

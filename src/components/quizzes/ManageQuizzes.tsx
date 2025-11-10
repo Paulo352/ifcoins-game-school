@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuizzes, useDeleteQuiz, useUpdateQuizStatus } from '@/hooks/quizzes/useQuizSystem';
+import { useActiveQuizzes, useDeleteQuiz, useUpdateQuizStatus } from '@/hooks/quizzes/useQuizzes';
 import { QuizForm } from './QuizForm';
 import { QuizCard } from './QuizCard';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ export function ManageQuizzes() {
   const [showForm, setShowForm] = useState(false);
   const [quizToDelete, setQuizToDelete] = useState<string | null>(null);
   
-  const { data: quizzes, isLoading } = useAllQuizzes();
+  const { data: quizzes, isLoading } = useActiveQuizzes();
   const deleteQuiz = useDeleteQuiz();
   const updateQuizStatus = useUpdateQuizStatus();
 

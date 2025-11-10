@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { useNewCards, useCreateCard, useUpdateCard, useDeleteCard, CreateCardData, NewCardData } from '@/hooks/useNewCards';
 import { NewCard } from './NewCard';
 import { NewImageUpload } from './NewImageUpload';
-import { SpecialCardCreation } from './SpecialCardCreation';
+import { ExclusiveCardSystem } from './ExclusiveCardSystem';
 import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
 
@@ -497,7 +497,7 @@ export function NewManageCards() {
       </TabsContent>
 
       <TabsContent value="special">
-        <SpecialCardCreation />
+        <ExclusiveCardSystem />
       </TabsContent>
     </Tabs>
   );

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Clock, Trophy, Coins } from 'lucide-react';
-import { useUserAttempts } from '@/hooks/quizzes/useQuizSystem';
+import { useUserAttempts } from '@/hooks/quizzes/useQuizzes';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

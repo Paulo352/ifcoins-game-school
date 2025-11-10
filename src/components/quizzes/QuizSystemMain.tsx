@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useStartQuizAttempt, useActiveQuizzes, useUserAttempts } from '@/hooks/quizzes/useQuizSystem';
+import { useStartQuizAttempt, useActiveQuizzes, useUserAttempts } from '@/hooks/quizzes/useQuizzes';
 import { supabase } from '@/integrations/supabase/client';
 import { QuizSystemList } from './QuizSystemList';
 import { QuizSystemAttempt } from './QuizSystemAttempt';

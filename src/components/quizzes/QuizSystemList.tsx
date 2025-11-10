@@ -1,5 +1,5 @@
 import React from 'react';
-import { useActiveQuizzes, useUserAttempts, type Quiz } from '@/hooks/quizzes/useQuizSystem';
+import { useActiveQuizzes, useUserAttempts, type Quiz } from '@/hooks/quizzes/useQuizzes';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -101,7 +101,7 @@ export function QuizSystemList({ onStartQuiz, onViewChange }: QuizSystemListProp
               <div className="space-y-2 mb-4">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <User className="w-4 h-4 mr-2" />
-                  Criado por: {quiz.creator_role === 'admin' ? 'Sistema' : quiz.creator_name}
+                  Criado por: Sistema
                 </div>
                 
                 {quiz.time_limit_minutes && (

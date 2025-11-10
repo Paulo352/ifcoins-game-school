@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Edit, Save, X, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { QuizAttemptsList } from './QuizAttemptsList';
-import { Quiz } from '@/hooks/quizzes/useQuizSystem';
+import { Quiz } from '@/hooks/quizzes/useQuizzes';
 
 interface QuizForm {
   title: string;
@@ -659,7 +659,7 @@ export function SimpleManageQuizzes() {
             
             <CardContent className="space-y-4">
               <div className="text-sm space-y-1">
-                <p><strong>Criado por:</strong> {quiz.creator_role === 'admin' ? 'Sistema' : quiz.creator_name}</p>
+                <p><strong>Criado por:</strong> Sistema</p>
                 <p><strong>Recompensa:</strong> {quiz.reward_coins} moedas</p>
                 {quiz.max_attempts && (
                   <p><strong>Tentativas:</strong> {quiz.max_attempts}</p>
