@@ -44,7 +44,7 @@ export function SpecialCardCreation() {
         throw new Error('Selecione pelo menos um aluno');
       }
 
-      // Create the card
+      // Criar a carta EXCLUSIVA (is_special=true, available=false)
       const { data: card, error: cardError } = await supabase
         .from('cards')
         .insert({
@@ -53,15 +53,16 @@ export function SpecialCardCreation() {
           rarity: formData.rarity,
           price: formData.price,
           image_url: formData.image_url,
-          available: true,
-          copies_available: null, // Unlimited for special cards
+          available: false, // ❌ NÃO disponível na loja
+          is_special: true, // ✅ Marcada como especial
+          copies_available: null, // Ilimitada para os alunos selecionados
         })
         .select()
         .single();
 
       if (cardError) throw cardError;
 
-      // Assign card to selected students
+      // Distribuir carta para alunos selecionados
       const userCards = selectedStudents.map(studentId => ({
         user_id: studentId,
         card_id: card.id,
@@ -71,8 +72,7 @@ export function SpecialCardCreation() {
       const { error: assignError } = await supabase
         .from('user_cards')
         .upsert(userCards, {
-          onConflict: 'user_id,card_id',
-          ignoreDuplicates: false
+          onConflict: 'user_id,card_id'
         });
 
       if (assignError) throw assignError;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAllQuizzes, useDeleteQuiz, useUpdateQuizStatus } from '@/hooks/quizzes/useQuizzes';
+import { useQuizzes, useDeleteQuiz, useUpdateQuizStatus } from '@/hooks/quizzes/useQuizSystem';
 import { QuizForm } from './QuizForm';
 import { QuizCard } from './QuizCard';
 import { Button } from '@/components/ui/button';

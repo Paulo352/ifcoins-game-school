@@ -40,7 +40,7 @@ export function useCards() {
   });
 }
 
-// Hook para buscar cartas disponíveis na loja
+// Hook para buscar cartas disponíveis na loja (EXCLUINDO cartas especiais)
 export function useAvailableCards() {
   return useQuery({
     queryKey: ['available-cards'],
@@ -49,6 +49,7 @@ export function useAvailableCards() {
         .from('cards')
         .select('*')
         .eq('available', true)
+        .eq('is_special', false) // ❌ Excluir cartas especiais da loja
         .order('rarity', { ascending: false });
       
       if (error) throw error;
