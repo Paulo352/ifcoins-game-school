@@ -913,6 +913,7 @@ export type Database = {
         Row: {
           coins_earned: number
           completed_at: string | null
+          correct_answers: number
           id: string
           is_completed: boolean
           quiz_id: string
@@ -925,6 +926,7 @@ export type Database = {
         Insert: {
           coins_earned?: number
           completed_at?: string | null
+          correct_answers?: number
           id?: string
           is_completed?: boolean
           quiz_id: string
@@ -937,6 +939,7 @@ export type Database = {
         Update: {
           coins_earned?: number
           completed_at?: string | null
+          correct_answers?: number
           id?: string
           is_completed?: boolean
           quiz_id?: string

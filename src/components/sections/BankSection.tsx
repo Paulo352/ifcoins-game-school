@@ -1,51 +1,22 @@
-import { useAuth } from '@/contexts/AuthContext';
-import { BankDashboard } from '@/components/bank/BankDashboard';
-import { LoanManagement } from '@/components/bank/LoanManagement';
-import { LoanRequest } from '@/components/bank/LoanRequest';
-import { LoanManagementPanel } from '@/components/admin/LoanManagementPanel';
-import { ImprovedBankDashboard } from '@/components/bank/ImprovedBankDashboard';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Construction } from 'lucide-react';
 
 export function BankSection() {
-  const { profile } = useAuth();
-
-  if (!profile) return null;
-
-  if (profile.role === 'admin') {
-    return (
-      <div className="space-y-6">
-        <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="dashboard">Dashboard do Banco</TabsTrigger>
-            <TabsTrigger value="loans">Empréstimos</TabsTrigger>
-            <TabsTrigger value="approval">Aprovar Solicitações</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="dashboard" className="space-y-6 mt-6">
-            <ImprovedBankDashboard />
-          </TabsContent>
-          
-          <TabsContent value="loans" className="space-y-6 mt-6">
-            <LoanManagementPanel />
-          </TabsContent>
-          
-          <TabsContent value="approval" className="space-y-6 mt-6">
-            <BankDashboard />
-            <LoanManagement />
-          </TabsContent>
-        </Tabs>
-      </div>
-    );
-  }
-
-  // Alunos veem solicitação de empréstimos
-  if (profile.role === 'student') {
-    return <LoanRequest />;
-  }
-
   return (
-    <div className="text-center py-12 text-muted-foreground">
-      <p>Você não tem acesso a esta seção.</p>
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <Construction className="h-16 w-16 text-muted-foreground" />
+          </div>
+          <CardTitle className="text-2xl">Em Desenvolvimento</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-muted-foreground">
+            O IFBank está temporariamente indisponível. Estamos trabalhando para trazer novidades em breve!
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

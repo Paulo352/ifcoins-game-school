@@ -36,7 +36,7 @@ export function QuizSystemAttempt({
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [finalResults, setFinalResults] = useState<{
-    score: number;
+    correctAnswers: number;
     totalQuestions: number;
     coinsEarned: number;
     passed: boolean;
@@ -112,7 +112,7 @@ export function QuizSystemAttempt({
     try {
       const result = await completeMutation.mutateAsync({ attemptId });
       setFinalResults({
-        score: result.score,
+        correctAnswers: result.correct_answers || 0,
         totalQuestions: result.total_questions,
         coinsEarned: result.coins_earned,
         passed: result.passed
@@ -251,7 +251,7 @@ export function QuizSystemAttempt({
   if (quizCompleted && finalResults) {
     return (
       <QuizResults
-        score={finalResults.score}
+        correctAnswers={finalResults.correctAnswers}
         totalQuestions={finalResults.totalQuestions}
         coinsEarned={finalResults.coinsEarned}
         passed={finalResults.passed}

@@ -323,7 +323,9 @@ interface QuizResult {
   success: boolean;
   coins_earned: number;
   score: number;
+  correct_answers: number;
   total_questions: number;
+  percentage: number;
   passed: boolean;
 }
 

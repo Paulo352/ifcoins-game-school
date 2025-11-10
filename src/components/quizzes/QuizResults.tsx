@@ -6,7 +6,7 @@ import { CheckCircle, XCircle, ArrowLeft, Trophy } from 'lucide-react';
 import { QuizQuestion } from '@/hooks/quizzes/useQuizSystem';
 
 interface QuizResultsProps {
-  score: number;
+  correctAnswers: number;
   totalQuestions: number;
   coinsEarned: number;
   passed: boolean;
@@ -16,7 +16,7 @@ interface QuizResultsProps {
 }
 
 export function QuizResults({ 
-  score, 
+  correctAnswers, 
   totalQuestions, 
   coinsEarned, 
   passed, 
@@ -24,7 +24,7 @@ export function QuizResults({
   userAnswers,
   onBack 
 }: QuizResultsProps) {
-  const percentage = Math.round((score / totalQuestions) * 100);
+  const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
 
   return (
     <div className="space-y-6">
@@ -43,7 +43,7 @@ export function QuizResults({
           </CardTitle>
           <div className="flex justify-center gap-4 mt-4">
             <Badge variant={passed ? 'default' : 'destructive'} className="text-lg px-4 py-2">
-              {score}/{totalQuestions} ({percentage}%)
+              {correctAnswers}/{totalQuestions} ({percentage}%)
             </Badge>
             {coinsEarned > 0 && (
               <Badge variant="outline" className="text-lg px-4 py-2">
