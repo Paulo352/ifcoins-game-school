@@ -2,8 +2,9 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { QuizSystemMain } from './QuizSystemMain';
 import { SimpleManageQuizzes } from './SimpleManageQuizzes';
+import { QuizPerformanceReport } from '../reports/QuizPerformanceReport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { HelpCircle, Settings } from 'lucide-react';
+import { HelpCircle, Settings, BarChart3 } from 'lucide-react';
 
 export function QuizzesDashboard() {
   const { profile, user, loading: authLoading } = useAuth();
@@ -43,10 +44,14 @@ export function QuizzesDashboard() {
 
       {isAdminOrTeacher ? (
         <Tabs defaultValue="manage" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="manage" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
               Gerenciar Quizzes
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Relatórios
             </TabsTrigger>
             <TabsTrigger value="student-view" className="flex items-center gap-2">
               <HelpCircle className="w-4 h-4" />
@@ -56,6 +61,10 @@ export function QuizzesDashboard() {
 
           <TabsContent value="manage">
             <SimpleManageQuizzes />
+          </TabsContent>
+
+          <TabsContent value="reports">
+            <QuizPerformanceReport />
           </TabsContent>
 
           <TabsContent value="student-view">

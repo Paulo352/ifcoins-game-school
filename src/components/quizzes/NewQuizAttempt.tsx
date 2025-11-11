@@ -64,12 +64,24 @@ export function NewQuizAttempt({
     }
 
     try {
+      console.log('📝 Enviando resposta:', {
+        questionIndex: currentQuestionIndex + 1,
+        questionId: currentQuestion.id,
+        userAnswer: currentAnswer,
+        isLastQuestion
+      });
+
       // Validar resposta via RPC server-side
       const result = await validateMutation.mutateAsync({
         attemptId,
         questionId: currentQuestion.id,
         userAnswer: currentAnswer,
         userId
+      });
+
+      console.log('✅ Resposta validada:', {
+        isCorrect: result.is_correct,
+        pointsEarned: result.points_earned
       });
 
       // Salvar resultado
@@ -83,9 +95,13 @@ export function NewQuizAttempt({
         [currentQuestion.id]: currentAnswer
       }));
 
-      // Se for a última pergunta, finalizar
+      // Se for a última pergunta, finalizar após pequeno delay
       if (isLastQuestion) {
-        await handleCompleteQuiz();
+        console.log('🏁 Última pergunta respondida, finalizando quiz...');
+        // Dar um pequeno delay para garantir que a resposta foi salva
+        setTimeout(async () => {
+          await handleCompleteQuiz();
+        }, 500);
       } else {
         // Próxima pergunta
         setCurrentQuestionIndex(prev => prev + 1);
@@ -97,23 +113,35 @@ export function NewQuizAttempt({
   };
 
   const handleCompleteQuiz = async () => {
-    if (completeMutation.isPending) return;
+    if (completeMutation.isPending) {
+      console.log('⏳ Quiz já está sendo finalizado, aguarde...');
+      return;
+    }
 
     try {
+      console.log('🏁 Iniciando finalização do quiz', { attemptId, userId });
+      
       const result = await completeMutation.mutateAsync({ attemptId, userId });
       
-      setFinalResults({
-        correctAnswers: result.correct_answers || 0,
-        totalQuestions: result.total_questions || questions?.length || 0,
-        coinsEarned: result.coins_earned || 0,
-        passed: result.passed || false
-      });
+      console.log('✅ Quiz finalizado com sucesso:', result);
       
+      // Garantir que usamos os dados corretos do servidor
+      const finalData = {
+        correctAnswers: Number(result.correct_answers) || 0,
+        totalQuestions: Number(result.total_questions) || questions?.length || 0,
+        coinsEarned: Number(result.coins_earned) || 0,
+        passed: Boolean(result.passed)
+      };
+      
+      console.log('📊 Dados finais processados:', finalData);
+      
+      setFinalResults(finalData);
       setQuizCompleted(true);
     } catch (error: any) {
       console.error('❌ Erro ao finalizar quiz:', error);
+      toast.error('Erro ao finalizar quiz: ' + (error.message || 'Erro desconhecido'));
       
-      // Mostrar resultados parciais mesmo com erro
+      // Mostrar resultados parciais baseados no que foi salvo
       const correctCount = Object.values(questionResults).filter(Boolean).length;
       setFinalResults({
         correctAnswers: correctCount,
