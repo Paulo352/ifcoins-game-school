@@ -77,14 +77,14 @@ export function useActiveQuizzes() {
   });
 }
 
-// Hook para buscar perguntas de um quiz
+// Hook para buscar perguntas de um quiz (sem respostas corretas para estudantes)
 export function useQuizQuestions(quizId: string) {
   return useQuery({
     queryKey: ['quiz-questions', quizId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('quiz_questions')
-        .select('*')
+        .select('id, quiz_id, question_text, question_type, options, points, question_order')
         .eq('quiz_id', quizId)
         .order('question_order');
       
