@@ -59,13 +59,18 @@ export function useCreateExclusiveCard() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (card: Omit<ExclusiveCard, 'id' | 'created_at' | 'is_special'> & { assigned_to: string }) => {
+    mutationFn: async (card: Omit<ExclusiveCard, 'id' | 'created_at' | 'is_special'> & { assigned_to: string; reason?: string }) => {
       const { data, error } = await supabase
         .from('cards')
         .insert([{
-          ...card,
+          name: card.name,
+          rarity: card.rarity,
+          image_url: card.image_url,
+          description: card.description,
+          price: card.price,
           is_special: true,
-          available: false // Cartas exclusivas não ficam disponíveis na loja
+          available: false,
+          assigned_to: card.assigned_to
         }])
         .select()
         .single();
@@ -90,7 +95,7 @@ export function useCreateExclusiveCard() {
         .insert([{
           user_id: card.assigned_to,
           card_id: data.id,
-          reason: 'Carta exclusiva criada pelo administrador',
+          reason: card.reason || 'Carta exclusiva criada pelo administrador',
           granted_by: userData.user?.id
         }]);
 

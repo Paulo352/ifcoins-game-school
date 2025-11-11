@@ -8,6 +8,8 @@ import { useQuizQuestions, useStartQuizAttempt, useValidateAnswer } from '@/hook
 import { useAuth } from '@/contexts/AuthContext';
 import { Trophy, Clock, Target } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { RoomChat } from './RoomChat';
+import { PowerUpShop } from './PowerUpShop';
 
 interface MultiplayerQuizGameProps {
   roomId: string;
@@ -152,79 +154,94 @@ export function MultiplayerQuizGame({ roomId, onFinish }: MultiplayerQuizGamePro
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header com placar e progresso */}
-      <Card>
-        <CardContent className="py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold">{score}</p>
-                <p className="text-xs text-muted-foreground">Pontos</p>
+    <div className="grid gap-6 lg:grid-cols-3">
+      <div className="lg:col-span-2 space-y-6">
+        {/* Header com placar e progresso */}
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{score}</p>
+                  <p className="text-xs text-muted-foreground">Pontos</p>
+                </div>
+                <div className="h-8 w-px bg-border" />
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{currentQuestionIndex + 1}/{totalQuestions}</p>
+                  <p className="text-xs text-muted-foreground">Questões</p>
+                </div>
               </div>
-              <div className="h-8 w-px bg-border" />
-              <div className="text-center">
-                <p className="text-2xl font-bold">{currentQuestionIndex + 1}/{totalQuestions}</p>
-                <p className="text-xs text-muted-foreground">Questões</p>
+              <div className="flex gap-2">
+                {players
+                  .filter(p => p.position !== null)
+                  .sort((a, b) => (a.position || 0) - (b.position || 0))
+                  .slice(0, 3)
+                  .map((player, index) => (
+                    <div key={player.id} className="flex items-center gap-1">
+                      <Avatar className="w-6 h-6">
+                        <AvatarFallback className="text-xs">
+                          {player.profiles?.name?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs font-medium">#{index + 1}</span>
+                    </div>
+                  ))}
               </div>
             </div>
-            <div className="flex gap-2">
-              {players
-                .filter(p => p.position !== null)
-                .sort((a, b) => (a.position || 0) - (b.position || 0))
-                .slice(0, 3)
-                .map((player, index) => (
-                  <div key={player.id} className="flex items-center gap-1">
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback className="text-xs">
-                        {player.profiles?.name?.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs font-medium">#{index + 1}</span>
-                  </div>
-                ))}
-            </div>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </CardContent>
-      </Card>
+            <Progress value={progress} className="h-2" />
+          </CardContent>
+        </Card>
 
-      {/* Pergunta */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <Badge variant="outline">Questão {currentQuestionIndex + 1}</Badge>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Target className="w-4 h-4" />
-              <span>{currentQuestion.points} pontos</span>
+        {/* Pergunta */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <Badge variant="outline">Questão {currentQuestionIndex + 1}</Badge>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Target className="w-4 h-4" />
+                <span>{currentQuestion.points} pontos</span>
+              </div>
             </div>
-          </div>
-          <CardTitle className="text-xl mt-4">{currentQuestion.question_text}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {currentQuestion.options &&
-            (currentQuestion.options as string[]).map((option, index) => (
-              <Button
-                key={index}
-                variant={selectedAnswer === option ? 'default' : 'outline'}
-                className="w-full justify-start h-auto py-4 text-left"
-                onClick={() => setSelectedAnswer(option)}
-              >
-                <span className="font-bold mr-3">{String.fromCharCode(65 + index)}.</span>
-                <span>{option}</span>
-              </Button>
-            ))}
+            <CardTitle className="text-xl mt-4">{currentQuestion.question_text}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {currentQuestion.options &&
+              (currentQuestion.options as string[]).map((option, index) => (
+                <Button
+                  key={index}
+                  variant={selectedAnswer === option ? 'default' : 'outline'}
+                  className="w-full justify-start h-auto py-4 text-left"
+                  onClick={() => setSelectedAnswer(option)}
+                >
+                  <span className="font-bold mr-3">{String.fromCharCode(65 + index)}.</span>
+                  <span>{option}</span>
+                </Button>
+              ))}
 
-          <Button
-            onClick={handleAnswerSubmit}
-            disabled={!selectedAnswer || validateAnswerMutation.isPending}
-            className="w-full mt-4"
-            size="lg"
-          >
-            {validateAnswerMutation.isPending ? 'Validando...' : 'Responder'}
-          </Button>
-        </CardContent>
-      </Card>
+            <Button
+              onClick={handleAnswerSubmit}
+              disabled={!selectedAnswer || validateAnswerMutation.isPending}
+              className="w-full mt-4"
+              size="lg"
+            >
+              {validateAnswerMutation.isPending ? 'Validando...' : 'Responder'}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Sidebar com chat e power-ups */}
+      <div className="space-y-6">
+        <RoomChat roomId={roomId} />
+        <PowerUpShop 
+          roomId={roomId} 
+          currentQuestionId={currentQuestion?.id}
+          onPowerUpUsed={(type) => {
+            console.log('Power-up usado:', type);
+            // Implementar efeitos dos power-ups aqui
+          }}
+        />
+      </div>
     </div>
   );
 }

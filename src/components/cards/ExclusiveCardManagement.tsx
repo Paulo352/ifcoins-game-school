@@ -196,6 +196,15 @@ export function ExclusiveCardManagement() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="reason">Motivo/Razão</Label>
+                <Textarea
+                  id="reason"
+                  value={(formData as any).reason || ''}
+                  onChange={(e) => setFormData({ ...formData, reason: e.target.value } as any)}
+                  placeholder="Ex: Destaque em projeto final, melhor nota do bimestre, etc."
+                />
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>

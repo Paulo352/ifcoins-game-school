@@ -32,6 +32,9 @@ import { Trades } from '@/components/sections/Trades';
 import { AdminTrades } from '@/components/admin/AdminTrades';
 import { BankSection } from '@/components/sections/BankSection';
 import { MarketSection } from '@/components/sections/MarketSection';
+import { ClassManagement } from '@/components/admin/ClassManagement';
+import { ExclusiveCardHistory } from '@/components/cards/ExclusiveCardHistory';
+import { CardAchievements } from '@/components/cards/CardAchievements';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -143,6 +146,12 @@ const Index = () => {
         return <BankSection />;
       case 'market':
         return <MarketSection />;
+      case 'manage-classes':
+        return <ClassManagement />;
+      case 'card-history':
+        return <ExclusiveCardHistory />;
+      case 'achievements':
+        return <CardAchievements />;
       default:
         if (profile.role === 'student') return <StudentDashboard onSectionChange={setActiveSection} />;
         if (profile.role === 'teacher') return <TeacherDashboard />;
