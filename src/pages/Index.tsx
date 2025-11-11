@@ -37,6 +37,7 @@ import { ExclusiveCardHistory } from '@/components/cards/ExclusiveCardHistory';
 import { CardAchievements } from '@/components/cards/CardAchievements';
 import { BadgeRanking } from '@/components/quizzes/BadgeRanking';
 import { MatchHistory } from '@/components/quizzes/MatchHistory';
+import { useAchievementNotifications } from '@/hooks/useAchievementNotifications';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -48,6 +49,7 @@ const Index = () => {
   
   // Enable real-time notifications
   useRealtimeNotifications();
+  useAchievementNotifications();
 
   console.log('Index - User:', user?.email, 'Profile:', profile?.role, 'Loading:', loading);
 

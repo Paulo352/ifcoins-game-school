@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_config: {
         Row: {
           config_key: string
@@ -207,8 +240,71 @@ export type Database = {
           },
         ]
       }
+      class_students: {
+        Row: {
+          added_at: string | null
+          added_by: string
+          class_id: string
+          id: string
+          student_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          added_by: string
+          class_id: string
+          id?: string
+          student_id: string
+        }
+        Update: {
+          added_at?: string | null
+          added_by?: string
+          class_id?: string
+          id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          teacher_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          teacher_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          teacher_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       custom_badges: {
         Row: {
+          badge_level: string | null
           color: string
           created_at: string | null
           created_by: string
@@ -219,6 +315,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          badge_level?: string | null
           color?: string
           created_at?: string | null
           created_by: string
@@ -229,6 +326,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          badge_level?: string | null
           color?: string
           created_at?: string | null
           created_by?: string
@@ -1317,29 +1415,35 @@ export type Database = {
       }
       quiz_badges: {
         Row: {
+          badge_level: string | null
           created_at: string | null
           description: string
           icon: string
           id: string
           name: string
+          next_level_requirement: number | null
           requirement_type: string
           requirement_value: number
         }
         Insert: {
+          badge_level?: string | null
           created_at?: string | null
           description: string
           icon: string
           id?: string
           name: string
+          next_level_requirement?: number | null
           requirement_type: string
           requirement_value: number
         }
         Update: {
+          badge_level?: string | null
           created_at?: string | null
           description?: string
           icon?: string
           id?: string
           name?: string
+          next_level_requirement?: number | null
           requirement_type?: string
           requirement_value?: number
         }
@@ -1845,6 +1949,44 @@ export type Database = {
           },
         ]
       }
+      user_badge_progress: {
+        Row: {
+          badge_id: string
+          created_at: string | null
+          current_level: string | null
+          current_progress: number | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          created_at?: string | null
+          current_level?: string | null
+          current_progress?: number | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          created_at?: string | null
+          current_level?: string | null
+          current_progress?: number | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badge_progress_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_card_achievements: {
         Row: {
           achievement_id: string
@@ -2235,6 +2377,16 @@ export type Database = {
       complete_quiz: {
         Args: { attempt_id: string; user_id: string }
         Returns: Json
+      }
+      create_achievement_notification: {
+        Args: {
+          p_message: string
+          p_metadata?: Json
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
       }
       create_event: {
         Args: {
