@@ -274,6 +274,7 @@ export type Database = {
       }
       classes: {
         Row: {
+          additional_teachers: string[] | null
           created_at: string | null
           created_by: string
           description: string | null
@@ -283,6 +284,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          additional_teachers?: string[] | null
           created_at?: string | null
           created_by: string
           description?: string | null
@@ -292,6 +294,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          additional_teachers?: string[] | null
           created_at?: string | null
           created_by?: string
           description?: string | null
@@ -1688,6 +1691,39 @@ export type Database = {
           },
         ]
       }
+      rank_thresholds: {
+        Row: {
+          color: string
+          created_at: string | null
+          icon: string
+          id: string
+          min_badges: number
+          min_points: number
+          min_quizzes: number
+          rank_name: string
+        }
+        Insert: {
+          color: string
+          created_at?: string | null
+          icon: string
+          id?: string
+          min_badges: number
+          min_points: number
+          min_quizzes: number
+          rank_name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          icon?: string
+          id?: string
+          min_badges?: number
+          min_points?: number
+          min_quizzes?: number
+          rank_name?: string
+        }
+        Relationships: []
+      }
       reward_logs: {
         Row: {
           coins: number
@@ -2225,6 +2261,42 @@ export type Database = {
           },
         ]
       }
+      user_ranks: {
+        Row: {
+          badges_earned: number | null
+          created_at: string | null
+          current_rank: string
+          id: string
+          matches_won: number | null
+          quizzes_completed: number | null
+          rank_updated_at: string | null
+          total_points: number | null
+          user_id: string
+        }
+        Insert: {
+          badges_earned?: number | null
+          created_at?: string | null
+          current_rank?: string
+          id?: string
+          matches_won?: number | null
+          quizzes_completed?: number | null
+          rank_updated_at?: string | null
+          total_points?: number | null
+          user_id: string
+        }
+        Update: {
+          badges_earned?: number | null
+          created_at?: string | null
+          current_rank?: string
+          id?: string
+          matches_won?: number | null
+          quizzes_completed?: number | null
+          rank_updated_at?: string | null
+          total_points?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_reputation: {
         Row: {
           created_at: string | null
@@ -2491,6 +2563,7 @@ export type Database = {
         Args: { amount: number; user_id: string }
         Returns: undefined
       }
+      update_user_rank: { Args: { p_user_id: string }; Returns: string }
       update_user_role_secure: {
         Args: {
           new_role: Database["public"]["Enums"]["user_role"]

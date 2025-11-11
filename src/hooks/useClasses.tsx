@@ -37,10 +37,22 @@ export function useCreateClass() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (classData: { name: string; description?: string; teacher_id?: string }) => {
+    mutationFn: async (classData: { 
+      name: string; 
+      description?: string; 
+      teacher_id?: string;
+      additional_teachers?: string[];
+    }) => {
+      const currentUser = (await supabase.auth.getUser()).data.user;
       const { data, error } = await (supabase as any)
         .from('classes')
-        .insert([{ ...classData, created_by: (await supabase.auth.getUser()).data.user?.id }])
+        .insert([{ 
+          name: classData.name,
+          description: classData.description,
+          teacher_id: classData.teacher_id,
+          additional_teachers: classData.additional_teachers || [],
+          created_by: currentUser?.id
+        }])
         .select()
         .single();
       

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Coins, Users, Clock, Award, TrendingUp, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { QuizReports } from '@/components/quizzes/QuizReports';
+import { TeacherClassDashboard } from '@/components/teacher/TeacherClassDashboard';
 
 export function TeacherDashboard() {
   const { profile } = useAuth();
@@ -303,6 +304,9 @@ export function TeacherDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Class Dashboard */}
+      <TeacherClassDashboard />
 
       {/* Tips */}
       <Card>

@@ -104,7 +104,7 @@ export function useAuthState() {
 
     // Configurar listener DEPOIS da inicialização
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('🔧 useAuthState - Mudança de estado:', {
           event,
           hasSession: !!session,
@@ -113,6 +113,24 @@ export function useAuthState() {
         });
         
         if (!mounted) return;
+
+        // Handle token refresh explicitly
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('🔄 Token atualizado automaticamente');
+          setSession(session);
+          setUser(session?.user ?? null);
+          return;
+        }
+
+        // Handle signed out
+        if (event === 'SIGNED_OUT') {
+          console.log('🚪 Usuário deslogado');
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
         
         setSession(session);
         setUser(session?.user ?? null);

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { CardDisplay } from '@/components/cards/CardDisplay';
 import { Gift, BookOpen, Users, Trophy, Calendar, Loader2, Bot } from 'lucide-react';
+import { RankDisplay } from './RankDisplay';
 
 interface StudentDashboardProps {
   onSectionChange: (section: string) => void;
@@ -189,6 +190,9 @@ export function StudentDashboard({ onSectionChange }: StudentDashboardProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Rank Display */}
+      <RankDisplay />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
