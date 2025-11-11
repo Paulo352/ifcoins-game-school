@@ -62,6 +62,71 @@ export type Database = {
         }
         Relationships: []
       }
+      card_achievements: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          objective_type: string
+          objective_value: number
+          reward_card_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          is_active?: boolean
+          name: string
+          objective_type: string
+          objective_value: number
+          reward_card_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          objective_type?: string
+          objective_value?: number
+          reward_card_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_achievements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_achievements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_achievements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_achievements_reward_card_id_fkey"
+            columns: ["reward_card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cards: {
         Row: {
           assigned_to: string | null
@@ -291,6 +356,86 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      exclusive_card_history: {
+        Row: {
+          card_id: string
+          granted_at: string
+          granted_by: string
+          id: string
+          metadata: Json | null
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          granted_at?: string
+          granted_by: string
+          id?: string
+          metadata?: Json | null
+          reason: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          granted_at?: string
+          granted_by?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exclusive_card_history_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exclusive_card_history_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exclusive_card_history_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exclusive_card_history_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exclusive_card_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exclusive_card_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exclusive_card_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       loan_payments: {
         Row: {
@@ -552,6 +697,78 @@ export type Database = {
           {
             foreignKeyName: "market_listings_sold_to_fkey"
             columns: ["sold_to"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      multiplayer_match_history: {
+        Row: {
+          created_at: string
+          finished_at: string
+          id: string
+          match_data: Json
+          quiz_id: string
+          room_id: string
+          started_at: string
+          total_players: number
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          finished_at: string
+          id?: string
+          match_data?: Json
+          quiz_id: string
+          room_id: string
+          started_at: string
+          total_players: number
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          finished_at?: string
+          id?: string
+          match_data?: Json
+          quiz_id?: string
+          room_id?: string
+          started_at?: string
+          total_players?: number
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "multiplayer_match_history_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "multiplayer_match_history_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "multiplayer_match_history_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "multiplayer_match_history_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "multiplayer_match_history_winner_id_fkey"
+            columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "rankings_view"
             referencedColumns: ["id"]
@@ -855,6 +1072,109 @@ export type Database = {
           },
         ]
       }
+      power_up_usage: {
+        Row: {
+          id: string
+          power_up_id: string
+          question_id: string
+          room_id: string
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          power_up_id: string
+          question_id: string
+          room_id: string
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          power_up_id?: string
+          question_id?: string
+          room_id?: string
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "power_up_usage_power_up_id_fkey"
+            columns: ["power_up_id"]
+            isOneToOne: false
+            referencedRelation: "power_ups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "power_up_usage_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "power_up_usage_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "power_up_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "power_up_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "power_up_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      power_ups: {
+        Row: {
+          cost_coins: number
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          type: string
+        }
+        Insert: {
+          cost_coins?: number
+          created_at?: string
+          description: string
+          icon: string
+          id?: string
+          is_active?: boolean
+          name: string
+          type: string
+        }
+        Update: {
+          cost_coins?: number
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           class: string | null
@@ -1065,6 +1385,59 @@ export type Database = {
             columns: ["quiz_id"]
             isOneToOne: false
             referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_room_chat: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_room_chat_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_room_chat_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_room_chat_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_room_chat_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
             referencedColumns: ["id"]
           },
         ]
@@ -1472,6 +1845,56 @@ export type Database = {
           },
         ]
       }
+      user_card_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_card_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "card_achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_card_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_card_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_card_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_cards: {
         Row: {
           acquired_at: string | null
@@ -1556,6 +1979,56 @@ export type Database = {
             columns: ["badge_id"]
             isOneToOne: false
             referencedRelation: "custom_badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_power_ups: {
+        Row: {
+          id: string
+          power_up_id: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          power_up_id: string
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          id?: string
+          power_up_id?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_power_ups_power_up_id_fkey"
+            columns: ["power_up_id"]
+            isOneToOne: false
+            referencedRelation: "power_ups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_power_ups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_power_ups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_power_ups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
             referencedColumns: ["id"]
           },
         ]

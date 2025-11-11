@@ -14,7 +14,9 @@ import {
   Vote,
   Bot,
   HelpCircle,
-  Package
+  Package,
+  History,
+  Award
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -39,6 +41,8 @@ const sidebarItems: SidebarItem[] = [
   { icon: Users, label: 'Gerenciar Turmas', id: 'manage-classes', roles: ['teacher', 'admin'] },
   { icon: Trophy, label: 'Conquistas', id: 'achievements', roles: ['student'] },
   { icon: BookOpen, label: 'Histórico de Cartas', id: 'card-history', roles: ['student', 'teacher', 'admin'] },
+  { icon: Award, label: 'Ranking de Badges', id: 'badge-ranking', roles: ['student'] },
+  { icon: History, label: 'Histórico Multiplayer', id: 'match-history', roles: ['student'] },
   { icon: Users, label: 'Gerenciar Estudantes', id: 'manage-students', roles: ['teacher', 'admin'] },
   { icon: BookOpen, label: 'Gerenciar Cartas', id: 'manage-cards', roles: ['admin'] },
   { icon: Package, label: 'Gerenciar Pacotes', id: 'manage-packs', roles: ['admin'] },

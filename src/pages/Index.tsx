@@ -35,6 +35,8 @@ import { MarketSection } from '@/components/sections/MarketSection';
 import { ClassManagement } from '@/components/admin/ClassManagement';
 import { ExclusiveCardHistory } from '@/components/cards/ExclusiveCardHistory';
 import { CardAchievements } from '@/components/cards/CardAchievements';
+import { BadgeRanking } from '@/components/quizzes/BadgeRanking';
+import { MatchHistory } from '@/components/quizzes/MatchHistory';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -152,6 +154,10 @@ const Index = () => {
         return <ExclusiveCardHistory />;
       case 'achievements':
         return <CardAchievements />;
+      case 'badge-ranking':
+        return <BadgeRanking />;
+      case 'match-history':
+        return <MatchHistory />;
       default:
         if (profile.role === 'student') return <StudentDashboard onSectionChange={setActiveSection} />;
         if (profile.role === 'teacher') return <TeacherDashboard />;
