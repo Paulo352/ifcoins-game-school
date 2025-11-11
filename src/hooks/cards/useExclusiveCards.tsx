@@ -83,6 +83,17 @@ export function useCreateExclusiveCard() {
 
       if (userCardError) throw userCardError;
 
+      // Registrar no histórico
+      const { data: userData } = await supabase.auth.getUser();
+      await (supabase as any)
+        .from('exclusive_card_history')
+        .insert([{
+          user_id: card.assigned_to,
+          card_id: data.id,
+          reason: 'Carta exclusiva criada pelo administrador',
+          granted_by: userData.user?.id
+        }]);
+
       return data;
     },
     onSuccess: () => {
