@@ -49,7 +49,7 @@ export function useAvailableCards() {
         .from('cards')
         .select('*')
         .eq('available', true)
-        .eq('is_special', false) // ❌ Excluir cartas especiais da loja
+        .or('is_special.is.null,is_special.eq.false')
         .order('rarity', { ascending: false });
       
       if (error) throw error;

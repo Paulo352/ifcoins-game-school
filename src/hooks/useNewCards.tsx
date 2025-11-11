@@ -81,6 +81,7 @@ export function useAvailableCards() {
         .from('cards')
         .select('*')
         .eq('available', true)
+        .or('is_special.is.null,is_special.eq.false')
         .order('name');
 
       if (error) throw error;
