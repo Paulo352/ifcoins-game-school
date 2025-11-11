@@ -3,8 +3,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { QuizSystemMain } from './QuizSystemMain';
 import { SimpleManageQuizzes } from './SimpleManageQuizzes';
 import { QuizPerformanceReport } from '../reports/QuizPerformanceReport';
+import { MultiplayerQuizRoom } from './multiplayer/MultiplayerQuizRoom';
+import { CustomBadgesManagement } from './badges/CustomBadgesManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { HelpCircle, Settings, BarChart3 } from 'lucide-react';
+import { HelpCircle, Settings, BarChart3, Gamepad2, Award } from 'lucide-react';
 
 export function QuizzesDashboard() {
   const { profile, user, loading: authLoading } = useAuth();
@@ -44,18 +46,26 @@ export function QuizzesDashboard() {
 
       {isAdminOrTeacher ? (
         <Tabs defaultValue="manage" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="manage" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
-              Gerenciar Quizzes
+              Gerenciar
             </TabsTrigger>
             <TabsTrigger value="reports" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Relatórios
             </TabsTrigger>
+            <TabsTrigger value="multiplayer" className="flex items-center gap-2">
+              <Gamepad2 className="w-4 h-4" />
+              Multiplayer
+            </TabsTrigger>
+            <TabsTrigger value="badges" className="flex items-center gap-2">
+              <Award className="w-4 h-4" />
+              Badges
+            </TabsTrigger>
             <TabsTrigger value="student-view" className="flex items-center gap-2">
               <HelpCircle className="w-4 h-4" />
-              Visualização do Aluno
+              Aluno
             </TabsTrigger>
           </TabsList>
 
@@ -67,12 +77,39 @@ export function QuizzesDashboard() {
             <QuizPerformanceReport />
           </TabsContent>
 
+          <TabsContent value="multiplayer">
+            <MultiplayerQuizRoom />
+          </TabsContent>
+
+          <TabsContent value="badges">
+            <CustomBadgesManagement />
+          </TabsContent>
+
           <TabsContent value="student-view">
             <QuizSystemMain />
           </TabsContent>
         </Tabs>
       ) : (
-        <QuizSystemMain />
+        <Tabs defaultValue="solo" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="solo" className="flex items-center gap-2">
+              <HelpCircle className="w-4 h-4" />
+              Quizzes Solo
+            </TabsTrigger>
+            <TabsTrigger value="multiplayer" className="flex items-center gap-2">
+              <Gamepad2 className="w-4 h-4" />
+              Multiplayer
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="solo">
+            <QuizSystemMain />
+          </TabsContent>
+
+          <TabsContent value="multiplayer">
+            <MultiplayerQuizRoom />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

@@ -142,6 +142,39 @@ export type Database = {
           },
         ]
       }
+      custom_badges: {
+        Row: {
+          color: string
+          created_at: string | null
+          created_by: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          created_by: string
+          description: string
+          icon: string
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       daily_coin_config: {
         Row: {
           amount: number
@@ -1036,6 +1069,95 @@ export type Database = {
           },
         ]
       }
+      quiz_room_players: {
+        Row: {
+          attempt_id: string | null
+          id: string
+          joined_at: string | null
+          position: number | null
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          attempt_id?: string | null
+          id?: string
+          joined_at?: string | null
+          position?: number | null
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          attempt_id?: string | null
+          id?: string
+          joined_at?: string | null
+          position?: number | null
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_room_players_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_room_players_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_rooms: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          finished_at: string | null
+          id: string
+          max_players: number
+          quiz_id: string
+          room_code: string
+          started_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          finished_at?: string | null
+          id?: string
+          max_players?: number
+          quiz_id: string
+          room_code: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          finished_at?: string | null
+          id?: string
+          max_players?: number
+          quiz_id?: string
+          room_code?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_rooms_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quizzes: {
         Row: {
           created_at: string | null
@@ -1403,6 +1525,41 @@ export type Database = {
           },
         ]
       }
+      user_custom_badges: {
+        Row: {
+          awarded_at: string | null
+          awarded_by: string
+          badge_id: string
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          awarded_at?: string | null
+          awarded_by: string
+          badge_id: string
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          awarded_at?: string | null
+          awarded_by?: string
+          badge_id?: string
+          id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_custom_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "custom_badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_quiz_badges: {
         Row: {
           badge_id: string
@@ -1647,6 +1804,7 @@ export type Database = {
         Args: { admin_id: string; loan_id: string }
         Returns: Json
       }
+      generate_room_code: { Args: never; Returns: string }
       get_current_user_role: { Args: never; Returns: string }
       get_poll_results: {
         Args: { poll_id: string }
