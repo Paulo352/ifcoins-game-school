@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useStartQuizAttempt, useActiveQuizzes, useUserAttempts } from '@/hooks/quizzes/useQuizzes';
-import { supabase } from '@/integrations/supabase/client';
+import { useStartQuizAttempt, useUserAttempts } from '@/hooks/quizzes/useQuizAttempts';
+import { useActiveQuizzes } from '@/hooks/quizzes/useQuizManagement';
 import { QuizSystemList } from './QuizSystemList';
-import { QuizSystemAttempt } from './QuizSystemAttempt';
+import { NewQuizAttempt } from './NewQuizAttempt';
 import { QuizHistory } from './QuizHistory';
 import { QuizBadges } from './QuizBadges';
 import { QuizRanking } from './QuizRanking';
@@ -57,9 +57,8 @@ export function QuizSystemMain() {
     
     setPracticeMode(isPracticeMode);
     
-    // Se for modo prática, permitir sempre
+    // Se não for modo prática, verificar se já completou
     if (!isPracticeMode) {
-      // Verificar se o estudante já completou este quiz
       const completedAttempt = userAttempts?.find(
         (attempt: any) => attempt.quiz_id === quizId && attempt.is_completed && !attempt.practice_mode
       );
@@ -71,24 +70,19 @@ export function QuizSystemMain() {
     }
     
     try {
-      // Usar a nova função RPC se disponível
-      const { data, error } = await supabase.rpc('start_quiz_attempt', {
-        p_quiz_id: quizId,
-        p_user_id: profile!.id,
-        p_practice_mode: isPracticeMode
+      const result = await startQuizMutation.mutateAsync({
+        quizId,
+        userId: profile!.id,
+        practiceMode: isPracticeMode
       });
-
-      if (error) throw error;
-      
-      const result = data as { success: boolean; attempt_id: string; practice_mode: boolean };
       
       setSelectedQuizId(quizId);
       setCurrentAttemptId(result.attempt_id);
       setCurrentView('attempt');
       console.log('✅ Quiz iniciado com sucesso:', result.attempt_id);
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Erro ao iniciar quiz:', error);
-      toast.error('Erro ao iniciar quiz');
+      toast.error(error.message || 'Erro ao iniciar quiz');
     }
   };
 
@@ -132,13 +126,13 @@ export function QuizSystemMain() {
           Voltar aos Quizzes
         </Button>
         
-        <QuizSystemAttempt
+        <NewQuizAttempt
           quiz={selectedQuiz}
           attemptId={currentAttemptId}
           userId={profile.id}
+          practiceMode={practiceMode}
           onComplete={handleCompleteQuiz}
           onBack={handleBackToList}
-          practiceMode={practiceMode}
         />
       </div>
     );

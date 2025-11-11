@@ -1716,6 +1716,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      validate_quiz_answer: {
+        Args: {
+          p_attempt_id: string
+          p_question_id: string
+          p_user_answer: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       vote_in_poll: {
         Args: { option_ids: string[]; poll_id: string }
         Returns: boolean

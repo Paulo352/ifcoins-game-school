@@ -2,18 +2,20 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, ArrowLeft, Trophy } from 'lucide-react';
-import { QuizQuestion } from '@/hooks/quizzes/useQuizzes';
+import { Trophy, X, GraduationCap } from 'lucide-react';
 
 interface QuizResultsProps {
   correctAnswers: number;
   totalQuestions: number;
   coinsEarned: number;
   passed: boolean;
-  questions: QuizQuestion[];
+  questions: Array<{
+    id: string;
+    question_text: string;
+  }>;
   userAnswers: Record<string, string>;
-  onBack: () => void;
   practiceMode?: boolean;
+  onBack: () => void;
 }
 
 export function QuizResults({ 
@@ -21,91 +23,88 @@ export function QuizResults({
   totalQuestions, 
   coinsEarned, 
   passed, 
-  questions,
+  questions, 
   userAnswers,
-  onBack,
-  practiceMode = false
+  practiceMode = false,
+  onBack 
 }: QuizResultsProps) {
-  const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+  const scorePercentage = Math.round((correctAnswers / totalQuestions) * 100);
 
   return (
     <div className="space-y-6">
-      {/* Resultado geral */}
+      {/* Resultado Geral */}
       <Card>
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            {passed ? (
-              <Trophy className="w-16 h-16 text-yellow-500" />
-            ) : (
-              <XCircle className="w-16 h-16 text-red-500" />
-            )}
-          </div>
-          <CardTitle className="text-2xl">
-            {practiceMode ? 'Prática Concluída' : passed ? 'Parabéns!' : 'Quiz Concluído'}
-          </CardTitle>
-          <div className="flex justify-center gap-4 mt-4">
-            <Badge variant={passed ? 'default' : 'destructive'} className="text-lg px-4 py-2">
-              {correctAnswers}/{totalQuestions} ({percentage}%)
-            </Badge>
-            {coinsEarned > 0 && !practiceMode && (
-              <Badge variant="outline" className="text-lg px-4 py-2">
-                +{coinsEarned} moedas
-              </Badge>
-            )}
+        <CardContent className="pt-6">
+          <div className="text-center space-y-4">
             {practiceMode && (
-              <Badge variant="secondary" className="text-lg px-4 py-2">
+              <Badge variant="secondary" className="mb-2 gap-1">
+                <GraduationCap className="w-4 h-4" />
                 Modo Prática
               </Badge>
             )}
+            
+            {passed ? (
+              <Trophy className="w-16 h-16 mx-auto text-yellow-500" />
+            ) : (
+              <X className="w-16 h-16 mx-auto text-red-500" />
+            )}
+            
+            <div>
+              <h2 className="text-2xl font-bold">
+                {passed ? 'Parabéns! 🎉' : 'Quase lá! 💪'}
+              </h2>
+              <p className="text-muted-foreground mt-2">
+                Você acertou {correctAnswers} de {totalQuestions} questões
+              </p>
+              <p className="text-3xl font-bold mt-2">
+                {scorePercentage}%
+              </p>
+            </div>
+
+            {!practiceMode && coinsEarned > 0 && (
+              <Badge variant="default" className="text-lg px-4 py-2">
+                +{coinsEarned} moedas ganhas! 🪙
+              </Badge>
+            )}
+            
+            {practiceMode && (
+              <p className="text-sm text-muted-foreground">
+                No modo prática você não ganha moedas
+              </p>
+            )}
           </div>
-          <p className="text-muted-foreground mt-2">
-            {practiceMode 
-              ? 'Continue praticando para melhorar suas habilidades!' 
-              : passed 
-                ? `Você passou no quiz e ganhou ${coinsEarned} moedas!` 
-                : 'Você precisava de pelo menos 70% de acertos para ganhar moedas.'
-            }
-          </p>
-        </CardHeader>
+        </CardContent>
       </Card>
 
-      {/* Revisão das respostas */}
+      {/* Revisão das Questões - Simplificada */}
       <Card>
         <CardHeader>
-          <CardTitle>Revisão das Respostas</CardTitle>
+          <CardTitle>Revisão das Questões</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground mb-4">
+            Veja suas respostas e quantas você acertou!
+          </p>
           {questions.map((question, index) => {
-            const userAnswer = userAnswers[question.id] || '';
-            const isCorrect = userAnswer.trim().toLowerCase() === question.correct_answer.trim().toLowerCase();
+            const userAnswer = userAnswers[question.id];
             
             return (
-              <div key={question.id} className="border rounded-lg p-4 space-y-2">
+              <div 
+                key={question.id} 
+                className="p-4 rounded-lg border"
+              >
                 <div className="flex items-start gap-2">
-                  {isCorrect ? (
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  ) : (
-                    <XCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-                  )}
-                  <div className="flex-1">
+                  <div className="flex-1 space-y-2">
                     <p className="font-medium">
                       {index + 1}. {question.question_text}
                     </p>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-sm">
-                        <span className="font-medium">Sua resposta:</span>{' '}
-                        <span className={isCorrect ? 'text-green-600' : 'text-red-600'}>
-                          {userAnswer || 'Não respondido'}
+                    
+                    <div className="text-sm space-y-1">
+                      <p>
+                        <span className="font-semibold">Sua resposta:</span>{' '}
+                        <span>
+                          {userAnswer || '(não respondida)'}
                         </span>
-                      </p>
-                      {!isCorrect && (
-                        <p className="text-sm">
-                          <span className="font-medium">Resposta correta:</span>{' '}
-                          <span className="text-green-600">{question.correct_answer}</span>
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        {isCorrect ? `+${question.points}` : '0'} pontos
                       </p>
                     </div>
                   </div>
@@ -116,8 +115,8 @@ export function QuizResults({
         </CardContent>
       </Card>
 
-      <Button onClick={onBack} className="w-full">
-        <ArrowLeft className="w-4 h-4 mr-2" />
+      {/* Botão de Voltar */}
+      <Button onClick={onBack} className="w-full" size="lg">
         Voltar aos Quizzes
       </Button>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuizAttempts, type Quiz } from '@/hooks/quizzes/useQuizzes';
+import { useAllQuizAttempts, type Quiz } from '@/hooks/quizzes/useQuizzes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,7 @@ interface QuizAttemptsListProps {
 export function QuizAttemptsList({ quiz, onBack }: QuizAttemptsListProps) {
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
   
-  const { data: attempts, isLoading, error } = useQuizAttempts(quiz?.id || null);
+  const { data: attempts, isLoading, error } = useAllQuizAttempts(quiz?.id || undefined);
 
   console.log('🎯 [QuizAttemptsList] Estado:', { 
     quizId: quiz?.id, 
