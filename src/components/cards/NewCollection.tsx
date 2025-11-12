@@ -73,7 +73,10 @@ export function NewCollection() {
     );
   }
 
-  if (!userCards || userCards.length === 0) {
+  // Filter out cards that are null (due to RLS policies)
+  const validUserCards = userCards?.filter(userCard => userCard.card !== null) || [];
+
+  if (validUserCards.length === 0) {
     return (
       <Card>
         <CardContent className="text-center py-12">
@@ -90,8 +93,8 @@ export function NewCollection() {
     );
   }
 
-  const totalCards = userCards.reduce((sum, userCard) => sum + userCard.quantity, 0);
-  const uniqueCards = userCards.length;
+  const totalCards = validUserCards.reduce((sum, userCard) => sum + userCard.quantity, 0);
+  const uniqueCards = validUserCards.length;
 
   return (
     <div className="space-y-6">
@@ -103,7 +106,7 @@ export function NewCollection() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {userCards.map((userCard) => (
+        {validUserCards.map((userCard) => (
           <NewCard
             key={userCard.id}
             card={{
