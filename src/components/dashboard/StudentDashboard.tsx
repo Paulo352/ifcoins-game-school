@@ -233,24 +233,26 @@ export function StudentDashboard({ onSectionChange }: StudentDashboardProps) {
               </div>
             ) : userCards && userCards.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {userCards.map((userCard) => (
-                  <div key={userCard.id} className="relative">
-                    <CardDisplay
-                      card={{
-                        id: userCard.card.id,
-                        name: userCard.card.name,
-                        rarity: userCard.card.rarity,
-                        imageUrl: userCard.card.image_url || '',
-                        available: userCard.card.available,
-                        price: userCard.card.price,
-                        description: userCard.card.description || '',
-                        quantity: userCard.quantity
-                      }}
-                      showQuantity
-                      className="h-32"
-                    />
-                  </div>
-                ))}
+                {userCards
+                  .filter((userCard) => userCard.card != null) // Filtrar cartas que foram deletadas
+                  .map((userCard) => (
+                    <div key={userCard.id} className="relative">
+                      <CardDisplay
+                        card={{
+                          id: userCard.card.id,
+                          name: userCard.card.name,
+                          rarity: userCard.card.rarity,
+                          imageUrl: userCard.card.image_url || '',
+                          available: userCard.card.available,
+                          price: userCard.card.price,
+                          description: userCard.card.description || '',
+                          quantity: userCard.quantity
+                        }}
+                        showQuantity
+                        className="h-32"
+                      />
+                    </div>
+                  ))}
               </div>
             ) : (
               <div className="text-center py-8">
