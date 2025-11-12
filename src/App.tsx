@@ -11,6 +11,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
@@ -45,19 +46,21 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <AccessibilityProvider>
-        <TooltipProvider>
-          <AuthProvider>
-            <NotificationProvider>
-              <AppContent />
-            </NotificationProvider>
-          </AuthProvider>
-        </TooltipProvider>
-      </AccessibilityProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AccessibilityProvider>
+          <TooltipProvider>
+            <AuthProvider>
+              <NotificationProvider>
+                <AppContent />
+              </NotificationProvider>
+            </AuthProvider>
+          </TooltipProvider>
+        </AccessibilityProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

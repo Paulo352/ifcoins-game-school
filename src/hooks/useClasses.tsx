@@ -43,28 +43,49 @@ export function useCreateClass() {
       teacher_id?: string;
       additional_teachers?: string[];
     }) => {
-      const currentUser = (await supabase.auth.getUser()).data.user;
+      console.log('📝 Criando turma:', classData);
+      
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('❌ Erro ao obter usuário:', userError);
+        throw new Error('Usuário não autenticado');
+      }
+
+      console.log('👤 Usuário autenticado:', user.id);
+      
+      const insertData = { 
+        name: classData.name,
+        description: classData.description,
+        teacher_id: classData.teacher_id,
+        additional_teachers: classData.additional_teachers || [],
+        created_by: user.id
+      };
+
+      console.log('📤 Dados para inserir:', insertData);
+      
       const { data, error } = await (supabase as any)
         .from('classes')
-        .insert([{ 
-          name: classData.name,
-          description: classData.description,
-          teacher_id: classData.teacher_id,
-          additional_teachers: classData.additional_teachers || [],
-          created_by: currentUser?.id
-        }])
+        .insert([insertData])
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao criar turma:', error);
+        throw error;
+      }
+
+      console.log('✅ Turma criada com sucesso:', data);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('🎉 Sucesso! Turma criada:', data);
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       toast.success('Turma criada com sucesso!');
     },
-    onError: () => {
-      toast.error('Erro ao criar turma');
+    onError: (error: any) => {
+      console.error('❌ Erro na mutação:', error);
+      toast.error(`Erro ao criar turma: ${error.message || 'Erro desconhecido'}`);
     }
   });
 }
