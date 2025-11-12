@@ -8,17 +8,34 @@ export const usePasswordReset = () => {
   const sendResetEmail = async (email: string) => {
     setLoading(true);
     try {
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://ifcoins.vercel.app/reset-password',
+        redirectTo: redirectUrl,
       });
 
       if (error) throw error;
 
-      toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
+      toast.success('Email de recuperação enviado!', {
+        description: 'Verifique sua caixa de entrada e spam. O link é válido por 1 hora.'
+      });
       return { success: true };
     } catch (error: any) {
       console.error('Erro ao enviar email de reset:', error);
-      toast.error(`Erro ao enviar email de recuperação: ${error?.message || 'Verifique se o email está correto e as configurações de email do projeto.'}`);
+      
+      let errorMessage = 'Não foi possível enviar o email de recuperação.';
+      
+      if (error?.message?.includes('rate_limit')) {
+        errorMessage = 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
+      } else if (error?.message?.includes('not found')) {
+        errorMessage = 'Email não encontrado no sistema.';
+      } else {
+        errorMessage = `${error?.message || 'Verifique se o email está correto.'}\n\nSe o problema persistir, entre em contato com o administrador para verificar a configuração de email no Supabase (Authentication → Email Templates → SMTP Settings).`;
+      }
+      
+      toast.error('Erro ao enviar email', {
+        description: errorMessage
+      });
       return { success: false, error };
     } finally {
       setLoading(false);

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Coins, UserCog, Trash2 } from 'lucide-react';
+import { Coins, UserCog, Trash2, Shield, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateCoins } from '@/hooks/useUpdateCoins';
 import { Profile } from '@/types/supabase';
@@ -28,6 +28,13 @@ export function AdminUserManagement({ users, adminId, onSuccess, userType }: Adm
   const [selectedUserForDelete, setSelectedUserForDelete] = useState('');
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  
+  // Estados para alterar senha
+  const [selectedPasswordUser, setSelectedPasswordUser] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  
   const { giveCoins, loading } = useUpdateCoins();
 
   const handleGiveCoins = async () => {
@@ -101,6 +108,69 @@ export function AdminUserManagement({ users, adminId, onSuccess, userType }: Adm
       });
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!selectedPasswordUser) {
+      toast({
+        title: "Atenção",
+        description: "Selecione um usuário",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      toast({
+        title: "Atenção",
+        description: "A senha deve ter no mínimo 6 caracteres",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Atenção",
+        description: "As senhas não coincidem",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-reset-user-password', {
+        body: { 
+          userId: selectedPasswordUser,
+          newPassword: newPassword
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        const user = users?.find(u => u.id === selectedPasswordUser);
+        toast({
+          title: "Sucesso",
+          description: `Senha alterada para ${user?.name || 'usuário'}`,
+        });
+        setSelectedPasswordUser('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        throw new Error(data?.error || 'Erro ao alterar senha');
+      }
+    } catch (error: any) {
+      console.error('Erro ao alterar senha:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível alterar a senha",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -264,6 +334,96 @@ export function AdminUserManagement({ users, adminId, onSuccess, userType }: Adm
             <UserCog className="h-4 w-4 mr-2" />
             {updating ? 'Atualizando...' : 'Atualizar Papel'}
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Alterar Senha */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-warning" />
+            Alterar Senha do Usuário
+          </CardTitle>
+          <CardDescription>
+            Defina uma nova senha para os {getUserTypeLabel(userType).toLowerCase()}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="admin-password-user-select">Usuário</Label>
+              <Select value={selectedPasswordUser} onValueChange={setSelectedPasswordUser}>
+                <SelectTrigger id="admin-password-user-select">
+                  <SelectValue placeholder="Escolha um usuário" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users?.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name} ({user.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="admin-new-password">Nova Senha</Label>
+              <Input
+                id="admin-new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                disabled={!selectedPasswordUser || isChangingPassword}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="admin-confirm-password">Confirmar Senha</Label>
+            <Input
+              id="admin-confirm-password"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Digite a senha novamente"
+              disabled={!selectedPasswordUser || isChangingPassword}
+            />
+          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                disabled={!selectedPasswordUser || !newPassword || !confirmPassword || isChangingPassword}
+              >
+                {isChangingPassword ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Alterando senha...
+                  </>
+                ) : (
+                  <>
+                    <Shield className="mr-2 h-4 w-4" />
+                    Alterar Senha
+                  </>
+                )}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar alteração de senha</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Você está prestes a alterar a senha de{' '}
+                  <strong>{users?.find(u => u.id === selectedPasswordUser)?.name}</strong>.
+                  Esta ação será registrada nos logs de segurança. Deseja continuar?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleChangePassword}>
+                  Confirmar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
 
