@@ -1,10 +1,18 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+// Input validation schema
+const ResetSystemSchema = z.object({
+  confirmation: z.literal('RESETAR SISTEMA', {
+    errorMap: () => ({ message: 'Confirmação inválida' })
+  })
+})
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -21,8 +29,9 @@ serve(async (req) => {
     // Get the authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
+      console.error('[RESET] No authorization header')
       return new Response(
-        JSON.stringify({ error: 'No authorization header' }),
+        JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -33,29 +42,68 @@ serve(async (req) => {
     )
 
     if (userError || !user) {
-      console.error('Auth error:', userError)
+      console.error('[RESET] Invalid token:', userError)
       return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
+        JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+    // Check if user is admin via user_roles table
+    const { data: userRole, error: roleError } = await supabase
+      .from('user_roles')
       .select('role')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
       .single()
 
-    if (profileError || !profile || profile.role !== 'admin') {
-      console.error('Permission error:', profileError)
+    if (roleError || !userRole) {
+      console.error('[RESET] Not admin:', { user_id: user.id, roleError })
+      
+      // Log unauthorized reset attempt
+      await supabase.from('security_logs').insert({
+        user_id: user.id,
+        action: 'system_reset_unauthorized_attempt',
+        metadata: { email: user.email, timestamp: new Date().toISOString() }
+      })
+
       return new Response(
-        JSON.stringify({ error: 'Only admins can reset the system' }),
+        JSON.stringify({ error: 'Admin privileges required' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log('Admin reset initiated by:', user.id)
+    // Validate request body
+    const body = await req.json()
+    const validation = ResetSystemSchema.safeParse(body)
+
+    if (!validation.success) {
+      console.error('[RESET] Invalid confirmation:', validation.error)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid confirmation text',
+          required: 'RESETAR SISTEMA'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Rate limiting check - prevent multiple resets in short time
+    const { data: recentResets } = await supabase
+      .from('security_logs')
+      .select('created_at')
+      .eq('action', 'system_reset')
+      .gte('created_at', new Date(Date.now() - 3600000).toISOString()) // Last hour
+
+    if (recentResets && recentResets.length > 0) {
+      console.error('[RESET] Rate limit exceeded')
+      return new Response(
+        JSON.stringify({ error: 'System was already reset recently. Please wait 1 hour.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('[RESET] Admin reset initiated by:', user.id, user.email)
 
     // Start system reset process
     const resetSteps = []
@@ -175,12 +223,9 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Unexpected error in system reset:', error)
+    console.error('[RESET] Unexpected error:', error)
     return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error during system reset',
-        details: error.message 
-      }),
+      JSON.stringify({ error: 'Operation failed' }),
       { 
         status: 500, 
         headers: { 

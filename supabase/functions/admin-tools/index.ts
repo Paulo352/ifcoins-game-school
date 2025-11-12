@@ -39,22 +39,72 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // SECURITY: Verify authentication
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      console.error('Admin tools: No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('Admin tools: Invalid token', authError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SECURITY: Verify admin role
+    const { data: userRole, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single();
+
+    if (roleError || !userRole) {
+      console.error('Admin tools: User not admin', { user_id: user.id, roleError });
+      
+      // Log unauthorized access attempt
+      await supabase.from('security_logs').insert({
+        user_id: user.id,
+        action: 'admin_tools_unauthorized_attempt',
+        metadata: { email: user.email, timestamp: new Date().toISOString() }
+      });
+
+      return new Response(
+        JSON.stringify({ error: 'Admin privileges required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Validate input
     const body = await req.json();
     const validation = AdminToolsSchema.safeParse(body);
     
     if (!validation.success) {
+      console.error('Admin tools: Invalid input', validation.error);
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid input',
-          details: validation.error.errors 
-        }),
+        JSON.stringify({ error: 'Invalid request format' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const { action, ...params } = validation.data;
-    console.log('Admin tools action:', action, params);
+    
+    // Log admin action
+    console.log('Admin tools action:', { action, user_id: user.id, email: user.email });
+    await supabase.from('security_logs').insert({
+      user_id: user.id,
+      action: `admin_tools_${action}`,
+      metadata: { action, params, timestamp: new Date().toISOString() }
+    });
 
     switch (action) {
       case 'backup_database':
@@ -79,9 +129,9 @@ serve(async (req) => {
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         } catch (error: any) {
-          console.error('Erro ao cancelar agendamento de manutenção:', error);
+          console.error('[ADMIN_TOOLS] Cancel maintenance error:', error);
           return new Response(
-            JSON.stringify({ error: 'Erro ao cancelar agendamento: ' + error.message }),
+            JSON.stringify({ error: 'Operation failed' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -155,9 +205,9 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (error: any) {
-      console.error('Erro ao fazer backup:', error);
+      console.error('[ADMIN_TOOLS] Backup error:', error);
       return new Response(
-        JSON.stringify({ error: 'Erro ao fazer backup' }),
+        JSON.stringify({ error: 'Operation failed' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -233,9 +283,9 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (error: any) {
-      console.error('Erro ao exportar dados:', error);
+      console.error('[ADMIN_TOOLS] Export error:', error);
       return new Response(
-        JSON.stringify({ error: 'Erro ao exportar dados' }),
+        JSON.stringify({ error: 'Operation failed' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -271,9 +321,9 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (error: any) {
-      console.error('Erro ao limpar logs:', error);
+      console.error('[ADMIN_TOOLS] Cleanup error:', error);
       return new Response(
-        JSON.stringify({ error: 'Erro ao limpar logs' }),
+        JSON.stringify({ error: 'Operation failed' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -316,9 +366,9 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (error: any) {
-      console.error('Erro ao alterar modo manutenção:', error);
+      console.error('[ADMIN_TOOLS] Maintenance mode error:', error);
       return new Response(
-        JSON.stringify({ error: 'Erro ao alterar modo manutenção' }),
+        JSON.stringify({ error: 'Operation failed' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -349,9 +399,9 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (error: any) {
-      console.error('Erro ao agendar manutenção:', error);
+      console.error('[ADMIN_TOOLS] Schedule maintenance error:', error);
       return new Response(
-        JSON.stringify({ error: 'Erro ao agendar manutenção' }),
+        JSON.stringify({ error: 'Operation failed' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -516,7 +566,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Erro ao enviar email de teste' 
+          error: 'Operation failed' 
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -524,9 +574,9 @@ serve(async (req) => {
   }
 
   } catch (error: any) {
-    console.error('Error in admin-tools function:', error);
+    console.error('[ADMIN_TOOLS] Unexpected error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Operation failed' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

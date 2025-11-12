@@ -154,11 +154,11 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Erro na distribuição:', error);
+    console.error('[DAILY_COINS] Distribution error:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: 'Distribution failed' 
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

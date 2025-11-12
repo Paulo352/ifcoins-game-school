@@ -97,11 +97,11 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Erro no processamento:', error);
+    console.error('[LOAN_PAYMENTS] Processing error:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: 'Payment processing failed' 
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -185,10 +185,10 @@ Responda em português brasileiro de forma amigável e educativa.`;
     );
 
   } catch (error) {
-    console.error('Erro na função ai-tutor:', error);
+    console.error('[AI_TUTOR] Error:', error);
     return new Response(
       JSON.stringify({
-        error: error.message || 'Erro interno do servidor',
+        error: 'Service temporarily unavailable',
         success: false
       }),
       {
