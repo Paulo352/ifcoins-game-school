@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Upload, Link, X, Loader2, Check } from 'lucide-react';
 import { useImageUpload } from '@/hooks/storage/useImageUpload';
 import { useImageLoader } from '@/hooks/useImageLoader';
@@ -50,9 +51,13 @@ export function ImageSelector({
 
     const result = await uploadImage(file);
     if (result) {
-      setDraftUrl(result.url);
-      setDraftPath(result.path);
-      setUrlInput(''); // Limpar URL quando fazer upload
+      // Auto-confirmar o upload - comportamento mais intuitivo
+      onChange(result.url);
+      onPathChange?.(result.path);
+      setUploadedPath(result.path);
+      setUrlInput(result.url);
+      setDraftUrl('');
+      setDraftPath('');
     }
   };
 
@@ -175,10 +180,17 @@ export function ImageSelector({
 
       {/* Preview da imagem */}
       {previewSrc && (
-        <Card>
+        <Card className={draftUrl && draftUrl !== value ? "border-warning" : ""}>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center justify-between">
-              Preview {draftUrl && '(aguardando confirmação)'}
+              <span className="flex items-center gap-2">
+                Preview
+                {draftUrl && draftUrl !== value && (
+                  <Badge variant="outline" className="bg-warning/10 text-warning border-warning">
+                    Aguardando confirmação
+                  </Badge>
+                )}
+              </span>
               <Button
                 type="button"
                 variant="ghost"
@@ -204,7 +216,7 @@ export function ImageSelector({
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-2 break-all">
-              {draftPath ? `Arquivo (rascunho): ${draftPath}` : uploadedPath ? `Arquivo: ${uploadedPath}` : `URL: ${previewSrc}`}
+              {uploadedPath ? `Arquivo: ${uploadedPath}` : `URL: ${previewSrc}`}
             </p>
             {imageLoader.hasError && (
               <p className="text-xs text-destructive mt-1">
@@ -213,19 +225,24 @@ export function ImageSelector({
             )}
 
             {draftUrl && draftUrl !== value && (
-              <div className="flex gap-2 mt-3">
-                <Button
-                  type="button"
-                  onClick={confirmImage}
-                  disabled={imageLoader.isLoading || imageLoader.hasError}
-                  className="flex items-center gap-2"
-                >
-                  <Check className="h-4 w-4" />
-                  Confirmar imagem
-                </Button>
-                <Button type="button" variant="outline" onClick={cancelDraft}>
-                  Cancelar
-                </Button>
+              <div className="space-y-2 mt-3">
+                <p className="text-sm text-warning font-medium">
+                  ⚠️ Você precisa confirmar a imagem antes de salvar a carta
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={confirmImage}
+                    disabled={imageLoader.isLoading || imageLoader.hasError}
+                    className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                  >
+                    <Check className="h-4 w-4" />
+                    Confirmar imagem
+                  </Button>
+                  <Button type="button" variant="outline" onClick={cancelDraft}>
+                    Cancelar
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
