@@ -6,11 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Package, Trash2, Plus, Coins, Users, TrendingUp, Sparkles } from 'lucide-react';
+import { Package, Trash2, Plus, Coins, Users, TrendingUp, Sparkles, Edit2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function NewManagePacks() {
   const [showForm, setShowForm] = useState(false);
+  const [editingPack, setEditingPack] = useState<any | null>(null);
   const { data: packs, isLoading } = usePacks();
   const deletePack = useDeletePack();
   const updatePack = useUpdatePack();
@@ -118,7 +120,13 @@ export function NewManagePacks() {
       {/* Form */}
       {showForm && (
         <div className="animate-in slide-in-from-top-4 duration-500">
-          <NewPackForm onSuccess={() => setShowForm(false)} />
+          <NewPackForm 
+            editingPack={editingPack} 
+            onSuccess={() => {
+              setShowForm(false);
+              setEditingPack(null);
+            }} 
+          />
         </div>
       )}
 
@@ -190,16 +198,37 @@ export function NewManagePacks() {
                       />
                     </div>
                     
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <Button 
                           variant="outline" 
                           size="icon"
-                          className="hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                          onClick={() => {
+                            setEditingPack(pack);
+                            setShowForm(true);
+                          }}
+                          className="hover:bg-primary hover:text-primary-foreground transition-colors"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Edit2 className="w-4 h-4" />
                         </Button>
-                      </AlertDialogTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Editar pacote</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              className="hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
@@ -219,6 +248,11 @@ export function NewManagePacks() {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Excluir pacote</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               </CardHeader>

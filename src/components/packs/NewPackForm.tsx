@@ -25,17 +25,27 @@ const packSchema = z.object({
 });
 
 interface NewPackFormProps {
+  editingPack?: any;
   onSuccess?: () => void;
 }
 
-export function NewPackForm({ onSuccess }: NewPackFormProps) {
+export function NewPackForm({ editingPack, onSuccess }: NewPackFormProps) {
   const [selectedCards, setSelectedCards] = useState<{ card_id: string; quantity: number }[]>([]);
   const { data: availableCards } = useAvailableCards();
   const createPack = useCreatePack();
 
   const form = useForm<z.infer<typeof packSchema>>({
     resolver: zodResolver(packSchema),
-    defaultValues: {
+    defaultValues: editingPack ? {
+      name: editingPack.name,
+      price: editingPack.price,
+      limit_per_student: editingPack.limit_per_student,
+      pack_type: editingPack.pack_type,
+      probability_common: editingPack.probability_common || 60,
+      probability_rare: editingPack.probability_rare || 25,
+      probability_legendary: editingPack.probability_legendary || 10,
+      probability_mythic: editingPack.probability_mythic || 5,
+    } : {
       name: '',
       price: 50,
       limit_per_student: 5,

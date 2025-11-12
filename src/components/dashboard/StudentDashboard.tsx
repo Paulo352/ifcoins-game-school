@@ -20,6 +20,22 @@ export function StudentDashboard({ onSectionChange }: StudentDashboardProps) {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
 
+  // Error boundary específico para o dashboard
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Carregando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (profile.role !== 'student') {
+    return null;
+  }
+
   // Escutar mudanças em tempo real para atualizar dados do estudante
   useEffect(() => {
     if (!profile?.id) return;

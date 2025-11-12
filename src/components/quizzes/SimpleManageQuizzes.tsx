@@ -50,18 +50,33 @@ export function SimpleManageQuizzes() {
     }]
   });
 
-  console.log('🎯 [SimpleManageQuizzes] Renderizando - Profile:', profile?.role, 'selectedQuizForResults:', selectedQuizForResults);
+  const isAdmin = profile?.role === 'admin';
+  console.log('🎯 [SimpleManageQuizzes] Renderizando - Profile:', profile?.role, 'Is Admin:', isAdmin, 'selectedQuizForResults:', selectedQuizForResults);
 
-  // Hook para buscar todos os quizzes
+  // Hook para buscar quizzes - professores veem apenas seus próprios, admins veem todos
   const { data: quizzes, isLoading } = useQuery({
-    queryKey: ['all-quizzes'],
+    queryKey: ['all-quizzes', profile?.id, isAdmin],
     queryFn: async () => {
-      console.log('🎯 [SimpleManageQuizzes] Buscando todos os quizzes...');
+      if (!profile) {
+        console.log('⚠️ [SimpleManageQuizzes] Sem perfil, retornando vazio');
+        return [];
+      }
+
+      console.log('🎯 [SimpleManageQuizzes] Buscando quizzes para:', profile.role, profile.id);
       
-      const { data: quizzes, error } = await supabase
+      let query = supabase
         .from('quizzes')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+      
+      // Se não for admin, filtrar apenas quizzes criados pelo usuário
+      if (!isAdmin) {
+        console.log('👨‍🏫 Professor - Filtrando apenas quizzes próprios');
+        query = query.eq('created_by', profile.id);
+      } else {
+        console.log('👨‍💼 Admin - Buscando todos os quizzes');
+      }
+      
+      const { data: quizzes, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error('❌ [SimpleManageQuizzes] Erro ao buscar quizzes:', error);
@@ -69,11 +84,20 @@ export function SimpleManageQuizzes() {
       }
 
       if (!quizzes || quizzes.length === 0) {
+        console.log('📭 Nenhum quiz encontrado');
         return [];
       }
 
       // Buscar perfis dos criadores
-      const creatorIds = [...new Set(quizzes.map(q => q.created_by))];
+      const creatorIds = [...new Set(quizzes.map(q => q.created_by).filter(Boolean))];
+      
+      if (creatorIds.length === 0) {
+        return quizzes.map(quiz => ({
+          ...quiz,
+          creator_name: 'Sistema',
+          creator_role: 'admin'
+        })) as Quiz[];
+      }
       
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
@@ -95,9 +119,10 @@ export function SimpleManageQuizzes() {
         };
       });
       
-      console.log('✅ [SimpleManageQuizzes] Quizzes encontrados:', quizzesWithCreator?.length || 0, quizzesWithCreator);
+      console.log('✅ [SimpleManageQuizzes] Quizzes encontrados:', quizzesWithCreator?.length || 0);
       return quizzesWithCreator as Quiz[];
     },
+    enabled: !!profile
   });
 
   const selectedQuiz = quizzes?.find(q => q.id === selectedQuizForResults);
