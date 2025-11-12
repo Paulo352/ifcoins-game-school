@@ -51,15 +51,28 @@ export function ImageSelector({
 
     const result = await uploadImage(file);
     if (result) {
-      // Auto-confirmar o upload - comportamento mais intuitivo
-      onChange(result.url);
-      onPathChange?.(result.path);
+      console.log('✅ Upload bem-sucedido:', result.url);
+      
+      // Manter a URL localmente para garantir que o preview não desapareça
       setUploadedPath(result.path);
       setUrlInput(result.url);
+      
+      // Notificar o componente pai (auto-confirmação)
+      onChange(result.url);
+      onPathChange?.(result.path);
+      
+      // NÃO limpar draft imediatamente - deixar o useEffect sincronizar
+    }
+  };
+
+  // Sincronizar estado quando value for atualizado pelo componente pai
+  useEffect(() => {
+    if (value && value === urlInput) {
+      // O componente pai atualizou o value com nosso upload
       setDraftUrl('');
       setDraftPath('');
     }
-  };
+  }, [value, urlInput]);
 
   const handleRemoveImage = async () => {
     // Deletar rascunho enviado

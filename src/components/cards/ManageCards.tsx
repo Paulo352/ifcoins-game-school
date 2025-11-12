@@ -13,6 +13,7 @@ import { useCards, useCreateCard, useUpdateCard, useDeleteCard, type Card as Car
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ImageSelector } from '@/components/cards/ImageSelector';
 import { ImagePreview } from '@/components/ui/image-preview';
+import { toast } from '@/hooks/use-toast';
 
 interface CardFormData {
   name: string;
@@ -250,6 +251,12 @@ export function ManageCards() {
               onChange={(url) => {
                 console.log('Nova URL da imagem selecionada:', url);
                 setFormData({...formData, image_url: url});
+                if (url) {
+                  toast({
+                    title: "Sucesso",
+                    description: "Imagem selecionada com sucesso!"
+                  });
+                }
               }}
               onPathChange={(path) => setFormData({...formData, image_path: path})}
               label="Imagem da Carta"
