@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CoinBalance } from '@/components/ui/coin-balance';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { JoinClassByCode } from '@/components/student/JoinClassByCode';
 import { Button } from '@/components/ui/button';
 import { CardDisplay } from '@/components/cards/CardDisplay';
 import { Gift, BookOpen, Users, Trophy, Calendar, Loader2, Bot } from 'lucide-react';
@@ -249,6 +250,8 @@ export function StudentDashboard({ onSectionChange }: StudentDashboardProps) {
             )}
           </CardContent>
         </Card>
+
+        <JoinClassByCode />
 
         <Card>
           <CardHeader>

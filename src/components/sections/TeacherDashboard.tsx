@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { TeacherStats } from '@/components/teacher/TeacherStats';
 import { TeacherGiveCoinsForm } from '@/components/teacher/TeacherGiveCoinsForm';
 import { TeacherRecentRewards } from '@/components/teacher/TeacherRecentRewards';
+import { TeacherClassDashboard } from '@/components/teacher/TeacherClassDashboard';
+import { ClassCommunication } from '@/components/admin/ClassCommunication';
+import { ClassInviteManagement } from '@/components/admin/ClassInviteManagement';
+import { CSVImport } from '@/components/admin/CSVImport';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function TeacherDashboard() {
   const { profile } = useAuth();
@@ -72,30 +77,54 @@ export function TeacherDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold">
           Painel do Professor
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-muted-foreground mt-1">
           Bem-vindo, {profile.name}
         </p>
       </div>
 
-      <TeacherStats
-        todayCoinsGiven={todayCoinsGiven}
-        todayStudentsRewarded={todayStudentsRewarded}
-        totalStudents={students?.length || 0}
-        totalRewards={recentRewards?.length || 0}
-      />
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="communication">Comunicação</TabsTrigger>
+          <TabsTrigger value="management">Gestão</TabsTrigger>
+        </TabsList>
 
-      <TeacherGiveCoinsForm 
-        students={students}
-        teacherId={profile.id}
-        onSuccess={() => {
-          // Trigger refetch of queries
-        }}
-      />
+        <TabsContent value="overview" className="space-y-6">
+          <TeacherStats
+            todayCoinsGiven={todayCoinsGiven}
+            todayStudentsRewarded={todayStudentsRewarded}
+            totalStudents={students?.length || 0}
+            totalRewards={recentRewards?.length || 0}
+          />
 
-      <TeacherRecentRewards recentRewards={recentRewards} />
+          <TeacherGiveCoinsForm 
+            students={students}
+            teacherId={profile.id}
+            onSuccess={() => {}}
+          />
+
+          <TeacherRecentRewards recentRewards={recentRewards} />
+        </TabsContent>
+
+        <TabsContent value="dashboard">
+          <TeacherClassDashboard />
+        </TabsContent>
+
+        <TabsContent value="communication">
+          <ClassCommunication />
+        </TabsContent>
+
+        <TabsContent value="management" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <ClassInviteManagement />
+            <CSVImport />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -155,20 +155,8 @@ const Index = () => {
         return <MarketSection />;
       case 'manage-classes':
         return <ClassManagement />;
-      case 'card-history':
-        return <ExclusiveCardHistory />;
-      case 'achievements':
-        return <CardAchievements />;
-      case 'badge-ranking':
-        return <BadgeRanking />;
-      case 'match-history':
-        return <MatchHistory />;
       case 'mentorship':
         return <Mentorship />;
-      case 'mentorship-dashboard':
-        return <MentorshipDashboard />;
-      case 'class-reports':
-        return <ClassReports />;
       default:
         if (profile.role === 'student') return <StudentDashboard onSectionChange={setActiveSection} />;
         if (profile.role === 'teacher') return <TeacherDashboard />;

@@ -240,6 +240,124 @@ export type Database = {
           },
         ]
       }
+      class_invites: {
+        Row: {
+          class_id: string
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          invite_code: string
+          is_active: boolean | null
+          max_uses: number | null
+          uses_count: number | null
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          invite_code: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          uses_count?: number | null
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          invite_code?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          uses_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_invites_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_messages: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          message: string
+          sender_id: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          message: string
+          sender_id: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_messages_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_students: {
         Row: {
           added_at: string | null
@@ -2671,6 +2789,7 @@ export type Database = {
         Args: { admin_id: string; loan_id: string }
         Returns: Json
       }
+      generate_invite_code: { Args: never; Returns: string }
       generate_room_code: { Args: never; Returns: string }
       get_current_user_role: { Args: never; Returns: string }
       get_poll_results: {
