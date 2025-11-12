@@ -51,28 +51,15 @@ export function Rankings() {
   const { data: rankings, isLoading } = useQuery({
     queryKey: ['rankings-coins', isTeacherOrAdmin],
     queryFn: async () => {
-      if (isTeacherOrAdmin) {
-        // Admin/teacher can see all students
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, name, coins, created_at')
-          .eq('role', 'student')
-          .order('coins', { ascending: false })
-          .limit(10);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, coins, created_at')
+        .eq('role', 'student')
+        .order('coins', { ascending: false })
+        .limit(isTeacherOrAdmin ? 10 : 5);
 
-        if (error) throw error;
-        return data;
-      } else {
-        // Students see limited ranking
-        const { data, error } = await supabase
-          .from('rankings_secure')
-          .select('*')
-          .order('coins', { ascending: false })
-          .limit(5);
-
-        if (error) throw error;
-        return data;
-      }
+      if (error) throw error;
+      return data;
     },
   });
 

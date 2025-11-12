@@ -38,6 +38,8 @@ import { CardAchievements } from '@/components/cards/CardAchievements';
 import { BadgeRanking } from '@/components/quizzes/BadgeRanking';
 import { MatchHistory } from '@/components/quizzes/MatchHistory';
 import { Mentorship } from '@/components/sections/Mentorship';
+import { MentorshipDashboard } from '@/components/admin/MentorshipDashboard';
+import { ClassReports } from '@/components/reports/ClassReports';
 import { useAchievementNotifications } from '@/hooks/useAchievementNotifications';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -163,6 +165,10 @@ const Index = () => {
         return <MatchHistory />;
       case 'mentorship':
         return <Mentorship />;
+      case 'mentorship-dashboard':
+        return <MentorshipDashboard />;
+      case 'class-reports':
+        return <ClassReports />;
       default:
         if (profile.role === 'student') return <StudentDashboard onSectionChange={setActiveSection} />;
         if (profile.role === 'teacher') return <TeacherDashboard />;

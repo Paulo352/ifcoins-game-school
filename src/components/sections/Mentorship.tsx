@@ -8,7 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Star, Award, BookOpen, CheckCircle, XCircle, Clock, Coins } from 'lucide-react';
+import { Users, Star, Award, BookOpen, CheckCircle, XCircle, Clock, Coins, MessageSquare } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   useMentorships, 
   useAvailableMentors, 
@@ -30,10 +32,15 @@ export function Mentorship() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activityDialogOpen, setActivityDialogOpen] = useState(false);
   const [selectedMentorship, setSelectedMentorship] = useState<string | null>(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [activityForm, setActivityForm] = useState({
     activityType: 'session',
     description: '',
     coinsEarned: 10,
+  });
+  const [reviewForm, setReviewForm] = useState({
+    rating: 5,
+    comment: '',
   });
 
   const handleRequestMentorship = async () => {
@@ -55,6 +62,30 @@ export function Mentorship() {
     });
     setActivityDialogOpen(false);
     setActivityForm({ activityType: 'session', description: '', coinsEarned: 10 });
+  };
+
+  const handleSubmitReview = async () => {
+    if (!selectedMentorship) return;
+    
+    try {
+      const { error } = await supabase
+        .from('mentorship_reviews')
+        .insert({
+          mentorship_id: selectedMentorship,
+          reviewer_id: profile?.id,
+          rating: reviewForm.rating,
+          comment: reviewForm.comment,
+        });
+
+      if (error) throw error;
+
+      toast.success('Avaliação enviada com sucesso!');
+      setReviewDialogOpen(false);
+      setReviewForm({ rating: 5, comment: '' });
+    } catch (error: any) {
+      console.error('Erro ao enviar avaliação:', error);
+      toast.error(error.message || 'Erro ao enviar avaliação');
+    }
   };
 
   const activeMentorships = mentorships?.filter(m => m.status === 'active') || [];
@@ -285,6 +316,19 @@ export function Mentorship() {
                             Registrar Atividade
                           </Button>
                         )}
+                        {!iAmMentor && mentorship.status === 'completed' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedMentorship(mentorship.id);
+                              setReviewDialogOpen(true);
+                            }}
+                          >
+                            <MessageSquare className="h-4 w-4 mr-1" />
+                            Avaliar
+                          </Button>
+                        )}
                       </div>
                     </div>
                     
@@ -356,6 +400,51 @@ export function Mentorship() {
 
             <Button onClick={handleCreateActivity} className="w-full">
               Registrar Atividade
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para avaliar mentoria */}
+      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Avaliar Mentoria</DialogTitle>
+            <DialogDescription>
+              Avalie a experiência com seu mentor
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Avaliação</Label>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((rating) => (
+                  <button
+                    key={rating}
+                    type="button"
+                    onClick={() => setReviewForm({ ...reviewForm, rating })}
+                    className={`text-2xl ${
+                      rating <= reviewForm.rating ? 'text-yellow-500' : 'text-gray-300'
+                    }`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Comentário (Opcional)</Label>
+              <Textarea
+                value={reviewForm.comment}
+                onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                placeholder="Compartilhe sua experiência com a mentoria..."
+                rows={4}
+              />
+            </div>
+
+            <Button onClick={handleSubmitReview} className="w-full">
+              Enviar Avaliação
             </Button>
           </div>
         </DialogContent>
