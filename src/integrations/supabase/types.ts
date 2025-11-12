@@ -2861,6 +2861,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      user_owns_card: {
+        Args: { _card_id: string; _user_id: string }
+        Returns: boolean
+      }
       validate_quiz_answer: {
         Args: {
           p_attempt_id: string
