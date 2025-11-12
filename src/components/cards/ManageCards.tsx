@@ -85,6 +85,8 @@ export function ManageCards() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('📝 Salvando carta com dados:', formData);
+    
     // Garantir que image_url não seja uma string vazia (usar null)
     const { image_path, ...cleanForm } = formData;
     const cardData = {
@@ -92,6 +94,8 @@ export function ManageCards() {
       image_url: cleanForm.image_url.trim() || null,
       available: true,
     };
+
+    console.log('📤 Dados finais enviados:', cardData);
 
     if (isEditing && editingCard) {
       await updateCard.mutateAsync({ id: editingCard.id, ...cardData });
@@ -250,7 +254,7 @@ export function ManageCards() {
               value={formData.image_url}
               onChange={(url) => {
                 console.log('Nova URL da imagem selecionada:', url);
-                setFormData({...formData, image_url: url});
+                setFormData(prev => ({...prev, image_url: url}));
                 if (url) {
                   toast({
                     title: "Sucesso",
@@ -258,7 +262,7 @@ export function ManageCards() {
                   });
                 }
               }}
-              onPathChange={(path) => setFormData({...formData, image_path: path})}
+              onPathChange={(path) => setFormData(prev => ({...prev, image_path: path}))}
               label="Imagem da Carta"
               placeholder="URL da imagem ou faça upload do seu dispositivo"
             />

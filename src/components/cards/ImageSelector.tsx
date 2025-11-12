@@ -32,8 +32,18 @@ export function ImageSelector({
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { uploadImage, deleteImage, isUploading } = useImageUpload();
-  const previewSrc = draftUrl || value;
+  const previewSrc = draftUrl || value || urlInput;
   const imageLoader = useImageLoader(previewSrc);
+
+  // Log para debug
+  console.log('🔍 ImageSelector state:', {
+    value,
+    urlInput,
+    draftUrl,
+    previewSrc,
+    uploadedPath,
+    hasImage: previewSrc !== ''
+  });
 
   useEffect(() => {
     imageLoader.updateSrc(previewSrc);
@@ -67,8 +77,10 @@ export function ImageSelector({
 
   // Sincronizar estado quando value for atualizado pelo componente pai
   useEffect(() => {
+    console.log('🔄 useEffect - Sincronizando:', { value, urlInput, valueEqualsUrlInput: value === urlInput });
     if (value && value === urlInput) {
       // O componente pai atualizou o value com nosso upload
+      console.log('✅ Sincronizado - limpando drafts');
       setDraftUrl('');
       setDraftPath('');
     }
