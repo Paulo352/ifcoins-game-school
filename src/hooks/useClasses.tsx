@@ -47,13 +47,46 @@ export function useClassStudents(classId: string) {
   return useQuery({
     queryKey: ['class-students', classId],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      console.log('📚 Buscando alunos da turma:', classId);
+      
+      const { data: classStudentsData, error } = await supabase
         .from('class_students')
-        .select('*, student:profiles!class_students_student_id_fkey(id, name, email, class)')
+        .select('*')
         .eq('class_id', classId);
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('❌ Erro ao buscar alunos da turma:', error);
+        throw error;
+      }
+
+      console.log('✅ Alunos encontrados:', classStudentsData);
+
+      // Buscar informações dos alunos separadamente
+      if (classStudentsData && classStudentsData.length > 0) {
+        const studentIds = classStudentsData.map(cs => cs.student_id);
+        
+        const { data: studentsData, error: studentsError } = await supabase
+          .from('profiles')
+          .select('id, name, email, class')
+          .in('id', studentIds);
+
+        if (studentsError) {
+          console.error('❌ Erro ao buscar perfis dos alunos:', studentsError);
+          throw studentsError;
+        }
+
+        const studentsMap = new Map(studentsData?.map(s => [s.id, s]) || []);
+
+        const enrichedData = classStudentsData.map(cs => ({
+          ...cs,
+          student: studentsMap.get(cs.student_id) || null
+        }));
+
+        console.log('✅ Dados enriquecidos:', enrichedData);
+        return enrichedData;
+      }
+
+      return classStudentsData || [];
     },
     enabled: !!classId
   });
