@@ -2781,6 +2781,10 @@ export type Database = {
         Returns: string
       }
       delete_event: { Args: { event_id: string }; Returns: boolean }
+      dreamlit_auth_admin_executor: {
+        Args: { command: string }
+        Returns: undefined
+      }
       early_loan_payment: {
         Args: { loan_id: string; user_id: string }
         Returns: Json

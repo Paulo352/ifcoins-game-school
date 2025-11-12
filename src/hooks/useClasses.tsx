@@ -6,13 +6,39 @@ export function useClasses() {
   return useQuery({
     queryKey: ['classes'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data: classesData, error } = await supabase
         .from('classes')
-        .select('*, profiles!classes_created_by_fkey(name), teacher:profiles!classes_teacher_id_fkey(name)')
+        .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('❌ Erro ao buscar turmas:', error);
+        throw error;
+      }
+
+      // Buscar informações dos professores separadamente
+      if (classesData && classesData.length > 0) {
+        const teacherIds = [...new Set(classesData.map(c => c.teacher_id).filter(Boolean))];
+        const creatorIds = [...new Set(classesData.map(c => c.created_by).filter(Boolean))];
+        const allIds = [...new Set([...teacherIds, ...creatorIds])];
+
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', allIds);
+
+        const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+
+        const enrichedData = classesData.map(cls => ({
+          ...cls,
+          teacher: cls.teacher_id ? profilesMap.get(cls.teacher_id) : null,
+          creator: cls.created_by ? profilesMap.get(cls.created_by) : null
+        }));
+
+        return enrichedData;
+      }
+
+      return classesData || [];
     }
   });
 }
