@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Coins, Award, Calendar, Star } from 'lucide-react';
+import { Coins, Award, Calendar, Star, Users } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateCoins } from '@/hooks/useUpdateCoins';
 import { useTeacherDailyLimit } from '@/hooks/useTeacherDailyLimit';
@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
+import { useClasses, useClassStudents } from '@/hooks/useClasses';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface TeacherGiveCoinsFormProps {
   students: any[] | undefined;
@@ -23,7 +25,9 @@ interface TeacherGiveCoinsFormProps {
 }
 
 export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: TeacherGiveCoinsFormProps) {
+  const [recipientType, setRecipientType] = useState<'individual' | 'class'>('individual');
   const [selectedStudentEmail, setSelectedStudentEmail] = useState('');
+  const [selectedClassId, setSelectedClassId] = useState('');
   const [coinsAmount, setCoinsAmount] = useState('');
   const [reason, setReason] = useState('');
   const [rewardType, setRewardType] = useState<'coins' | 'card'>('coins');
@@ -32,6 +36,8 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
   const { dailyCoins, dailyLimit, remainingCoins, percentageUsed, refetch: refetchLimit } = useTeacherDailyLimit();
   const { activeEvent, multiplier, hasActiveEvent } = useActiveEvent();
   const queryClient = useQueryClient();
+  const { data: classes } = useClasses();
+  const { data: classStudents } = useClassStudents(selectedClassId);
 
   const { data: cards } = useQuery({
     queryKey: ['available-cards'],
@@ -74,10 +80,29 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
   }, [teacherId, refetchLimit, queryClient]);
 
   const handleGiveReward = async () => {
-    if (!selectedStudentEmail || !reason) {
+    // Validações básicas
+    if (!reason) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha todos os campos",
+        description: "Informe o motivo da recompensa",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (recipientType === 'individual' && !selectedStudentEmail) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Selecione um estudante",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (recipientType === 'class' && !selectedClassId) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Selecione uma turma",
         variant: "destructive"
       });
       return;
@@ -101,6 +126,72 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
       return;
     }
 
+    // Processar recompensa para turma
+    if (recipientType === 'class') {
+      if (!classStudents || classStudents.length === 0) {
+        toast({
+          title: "Turma vazia",
+          description: "Não há alunos nesta turma",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const totalAmount = parseInt(coinsAmount);
+      if (totalAmount <= 0) {
+        toast({
+          title: "Quantidade inválida",
+          description: "Informe uma quantidade válida de moedas",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Calcular moedas por aluno (dividir total)
+      const coinsPerStudent = Math.floor(totalAmount / classStudents.length);
+      const finalCoinsPerStudent = calculateBonusCoins(coinsPerStudent);
+      const totalCoinsToDistribute = finalCoinsPerStudent * classStudents.length;
+
+      // Verificar limite diário
+      const newTotal = dailyCoins + totalCoinsToDistribute;
+      if (newTotal > dailyLimit) {
+        toast({
+          title: "Limite diário atingido",
+          description: `Esta distribuição ultrapassaria seu limite diário (${newTotal}/${dailyLimit} moedas)`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Dar moedas para cada aluno da turma
+      let successCount = 0;
+      for (const classStudent of classStudents) {
+        const studentName = (classStudent as any).student?.name || 'Aluno';
+        const success = await giveCoins(
+          classStudent.student_id,
+          coinsPerStudent,
+          `${reason} (Turma)`,
+          teacherId,
+          studentName
+        );
+        if (success) successCount++;
+      }
+
+      if (successCount > 0) {
+        toast({
+          title: "Moedas distribuídas!",
+          description: `${successCount} alunos receberam ${coinsPerStudent} moedas cada (${totalCoinsToDistribute} total)`,
+        });
+        setSelectedClassId('');
+        setCoinsAmount('');
+        setReason('');
+        onSuccess();
+        refetchLimit();
+      }
+      return;
+    }
+
+    // Processar recompensa individual
     const selectedStudent = students?.find(s => s.email === selectedStudentEmail);
     if (!selectedStudent) {
       toast({
@@ -259,6 +350,23 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
 
         <div className="space-y-4">
           <div>
+            <Label>Destinatário</Label>
+            <RadioGroup value={recipientType} onValueChange={(v: any) => setRecipientType(v)}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="individual" id="individual" />
+                <Label htmlFor="individual" className="cursor-pointer">Aluno Individual</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="class" id="class" />
+                <Label htmlFor="class" className="cursor-pointer flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  Turma Inteira (dividir moedas)
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div>
             <Label>Tipo de Recompensa</Label>
             <Select value={rewardType} onValueChange={(v: any) => setRewardType(v)}>
               <SelectTrigger>
@@ -271,43 +379,81 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="student">Email do Estudante</Label>
-            <Input
-              id="student"
-              placeholder="estudante@estudantes.ifpr.edu.br"
-              value={selectedStudentEmail}
-              onChange={(e) => setSelectedStudentEmail(e.target.value)}
-              list="students-list"
-            />
-            <datalist id="students-list">
-              {students?.map((student) => (
-                <option key={student.id} value={student.email}>
-                  {student.name} - {student.email}
-                </option>
-              ))}
-            </datalist>
-          </div>
+          {recipientType === 'individual' ? (
+            <div className="space-y-2">
+              <Label htmlFor="student">Email do Estudante</Label>
+              <Input
+                id="student"
+                placeholder="estudante@estudantes.ifpr.edu.br"
+                value={selectedStudentEmail}
+                onChange={(e) => setSelectedStudentEmail(e.target.value)}
+                list="students-list"
+              />
+              <datalist id="students-list">
+                {students?.map((student) => (
+                  <option key={student.id} value={student.email}>
+                    {student.name} - {student.email}
+                  </option>
+                ))}
+              </datalist>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label>Selecionar Turma</Label>
+              <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha uma turma" />
+                </SelectTrigger>
+                <SelectContent>
+                  {classes?.map((cls: any) => (
+                    <SelectItem key={cls.id} value={cls.id}>
+                      {cls.name} ({cls.description || 'Sem descrição'})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedClassId && classStudents && (
+                <p className="text-xs text-muted-foreground">
+                  📊 {classStudents.length} aluno(s) nesta turma
+                </p>
+              )}
+            </div>
+          )}
 
           {rewardType === 'coins' ? (
             <div className="space-y-2">
               <Label htmlFor="coins">
-              Quantidade de Moedas (1-50)
-              {hasActiveEvent && coinsAmount && (
-                <span className="text-purple-600 font-medium ml-1">
-                  → {calculateBonusCoins(parseInt(coinsAmount))} com bônus {multiplier}x
-                </span>
+                {recipientType === 'class' ? 'Total de Moedas (será dividido)' : 'Quantidade de Moedas (1-50)'}
+                {hasActiveEvent && coinsAmount && (
+                  <span className="text-purple-600 font-medium ml-1">
+                    → {calculateBonusCoins(parseInt(coinsAmount))} com bônus {multiplier}x
+                  </span>
+                )}
+              </Label>
+              <Input
+                id="coins"
+                type="number"
+                min="1"
+                max={recipientType === 'class' ? undefined : 50}
+                placeholder={recipientType === 'class' ? '100' : '5'}
+                value={coinsAmount}
+                onChange={(e) => setCoinsAmount(e.target.value)}
+              />
+              {recipientType === 'class' && selectedClassId && classStudents && coinsAmount && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    <strong>Divisão:</strong> {Math.floor(parseInt(coinsAmount) / classStudents.length)} moedas por aluno
+                    {hasActiveEvent && (
+                      <span className="text-purple-600">
+                        {' '}(com bônus: {calculateBonusCoins(Math.floor(parseInt(coinsAmount) / classStudents.length))} cada)
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Total a distribuir: {calculateBonusCoins(Math.floor(parseInt(coinsAmount) / classStudents.length)) * classStudents.length} moedas
+                  </p>
+                </div>
               )}
-            </Label>
-            <Input
-              id="coins"
-              type="number"
-              min="1"
-              max="50"
-              placeholder="5"
-              value={coinsAmount}
-              onChange={(e) => setCoinsAmount(e.target.value)}
-            />
             </div>
           ) : (
             <div className="space-y-2">
