@@ -38,6 +38,7 @@ const sidebarItems: SidebarItem[] = [
   { icon: Bot, label: 'IA Tutor', id: 'ai-tutor', roles: ['student', 'teacher', 'admin'] },
   { icon: Trophy, label: 'Rankings', id: 'rankings', roles: ['student', 'teacher', 'admin'] },
   { icon: Calendar, label: 'Eventos', id: 'events', roles: ['student', 'teacher', 'admin'] },
+  { icon: Users, label: 'Mentoria', id: 'mentorship', roles: ['student'] },
   { icon: Users, label: 'Gerenciar Turmas', id: 'manage-classes', roles: ['teacher', 'admin'] },
   { icon: Trophy, label: 'Conquistas', id: 'achievements', roles: ['student'] },
   { icon: BookOpen, label: 'Histórico de Cartas', id: 'card-history', roles: ['student', 'teacher', 'admin'] },

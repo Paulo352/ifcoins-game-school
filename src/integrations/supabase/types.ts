@@ -804,6 +804,120 @@ export type Database = {
           },
         ]
       }
+      mentorship_activities: {
+        Row: {
+          activity_type: string
+          coins_earned: number
+          created_at: string
+          description: string
+          id: string
+          mentorship_id: string
+        }
+        Insert: {
+          activity_type: string
+          coins_earned?: number
+          created_at?: string
+          description: string
+          id?: string
+          mentorship_id: string
+        }
+        Update: {
+          activity_type?: string
+          coins_earned?: number
+          created_at?: string
+          description?: string
+          id?: string
+          mentorship_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentorship_activities_mentorship_id_fkey"
+            columns: ["mentorship_id"]
+            isOneToOne: false
+            referencedRelation: "mentorships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentorships: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          mentee_feedback: string | null
+          mentee_id: string
+          mentor_id: string
+          mentor_notes: string | null
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          mentee_feedback?: string | null
+          mentee_id: string
+          mentor_id: string
+          mentor_notes?: string | null
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          mentee_feedback?: string | null
+          mentee_id?: string
+          mentor_id?: string
+          mentor_notes?: string | null
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentorships_mentee_id_fkey"
+            columns: ["mentee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentorships_mentee_id_fkey"
+            columns: ["mentee_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentorships_mentee_id_fkey"
+            columns: ["mentee_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentorships_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentorships_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_secure"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentorships_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "rankings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       multiplayer_match_history: {
         Row: {
           created_at: string
