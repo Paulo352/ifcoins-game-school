@@ -147,8 +147,8 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
         return;
       }
 
-      // Calcular moedas por aluno (dividir total)
-      const coinsPerStudent = Math.floor(totalAmount / classStudents.length);
+      // Calcular moedas por aluno (dividir total e arredondar para cima)
+      const coinsPerStudent = Math.ceil(totalAmount / classStudents.length);
       const finalCoinsPerStudent = calculateBonusCoins(coinsPerStudent);
       const totalCoinsToDistribute = finalCoinsPerStudent * classStudents.length;
 
