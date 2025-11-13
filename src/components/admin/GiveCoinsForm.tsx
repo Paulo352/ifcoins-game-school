@@ -145,12 +145,36 @@ export function GiveCoinsForm({ users, onSuccess }: GiveCoinsFormProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Coins className="h-5 w-5" />
-          Creditar Moedas IFCoins
-        </CardTitle>
+    <>
+      {/* Card de destaque para turma */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-blue-100 rounded-lg">
+              <Users className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg text-blue-900 mb-1">
+                💡 Dar Moedas para Turma Inteira
+              </h3>
+              <p className="text-sm text-blue-700 mb-3">
+                Você pode distribuir moedas para todos os alunos de uma turma de uma vez! O total será dividido igualmente entre os alunos.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-blue-600">
+                <Star className="h-4 w-4" />
+                <span>Exemplo: 300 moedas para 3 alunos = 100 moedas cada</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="h-5 w-5" />
+            Creditar Moedas IFCoins
+          </CardTitle>
         <CardDescription>
           <div className="flex items-center justify-between">
             <span>Recompense usuários com moedas IFCoins</span>
@@ -294,5 +318,6 @@ export function GiveCoinsForm({ users, onSuccess }: GiveCoinsFormProps) {
         </Button>
       </CardContent>
     </Card>
+    </>
   );
 }
