@@ -19,7 +19,7 @@ export function MultiplayerQuizRoom() {
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [selectedQuizId, setSelectedQuizId] = useState<string>('');
   const [maxPlayers, setMaxPlayers] = useState<number>(10);
-  const [selectedClassId, setSelectedClassId] = useState<string>('');
+  const [selectedClassId, setSelectedClassId] = useState<string>('all');
   const [roomCode, setRoomCode] = useState<string>('');
 
   const { data: quizzes } = useActiveQuizzes();
@@ -35,7 +35,7 @@ export function MultiplayerQuizRoom() {
     const result = await createRoomMutation.mutateAsync({
       quizId: selectedQuizId,
       maxPlayers,
-      classId: selectedClassId || undefined
+      classId: selectedClassId && selectedClassId !== 'all' ? selectedClassId : undefined
     });
 
     if (result) {
@@ -135,12 +135,12 @@ export function MultiplayerQuizRoom() {
 
             <div className="space-y-2">
               <Label htmlFor="classId">Turma (Opcional)</Label>
-              <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+              <Select value={selectedClassId || 'all'} onValueChange={setSelectedClassId}>
                 <SelectTrigger id="classId">
                   <SelectValue placeholder="Aberto para todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aberto para todos</SelectItem>
+                  <SelectItem value="all">Aberto para todos</SelectItem>
                   {classes?.map((classItem) => (
                     <SelectItem key={classItem.id} value={classItem.id}>
                       {classItem.name}
