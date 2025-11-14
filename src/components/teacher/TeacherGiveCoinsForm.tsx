@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Coins, Award, Calendar, Star, Users } from 'lucide-react';
+import { Coins, Award, Calendar, Star, Users, Check, ChevronsUpDown } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateCoins } from '@/hooks/useUpdateCoins';
 import { useTeacherDailyLimit } from '@/hooks/useTeacherDailyLimit';
@@ -17,6 +17,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useClasses, useClassStudents } from '@/hooks/useClasses';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface TeacherGiveCoinsFormProps {
   students: any[] | undefined;
@@ -26,12 +29,14 @@ interface TeacherGiveCoinsFormProps {
 
 export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: TeacherGiveCoinsFormProps) {
   const [recipientType, setRecipientType] = useState<'individual' | 'class'>('individual');
+  const [selectedStudentId, setSelectedStudentId] = useState('');
   const [selectedStudentEmail, setSelectedStudentEmail] = useState('');
   const [selectedClassId, setSelectedClassId] = useState('');
   const [coinsAmount, setCoinsAmount] = useState('');
   const [reason, setReason] = useState('');
   const [rewardType, setRewardType] = useState<'coins' | 'card'>('coins');
   const [selectedCardId, setSelectedCardId] = useState('');
+  const [open, setOpen] = useState(false);
   const { giveCoins, loading, calculateBonusCoins } = useUpdateCoins();
   const { dailyCoins, dailyLimit, remainingCoins, percentageUsed, refetch: refetchLimit } = useTeacherDailyLimit();
   const { activeEvent, multiplier, hasActiveEvent } = useActiveEvent();
@@ -90,7 +95,7 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
       return;
     }
 
-    if (recipientType === 'individual' && !selectedStudentEmail) {
+    if (recipientType === 'individual' && !selectedStudentId) {
       toast({
         title: "Campos obrigatórios",
         description: "Selecione um estudante",
@@ -192,11 +197,11 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
     }
 
     // Processar recompensa individual
-    const selectedStudent = students?.find(s => s.email === selectedStudentEmail);
+    const selectedStudent = students?.find(s => s.id === selectedStudentId);
     if (!selectedStudent) {
       toast({
         title: "Estudante não encontrado",
-        description: "Verifique se o email está correto",
+        description: "Verifique se o aluno está selecionado corretamente",
         variant: "destructive"
       });
       return;
@@ -226,6 +231,7 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
         });
 
       toast({ title: "Carta entregue!", description: `Carta dada para ${selectedStudent.name}` });
+      setSelectedStudentId('');
       setSelectedStudentEmail('');
       setReason('');
       setSelectedCardId('');
@@ -273,6 +279,7 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
     );
     
     if (success) {
+      setSelectedStudentId('');
       setSelectedStudentEmail('');
       setCoinsAmount('');
       setReason('');
@@ -405,21 +412,54 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
 
           {recipientType === 'individual' ? (
             <div className="space-y-2">
-              <Label htmlFor="student">Email do Estudante</Label>
-              <Input
-                id="student"
-                placeholder="estudante@estudantes.ifpr.edu.br"
-                value={selectedStudentEmail}
-                onChange={(e) => setSelectedStudentEmail(e.target.value)}
-                list="students-list"
-              />
-              <datalist id="students-list">
-                {students?.map((student) => (
-                  <option key={student.id} value={student.email}>
-                    {student.name} - {student.email}
-                  </option>
-                ))}
-              </datalist>
+              <Label htmlFor="student">Selecionar Estudante</Label>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full justify-between"
+                  >
+                    {selectedStudentId
+                      ? students?.find((student) => student.id === selectedStudentId)?.name
+                      : "Buscar aluno por nome..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Digite pelo menos 3 letras..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum aluno encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {students?.map((student) => (
+                          <CommandItem
+                            key={student.id}
+                            value={student.name}
+                            onSelect={() => {
+                              setSelectedStudentId(student.id);
+                              setSelectedStudentEmail(student.email);
+                              setOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedStudentId === student.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <span>{student.name}</span>
+                              <span className="text-xs text-muted-foreground">{student.email}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           ) : (
             <div className="space-y-2">
