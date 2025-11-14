@@ -49,14 +49,13 @@ export function Rankings() {
   }, [queryClient]);
   
   const { data: rankings, isLoading } = useQuery({
-    queryKey: ['rankings-coins', isTeacherOrAdmin],
+    queryKey: ['rankings-coins'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, name, coins, created_at')
         .eq('role', 'student')
-        .order('coins', { ascending: false })
-        .limit(isTeacherOrAdmin ? 10 : 5);
+        .order('coins', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -64,7 +63,7 @@ export function Rankings() {
   });
 
   const { data: cardRankings } = useQuery({
-    queryKey: ['card-rankings', isTeacherOrAdmin],
+    queryKey: ['card-rankings'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_cards')
@@ -91,10 +90,8 @@ export function Rankings() {
         return acc;
       }, {});
 
-      const limit = isTeacherOrAdmin ? 10 : 5;
       return Object.values(userCardCounts)
-        .sort((a: any, b: any) => b.total_cards - a.total_cards)
-        .slice(0, limit);
+        .sort((a: any, b: any) => b.total_cards - a.total_cards);
     },
   });
 
@@ -133,10 +130,10 @@ export function Rankings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Coins className="h-5 w-5 text-yellow-600" />
-              Top {isTeacherOrAdmin ? '10' : '5'} - IFCoins
+              Rankings - IFCoins
             </CardTitle>
             <CardDescription>
-              Top {isTeacherOrAdmin ? '10' : '5'} estudantes com mais moedas
+              Todos os estudantes ordenados por moedas
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -171,10 +168,10 @@ export function Rankings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-purple-600" />
-              Top {isTeacherOrAdmin ? '10' : '5'} - Cartas
+              Rankings - Cartas
             </CardTitle>
             <CardDescription>
-              Top {isTeacherOrAdmin ? '10' : '5'} estudantes com mais cartas
+              Todos os estudantes ordenados por total de cartas
             </CardDescription>
           </CardHeader>
           <CardContent>

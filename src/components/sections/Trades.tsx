@@ -5,20 +5,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CoinBalance } from '@/components/ui/coin-balance';
-import { Plus, Send, Clock } from 'lucide-react';
+import { Plus, Send, Clock, Search, Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useTrades, useCreateTrade, useUpdateTradeStatus, useStudents } from '@/hooks/trades/useTrades';
 import { useUserCards } from '@/hooks/cards/useCards';
 import { CardSelector } from '@/components/trades/CardSelector';
 import { TradeCard } from '@/components/trades/TradeCard';
 import { useRealtimeTrades } from '@/hooks/useRealtimeTrades';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 export function Trades() {
   const { profile, user } = useAuth();
   useRealtimeTrades();
   const [isCreating, setIsCreating] = useState(false);
+  const [open, setOpen] = useState(false);
   const [newTrade, setNewTrade] = useState({
     to_user_id: '',
     offeredCards: {} as Record<string, number>,
@@ -157,18 +160,54 @@ export function Trades() {
           <CardContent className="space-y-6">
             <div>
               <Label htmlFor="tradeTo">Trocar com</Label>
-              <Select value={newTrade.to_user_id} onValueChange={(value) => setNewTrade({...newTrade, to_user_id: value})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um estudante" />
-                </SelectTrigger>
-                <SelectContent>
-                  {students.filter(student => student.id !== user?.id).map((student) => (
-                    <SelectItem key={student.id} value={student.id}>
-                      {student.name} ({student.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full justify-between"
+                  >
+                    {newTrade.to_user_id
+                      ? students.find((student) => student.id === newTrade.to_user_id)?.name
+                      : "Selecione um estudante..."}
+                    <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Buscar estudante..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum estudante encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {students
+                          .filter(student => student.id !== user?.id)
+                          .map((student) => (
+                            <CommandItem
+                              key={student.id}
+                              value={`${student.name} ${student.email}`}
+                              onSelect={() => {
+                                setNewTrade({...newTrade, to_user_id: student.id});
+                                setOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  newTrade.to_user_id === student.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div>
+                                <p className="font-medium">{student.name}</p>
+                                <p className="text-xs text-muted-foreground">{student.email}</p>
+                              </div>
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
