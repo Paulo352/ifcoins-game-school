@@ -96,7 +96,7 @@ export function SimpleManageQuizzes() {
           ...quiz,
           creator_name: 'Sistema',
           creator_role: 'admin'
-        })) as Quiz[];
+        } as any)) as Quiz[];
       }
       
       const { data: profiles, error: profilesError } = await supabase
@@ -116,7 +116,7 @@ export function SimpleManageQuizzes() {
           ...quiz,
           creator_name: creatorRole === 'admin' ? 'Sistema' : (creator?.name || 'Sistema'),
           creator_role: creatorRole
-        };
+        } as any;
       });
       
       console.log('✅ [SimpleManageQuizzes] Quizzes encontrados:', quizzesWithCreator?.length || 0);
