@@ -59,7 +59,7 @@ const sidebarGroups: SidebarGroup[] = [
     items: [
       { icon: HelpCircle, label: 'Quizzes', id: 'quizzes', roles: ['student', 'teacher', 'admin'] },
       { icon: Award, label: 'Ranking Badges', id: 'badge-ranking', roles: ['student'] },
-      { icon: History, label: 'Histórico Multiplayer', id: 'match-history', roles: ['student'] },
+      { icon: History, label: 'Histórico Multiplayer', id: 'match-history', roles: ['student'], maintenance: true },
     ]
   },
   // Grupo Cartas & Coleção (Estudantes)
@@ -92,8 +92,8 @@ const sidebarGroups: SidebarGroup[] = [
     icon: Bot,
     roles: ['student'],
     items: [
-      { icon: Bot, label: 'Tutor IA', id: 'ai-tutor', roles: ['student'] },
-      { icon: Users, label: 'Mentoria', id: 'mentorship', roles: ['student'] },
+      { icon: Bot, label: 'Tutor IA', id: 'ai-tutor', roles: ['student'], maintenance: true },
+      { icon: Users, label: 'Mentoria', id: 'mentorship', roles: ['student'], maintenance: true },
     ]
   },
   // Grupo Gestão de Turmas (Professores/Admins)
