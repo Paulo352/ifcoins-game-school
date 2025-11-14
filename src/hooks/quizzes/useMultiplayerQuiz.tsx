@@ -133,7 +133,11 @@ export function useCreateRoom() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ quizId, maxPlayers }: { quizId: string; maxPlayers: number }) => {
+    mutationFn: async ({ quizId, maxPlayers, classId }: { 
+      quizId: string; 
+      maxPlayers: number;
+      classId?: string;
+    }) => {
       // Gerar código da sala
       const { data: codeData, error: codeError } = await supabase.rpc('generate_room_code');
       if (codeError) throw codeError;
@@ -146,7 +150,8 @@ export function useCreateRoom() {
         .insert([{
           quiz_id: quizId,
           room_code: roomCode,
-          max_players: maxPlayers
+          max_players: maxPlayers,
+          class_id: classId
         } as any])
         .select()
         .single();

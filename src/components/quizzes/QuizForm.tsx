@@ -10,12 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useCreateQuiz, CreateQuizData } from '@/hooks/quizzes/useQuizzes';
+import { useClasses } from '@/hooks/useClasses';
 import { Plus, Minus, HelpCircle, Trash2 } from 'lucide-react';
 import { useNewCards } from '@/hooks/useNewCards';
 
 const questionSchema = z.object({
   question_text: z.string().min(1, 'Pergunta é obrigatória'),
-  question_type: z.enum(['multiple_choice', 'true_false', 'open_text']),
+  question_type: z.enum(['multiple_choice', 'true_false']),
   options: z.array(z.string()).optional(),
   correct_answer: z.string().min(1, 'Resposta correta é obrigatória'),
   points: z.number().min(1, 'Pontuação deve ser maior que 0'),
@@ -29,6 +30,7 @@ const quizSchema = z.object({
   reward_card_id: z.string().optional(),
   max_attempts: z.number().min(1).optional(),
   time_limit_minutes: z.number().min(1).optional(),
+  class_id: z.string().optional(),
   questions: z.array(questionSchema).min(1, 'Adicione pelo menos uma pergunta'),
 });
 
@@ -39,6 +41,7 @@ interface QuizFormProps {
 export function QuizForm({ onSuccess }: QuizFormProps) {
   const createQuiz = useCreateQuiz();
   const { data: cards } = useNewCards();
+  const { data: classes } = useClasses();
   const [rewardType, setRewardType] = useState<'coins' | 'card'>('coins');
 
   const form = useForm<z.infer<typeof quizSchema>>({
@@ -49,6 +52,7 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
       reward_type: 'coins',
       reward_coins: 10,
       reward_card_id: undefined,
+      class_id: undefined,
       max_attempts: 1,
       time_limit_minutes: undefined,
       questions: [{
@@ -89,6 +93,7 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
       reward_type: data.reward_type,
       reward_coins: data.reward_type === 'coins' ? data.reward_coins : 0,
       reward_card_id: data.reward_type === 'card' ? data.reward_card_id : undefined,
+      class_id: data.class_id,
       max_attempts: data.max_attempts,
       time_limit_minutes: data.time_limit_minutes,
       questions: data.questions.map(question => ({
@@ -205,6 +210,26 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
                 placeholder="Opcional"
               />
             </div>
+
+            <div>
+              <Label htmlFor="class_id">Turma (Opcional)</Label>
+              <Select
+                value={form.watch('class_id') || ''}
+                onValueChange={(value) => form.setValue('class_id', value || undefined)}
+              >
+                <SelectTrigger id="class_id">
+                  <SelectValue placeholder="Quiz para todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas as turmas</SelectItem>
+                  {classes?.map((classItem) => (
+                    <SelectItem key={classItem.id} value={classItem.id}>
+                      {classItem.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div>
@@ -268,7 +293,6 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
                         <SelectContent>
                           <SelectItem value="multiple_choice">Múltipla Escolha</SelectItem>
                           <SelectItem value="true_false">Verdadeiro/Falso</SelectItem>
-                          <SelectItem value="open_text">Texto Aberto</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -318,8 +342,7 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
                     </div>
                   )}
 
-                  {(form.watch(`questions.${index}.question_type`) === 'multiple_choice' ||
-                    form.watch(`questions.${index}.question_type`) === 'open_text') && (
+                  {form.watch(`questions.${index}.question_type`) === 'multiple_choice' && (
                     <div>
                       <Label>Resposta Correta</Label>
                       <Input
