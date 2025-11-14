@@ -4,6 +4,7 @@ import { QuizSystemMain } from './QuizSystemMain';
 import { SimpleManageQuizzes } from './SimpleManageQuizzes';
 import { QuizPerformanceReport } from '../reports/QuizPerformanceReport';
 import { MultiplayerQuizRoom } from './multiplayer/MultiplayerQuizRoom';
+import { MultiplayerMaintenanceScreen } from './multiplayer/MultiplayerMaintenanceScreen';
 import { CustomBadgesManagement } from './badges/CustomBadgesManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HelpCircle, Settings, BarChart3, Gamepad2, Award } from 'lucide-react';
@@ -78,7 +79,7 @@ export function QuizzesDashboard() {
           </TabsContent>
 
           <TabsContent value="multiplayer">
-            <MultiplayerQuizRoom />
+            <MultiplayerMaintenanceScreen />
           </TabsContent>
 
           <TabsContent value="badges">
@@ -107,7 +108,7 @@ export function QuizzesDashboard() {
           </TabsContent>
 
           <TabsContent value="multiplayer">
-            <MultiplayerQuizRoom />
+            <MultiplayerMaintenanceScreen />
           </TabsContent>
         </Tabs>
       )}
