@@ -214,14 +214,14 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
             <div>
               <Label htmlFor="class_id">Turma (Opcional)</Label>
               <Select
-                value={form.watch('class_id') || ''}
-                onValueChange={(value) => form.setValue('class_id', value || undefined)}
+                value={form.watch('class_id') || 'all'}
+                onValueChange={(value) => form.setValue('class_id', value === 'all' ? undefined : value)}
               >
                 <SelectTrigger id="class_id">
                   <SelectValue placeholder="Quiz para todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as turmas</SelectItem>
+                  <SelectItem value="all">Todas as turmas</SelectItem>
                   {classes?.map((classItem) => (
                     <SelectItem key={classItem.id} value={classItem.id}>
                       {classItem.name}
