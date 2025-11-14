@@ -138,6 +138,10 @@ export function useCreateRoom() {
       maxPlayers: number;
       classId?: string;
     }) => {
+      // Obter usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       // Gerar código da sala
       const { data: codeData, error: codeError } = await supabase.rpc('generate_room_code');
       if (codeError) throw codeError;
@@ -151,7 +155,8 @@ export function useCreateRoom() {
           quiz_id: quizId,
           room_code: roomCode,
           max_players: maxPlayers,
-          class_id: classId
+          class_id: classId,
+          created_by: user.id
         } as any])
         .select()
         .single();
