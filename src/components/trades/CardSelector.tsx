@@ -23,9 +23,11 @@ export function CardSelector({
 }: CardSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredCards = userCards.filter(userCard =>
-    userCard.card.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCards = userCards
+    .filter((userCard) => Boolean(userCard.card))
+    .filter((userCard) =>
+      (userCard.card?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
@@ -42,7 +44,7 @@ export function CardSelector({
   };
 
   const canIncrease = (cardId: string) => {
-    const userCard = userCards.find(uc => uc.card.id === cardId);
+    const userCard = userCards.find(uc => uc.card?.id === cardId);
     const currentSelected = selectedCards[cardId] || 0;
     return userCard && currentSelected < userCard.quantity;
   };
