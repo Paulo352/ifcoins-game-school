@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useActiveQuizzes } from '@/hooks/quizzes/useQuizManagement';
 import { useCreateRoom, useActiveRooms } from '@/hooks/quizzes/useMultiplayerQuiz';
+import { useClasses } from '@/hooks/useClasses';
 import { MultiplayerQuizLobby } from './MultiplayerQuizLobby';
 import { MultiplayerQuizGame } from './MultiplayerQuizGame';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,9 +19,11 @@ export function MultiplayerQuizRoom() {
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [selectedQuizId, setSelectedQuizId] = useState<string>('');
   const [maxPlayers, setMaxPlayers] = useState<number>(10);
+  const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [roomCode, setRoomCode] = useState<string>('');
 
   const { data: quizzes } = useActiveQuizzes();
+  const { data: classes } = useClasses();
   const { data: activeRooms, isLoading } = useActiveRooms();
   const createRoomMutation = useCreateRoom();
 
@@ -31,7 +34,8 @@ export function MultiplayerQuizRoom() {
 
     const result = await createRoomMutation.mutateAsync({
       quizId: selectedQuizId,
-      maxPlayers
+      maxPlayers,
+      classId: selectedClassId || undefined
     });
 
     if (result) {
@@ -119,17 +123,27 @@ export function MultiplayerQuizRoom() {
 
             <div className="space-y-2">
               <Label htmlFor="maxPlayers">Máximo de Jogadores</Label>
-              <Select 
-                value={maxPlayers.toString()} 
-                onValueChange={(val) => setMaxPlayers(parseInt(val))}
-              >
-                <SelectTrigger id="maxPlayers">
-                  <SelectValue />
+              <Input
+                id="maxPlayers"
+                type="number"
+                value={maxPlayers}
+                onChange={(e) => setMaxPlayers(Number(e.target.value))}
+                min={2}
+                max={50}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="classId">Turma (Opcional)</Label>
+              <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+                <SelectTrigger id="classId">
+                  <SelectValue placeholder="Aberto para todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[5, 10, 15, 20, 30].map((num) => (
-                    <SelectItem key={num} value={num.toString()}>
-                      {num} jogadores
+                  <SelectItem value="">Aberto para todos</SelectItem>
+                  {classes?.map((classItem) => (
+                    <SelectItem key={classItem.id} value={classItem.id}>
+                      {classItem.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

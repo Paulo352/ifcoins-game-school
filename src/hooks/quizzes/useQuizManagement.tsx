@@ -9,6 +9,7 @@ export interface Quiz {
   reward_coins: number;
   reward_type: string;
   reward_card_id: string | null;
+  class_id: string | null;
   max_attempts: number | null;
   time_limit_minutes: number | null;
   is_active: boolean;
@@ -21,7 +22,7 @@ export interface QuizQuestion {
   id: string;
   quiz_id: string;
   question_text: string;
-  question_type: 'multiple_choice' | 'true_false' | 'open_text';
+  question_type: 'multiple_choice' | 'true_false';
   options: string[] | null;
   points: number;
   question_order: number;
@@ -33,11 +34,12 @@ export interface CreateQuizData {
   reward_type: 'coins' | 'card';
   reward_coins: number;
   reward_card_id?: string;
+  class_id?: string;
   max_attempts?: number;
   time_limit_minutes?: number;
   questions: Array<{
     question_text: string;
-    question_type: 'multiple_choice' | 'true_false' | 'open_text';
+    question_type: 'multiple_choice' | 'true_false';
     options?: string[];
     correct_answer: string;
     points: number;
@@ -97,6 +99,7 @@ export function useCreateQuiz() {
           reward_type: quizData.reward_type,
           reward_coins: quizData.reward_coins,
           reward_card_id: quizData.reward_card_id,
+          class_id: quizData.class_id,
           max_attempts: quizData.max_attempts,
           time_limit_minutes: quizData.time_limit_minutes,
           created_by: user.id,

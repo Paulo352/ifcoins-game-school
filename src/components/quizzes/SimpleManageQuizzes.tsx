@@ -21,7 +21,7 @@ interface QuizForm {
   time_limit_minutes: number;
   questions: {
     question_text: string;
-    question_type: 'multiple_choice' | 'true_false' | 'open_text';
+    question_type: 'multiple_choice' | 'true_false';
     options?: string[];
     correct_answer: string;
     points: number;
@@ -399,7 +399,7 @@ export function SimpleManageQuizzes() {
         ...prev,
         questions: questions.map(q => ({
           question_text: q.question_text,
-          question_type: q.question_type as 'multiple_choice' | 'true_false' | 'open_text',
+          question_type: q.question_type as 'multiple_choice' | 'true_false',
           options: q.options && Array.isArray(q.options) 
             ? q.options.map(opt => String(opt)) 
             : ['', '', '', ''],
@@ -535,7 +535,7 @@ export function SimpleManageQuizzes() {
                     <label className="text-sm font-medium">Tipo da Pergunta</label>
                     <Select
                       value={question.question_type}
-                      onValueChange={(value: 'multiple_choice' | 'true_false' | 'open_text') => {
+                      onValueChange={(value: 'multiple_choice' | 'true_false') => {
                         const newQuestions = [...form.questions];
                         newQuestions[index].question_type = value;
                         // Resetar opções baseado no tipo
@@ -553,7 +553,6 @@ export function SimpleManageQuizzes() {
                       <SelectContent>
                         <SelectItem value="multiple_choice">Múltipla Escolha</SelectItem>
                         <SelectItem value="true_false">Verdadeiro/Falso</SelectItem>
-                        <SelectItem value="open_text">Texto Aberto</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
