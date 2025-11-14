@@ -31,6 +31,7 @@ interface SidebarItem {
   label: string;
   id: string;
   roles: ('student' | 'teacher' | 'admin')[];
+  maintenance?: boolean;
 }
 
 interface SidebarGroup {
@@ -69,8 +70,8 @@ const sidebarGroups: SidebarGroup[] = [
     items: [
       { icon: Gift, label: 'Loja de Cartas', id: 'shop', roles: ['student'] },
       { icon: BookOpen, label: 'Minha Coleção', id: 'collection', roles: ['student'] },
-      { icon: Trophy, label: 'Conquistas', id: 'achievements', roles: ['student'] },
-      { icon: BookOpen, label: 'Histórico Cartas', id: 'card-history', roles: ['student'] },
+      { icon: Trophy, label: 'Conquistas', id: 'achievements', roles: ['student'], maintenance: true },
+      { icon: BookOpen, label: 'Histórico Cartas', id: 'card-history', roles: ['student'], maintenance: true },
     ]
   },
   // Grupo Atividades (Estudantes)
@@ -80,8 +81,8 @@ const sidebarGroups: SidebarGroup[] = [
     roles: ['student'],
     items: [
       { icon: ArrowLeftRight, label: 'Trocas', id: 'trades', roles: ['student'] },
-      { icon: Building2, label: 'IFBank', id: 'bank', roles: ['student'] },
-      { icon: ShoppingBag, label: 'IFMarket', id: 'market', roles: ['student'] },
+      { icon: Building2, label: 'IFBank', id: 'bank', roles: ['student'], maintenance: true },
+      { icon: ShoppingBag, label: 'IFMarket', id: 'market', roles: ['student'], maintenance: true },
       { icon: Trophy, label: 'Rankings', id: 'rankings', roles: ['student', 'teacher', 'admin'] },
     ]
   },
@@ -235,20 +236,27 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
                           {group.items.map((item) => {
                             const Icon = item.icon;
                             const isActive = activeSection === item.id;
+                            const isInMaintenance = item.maintenance;
                             
                             return (
                               <button
                                 key={item.id}
-                                onClick={() => onSectionChange(item.id)}
+                                onClick={() => !isInMaintenance && onSectionChange(item.id)}
+                                disabled={isInMaintenance}
                                 className={cn(
                                   "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors border text-sm",
-                                  isActive 
-                                    ? "bg-sidebar-accent text-sidebar-accent-foreground border-sidebar-accent" 
-                                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground border-transparent hover:border-sidebar-border"
+                                  isInMaintenance
+                                    ? "text-muted-foreground/40 bg-muted/20 border-transparent cursor-not-allowed opacity-60"
+                                    : isActive 
+                                      ? "bg-sidebar-accent text-sidebar-accent-foreground border-sidebar-accent" 
+                                      : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground border-transparent hover:border-sidebar-border"
                                 )}
                               >
                                 <Icon className="h-4 w-4 flex-shrink-0 ml-2" />
                                 <span>{item.label}</span>
+                                {isInMaintenance && (
+                                  <span className="ml-auto text-xs text-muted-foreground/40">Em manutenção</span>
+                                )}
                               </button>
                             );
                           })}
