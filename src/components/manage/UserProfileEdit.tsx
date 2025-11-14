@@ -23,6 +23,7 @@ export function UserProfileEdit({ user, onSuccess, canEdit }: UserProfileEditPro
     name: user.name,
     ra: user.ra || '',
     class: user.class || '',
+    newPassword: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,6 +32,7 @@ export function UserProfileEdit({ user, onSuccess, canEdit }: UserProfileEditPro
 
     setLoading(true);
     try {
+      // Atualizar perfil
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -43,18 +45,59 @@ export function UserProfileEdit({ user, onSuccess, canEdit }: UserProfileEditPro
 
       if (error) throw error;
 
+      // Se uma nova senha foi fornecida, resetá-la
+      if (formData.newPassword && formData.newPassword.trim() !== '') {
+        if (formData.newPassword.length < 6) {
+          toast({
+            title: "Erro",
+            description: "A senha deve ter pelo menos 6 caracteres.",
+            variant: "destructive"
+          });
+          setLoading(false);
+          return;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('Não autenticado');
+        }
+
+        const response = await fetch(
+          `https://bcopgknrpjenixejhlfz.supabase.co/functions/v1/admin-reset-user-password`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              newPassword: formData.newPassword,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Erro ao alterar senha');
+        }
+      }
+
       toast({
         title: "Perfil atualizado!",
-        description: "As informações do usuário foram atualizadas com sucesso.",
+        description: formData.newPassword 
+          ? "As informações do usuário e a senha foram atualizadas com sucesso."
+          : "As informações do usuário foram atualizadas com sucesso.",
       });
 
       setIsOpen(false);
+      setFormData(prev => ({ ...prev, newPassword: '' }));
       onSuccess();
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o perfil do usuário.",
+        description: error instanceof Error ? error.message : "Não foi possível atualizar o perfil do usuário.",
         variant: "destructive"
       });
     } finally {
@@ -115,6 +158,20 @@ export function UserProfileEdit({ user, onSuccess, canEdit }: UserProfileEditPro
                 placeholder="Turma do aluno"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="newPassword">Nova Senha (opcional)</Label>
+            <Input
+              id="newPassword"
+              type="password"
+              value={formData.newPassword}
+              onChange={(e) => handleInputChange('newPassword', e.target.value)}
+              placeholder="Digite uma nova senha (mín. 6 caracteres)"
+            />
+            <p className="text-xs text-muted-foreground">
+              Deixe em branco se não quiser alterar a senha
+            </p>
           </div>
 
           <div className="bg-muted/50 rounded-lg p-3">
