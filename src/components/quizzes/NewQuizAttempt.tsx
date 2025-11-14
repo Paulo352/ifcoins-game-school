@@ -175,11 +175,11 @@ export function NewQuizAttempt({
       return (
         <RadioGroup value={currentAnswer} onValueChange={setCurrentAnswer}>
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="Verdadeiro" id="true" />
+            <RadioGroupItem value="true" id="true" />
             <Label htmlFor="true" className="cursor-pointer">Verdadeiro</Label>
           </div>
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="Falso" id="false" />
+            <RadioGroupItem value="false" id="false" />
             <Label htmlFor="false" className="cursor-pointer">Falso</Label>
           </div>
         </RadioGroup>
