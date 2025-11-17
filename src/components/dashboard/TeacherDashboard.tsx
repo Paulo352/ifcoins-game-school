@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Coins, Users, Clock, Award, TrendingUp, Calendar } from 'lucide-react';
+import { Coins, Users, Clock, Award, TrendingUp, Calendar, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { QuizReports } from '@/components/quizzes/QuizReports';
 import { TeacherClassDashboard } from '@/components/teacher/TeacherClassDashboard';
@@ -127,6 +127,39 @@ export function TeacherDashboard() {
       return data;
     },
     enabled: profile?.role === 'teacher',
+  });
+
+  const { data: cardRankings } = useQuery({
+    queryKey: ['card-rankings-teacher'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_cards')
+        .select(`
+          user_id,
+          quantity,
+          profiles!inner(id, name, role)
+        `)
+        .eq('profiles.role', 'student');
+      
+      if (error) throw error;
+      
+      // Agrupar por usuário e somar total de cartas
+      const userCardCounts = data.reduce((acc: any, card: any) => {
+        const userId = card.user_id;
+        if (!acc[userId]) {
+          acc[userId] = {
+            user_id: userId,
+            name: card.profiles.name,
+            total_cards: 0,
+          };
+        }
+        acc[userId].total_cards += card.quantity;
+        return acc;
+      }, {});
+
+      return Object.values(userCardCounts)
+        .sort((a: any, b: any) => b.total_cards - a.total_cards);
+    },
   });
 
   if (!profile || profile.role !== 'teacher') return null;
@@ -306,7 +339,51 @@ export function TeacherDashboard() {
       </div>
 
       {/* Class Dashboard */}
-      <TeacherClassDashboard />
+      {/* TeacherClassDashboard e Rankings */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TeacherClassDashboard />
+        
+        {/* Ranking de Cartas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              Top 5 - Colecionadores
+            </CardTitle>
+            <CardDescription>
+              Alunos com mais cartas coletadas
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {cardRankings && cardRankings.length > 0 ? (
+              <div className="space-y-3">
+                {cardRankings.slice(0, 5).map((rank: any, index: number) => (
+                  <div key={rank.user_id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                        index === 0 ? 'bg-yellow-500' :
+                        index === 1 ? 'bg-gray-400' :
+                        index === 2 ? 'bg-amber-600' :
+                        'bg-gray-300'
+                      }`}>
+                        <span className="text-white font-bold text-sm">{index + 1}</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{rank.name}</p>
+                        <p className="text-xs text-muted-foreground">{rank.total_cards} cartas</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Nenhum dado disponível ainda
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Tips */}
       <Card>
