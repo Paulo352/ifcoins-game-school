@@ -73,6 +73,7 @@ export function CardSelector({
             </p>
           ) : (
             filteredCards.map((userCard) => {
+              if (!userCard.card) return null;
               const selectedQuantity = selectedCards[userCard.card.id] || 0;
               
               return (
@@ -125,8 +126,8 @@ export function CardSelector({
               {Object.entries(selectedCards)
                 .filter(([_, quantity]) => quantity > 0)
                 .map(([cardId, quantity]) => {
-                  const userCard = userCards.find(uc => uc.card.id === cardId);
-                  return userCard ? (
+                  const userCard = userCards.find(uc => uc.card?.id === cardId);
+                  return userCard?.card ? (
                     <div key={cardId} className="flex justify-between text-xs">
                       <span>{userCard.card.name}</span>
                       <span className="font-medium">{quantity}x</span>
