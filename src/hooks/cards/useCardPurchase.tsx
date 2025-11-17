@@ -21,13 +21,7 @@ export function useCardPurchase() {
     try {
       console.log('Tentando comprar carta:', { userId, cardId, cardName });
 
-      // Primeiro, chamar a Edge Function para corrigir a função buy_card
-      const { error: fixError } = await supabase.functions.invoke('fix-buy-card');
-      if (fixError) {
-        console.log('Aviso: Não foi possível corrigir a função RPC:', fixError);
-      }
-
-      // Tentar usar a função RPC buy_card corrigida
+      // Tentar usar a função RPC buy_card
       const { data: result, error: rpcError } = await supabase.rpc('buy_card', {
         card_id: cardId,
         user_id: userId
