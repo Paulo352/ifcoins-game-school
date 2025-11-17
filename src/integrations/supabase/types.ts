@@ -1881,6 +1881,7 @@ export type Database = {
       }
       quiz_rooms: {
         Row: {
+          class_id: string | null
           created_at: string | null
           created_by: string
           finished_at: string | null
@@ -1893,6 +1894,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          class_id?: string | null
           created_at?: string | null
           created_by: string
           finished_at?: string | null
@@ -1905,6 +1907,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          class_id?: string | null
           created_at?: string | null
           created_by?: string
           finished_at?: string | null
@@ -1918,6 +1921,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "quiz_rooms_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "quiz_rooms_quiz_id_fkey"
             columns: ["quiz_id"]
             isOneToOne: false
@@ -1928,6 +1938,7 @@ export type Database = {
       }
       quizzes: {
         Row: {
+          class_id: string | null
           created_at: string | null
           created_by: string
           description: string | null
@@ -1942,6 +1953,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          class_id?: string | null
           created_at?: string | null
           created_by: string
           description?: string | null
@@ -1956,6 +1968,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          class_id?: string | null
           created_at?: string | null
           created_by?: string
           description?: string | null
@@ -1970,6 +1983,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "quizzes_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quizzes_reward_card_id_fkey"
             columns: ["reward_card_id"]
