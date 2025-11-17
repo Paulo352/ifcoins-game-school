@@ -47,7 +47,7 @@ export function QuizzesDashboard() {
 
       {isAdminOrTeacher ? (
         <Tabs defaultValue="manage" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="manage" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
               Gerenciar
@@ -59,10 +59,6 @@ export function QuizzesDashboard() {
             <TabsTrigger value="multiplayer" className="flex items-center gap-2">
               <Gamepad2 className="w-4 h-4" />
               Multiplayer
-            </TabsTrigger>
-            <TabsTrigger value="badges" className="flex items-center gap-2">
-              <Award className="w-4 h-4" />
-              Badges
             </TabsTrigger>
             <TabsTrigger value="student-view" className="flex items-center gap-2">
               <HelpCircle className="w-4 h-4" />
@@ -80,10 +76,6 @@ export function QuizzesDashboard() {
 
           <TabsContent value="multiplayer">
             <MultiplayerMaintenanceScreen />
-          </TabsContent>
-
-          <TabsContent value="badges">
-            <CustomBadgesManagement />
           </TabsContent>
 
           <TabsContent value="student-view">

@@ -128,7 +128,7 @@ export function Header({ onSectionChange, currentSection, activeSection }: Heade
                 <span>Configurações {profile.role === 'admin' ? 'Admin' : ''}</span>
               </DropdownMenuItem>
               
-              {profile.role !== 'student' && (
+              {profile.role === 'admin' && (
                 <>
                   <DropdownMenuItem 
                     onClick={() => onSectionChange?.('profile')}
@@ -138,15 +138,13 @@ export function Header({ onSectionChange, currentSection, activeSection }: Heade
                     <span>Perfil</span>
                   </DropdownMenuItem>
 
-                  {profile.role === 'admin' && (
-                    <DropdownMenuItem 
-                      onClick={() => onSectionChange?.('analytics')}
-                      className="text-popover-foreground hover:bg-accent"
-                    >
-                      <Shield className="mr-2 h-4 w-4" />
-                      <span>Relatórios e Analytics</span>
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem 
+                    onClick={() => onSectionChange?.('analytics')}
+                    className="text-popover-foreground hover:bg-accent"
+                  >
+                    <Shield className="mr-2 h-4 w-4" />
+                    <span>Relatórios e Analytics</span>
+                  </DropdownMenuItem>
                   
                   <DropdownMenuItem 
                     onClick={handleTestNotification}

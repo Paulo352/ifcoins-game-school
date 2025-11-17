@@ -4,81 +4,87 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileDown, Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FileDown, Loader2, Users, Trophy, Clock, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ifprLogo from '@/assets/ifpr-logo.png';
+import { useClasses } from '@/hooks/useClasses';
 
-interface QuizPerformanceReportProps {
-  studentId?: string;
-}
-
-export function QuizPerformanceReport({ studentId }: QuizPerformanceReportProps) {
+export function QuizPerformanceReport() {
   const { profile } = useAuth();
   const [generating, setGenerating] = useState(false);
-  const targetStudentId = studentId || profile?.id;
+  const [selectedClassId, setSelectedClassId] = useState<string>('all');
+  const { data: classes } = useClasses();
 
-  const { data: studentData } = useQuery({
-    queryKey: ['student-report-data', targetStudentId],
+  const { data: reportData, isLoading } = useQuery({
+    queryKey: ['quiz-performance-report', selectedClassId],
     queryFn: async () => {
-      if (!targetStudentId) return null;
-
-      const { data: student, error: studentError } = await supabase
+      let studentsQuery = supabase
         .from('profiles')
-        .select('*')
-        .eq('id', targetStudentId)
-        .single();
+        .select('id, name, class')
+        .eq('role', 'student');
 
-      if (studentError) throw studentError;
+      // Filtrar por turma se selecionada
+      if (selectedClassId !== 'all') {
+        const { data: classStudents } = await supabase
+          .from('class_students')
+          .select('student_id')
+          .eq('class_id', selectedClassId);
+        
+        const studentIds = classStudents?.map(cs => cs.student_id) || [];
+        if (studentIds.length === 0) return null;
+        
+        studentsQuery = studentsQuery.in('id', studentIds);
+      }
 
+      const { data: students, error: studentsError } = await studentsQuery;
+      if (studentsError) throw studentsError;
+      if (!students || students.length === 0) return null;
+
+      const studentIds = students.map(s => s.id);
+
+      // Buscar tentativas de quiz
       const { data: attempts, error: attemptsError } = await supabase
         .from('quiz_attempts')
-        .select(`
-          *,
-          quiz:quizzes(title)
-        `)
-        .eq('user_id', targetStudentId)
-        .order('started_at', { ascending: false });
+        .select('*')
+        .in('user_id', studentIds)
+        .eq('is_completed', true);
 
       if (attemptsError) throw attemptsError;
 
-      const { data: badges, error: badgesError } = await supabase
-        .from('user_badge_progress')
-        .select('*')
-        .eq('user_id', targetStudentId);
-
-      if (badgesError && badgesError.code !== 'PGRST116') throw badgesError;
-
-      const { data: rank, error: rankError } = await supabase
-        .from('user_ranks')
-        .select('*')
-        .eq('user_id', targetStudentId)
-        .maybeSingle();
-
-      if (rankError && rankError.code !== 'PGRST116') throw rankError;
-
-      const { data: matches, error: matchesError } = await supabase
-        .from('multiplayer_match_history')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (matchesError) throw matchesError;
-
-      return {
-        student,
-        attempts: attempts || [],
-        badges: badges || [],
-        rank,
-        matches: matches || [],
+      // Calcular estatísticas
+      const stats = {
+        totalStudents: students.length,
+        totalQuizzes: attempts?.length || 0,
+        totalTimeSeconds: attempts?.reduce((sum, a) => sum + (a.time_taken_seconds || 0), 0) || 0,
+        totalCorrect: attempts?.reduce((sum, a) => sum + a.correct_answers, 0) || 0,
+        totalQuestions: attempts?.reduce((sum, a) => sum + a.total_questions, 0) || 0,
+        students: students.map(student => {
+          const studentAttempts = attempts?.filter(a => a.user_id === student.id) || [];
+          const totalQuestions = studentAttempts.reduce((sum, a) => sum + a.total_questions, 0);
+          const totalCorrect = studentAttempts.reduce((sum, a) => sum + a.correct_answers, 0);
+          
+          return {
+            id: student.id,
+            name: student.name,
+            class: student.class,
+            quizzesDone: studentAttempts.length,
+            averageAccuracy: totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0,
+            averageTime: studentAttempts.length > 0 
+              ? studentAttempts.reduce((sum, a) => sum + (a.time_taken_seconds || 0), 0) / studentAttempts.length 
+              : 0,
+          };
+        }).sort((a, b) => b.averageAccuracy - a.averageAccuracy),
       };
+
+      return stats;
     },
-    enabled: !!targetStudentId,
   });
 
   const generatePDF = async () => {
-    if (!studentData) {
+    if (!reportData) {
       toast.error('Dados não disponíveis');
       return;
     }
@@ -86,142 +92,248 @@ export function QuizPerformanceReport({ studentId }: QuizPerformanceReportProps)
     setGenerating(true);
 
     try {
-      const { student, attempts, badges, rank, matches } = studentData;
       const doc = new jsPDF();
       const now = new Date();
       const dateStr = now.toLocaleDateString('pt-BR');
 
+      // Cabeçalho
       doc.addImage(ifprLogo, 'PNG', 15, 10, 30, 30);
       doc.setFontSize(18);
-      doc.text('Relatório de Desempenho do Aluno', 50, 20);
+      doc.text('Relatório de Desempenho em Quizzes', 50, 20);
       doc.setFontSize(12);
       doc.text(`Data: ${dateStr}`, 50, 28);
-      doc.text(`Aluno: ${student.name}`, 50, 35);
+      doc.text(`Professor: ${profile?.name}`, 50, 35);
 
+      if (selectedClassId !== 'all') {
+        const selectedClass = classes?.find(c => c.id === selectedClassId);
+        if (selectedClass) {
+          doc.text(`Turma: ${selectedClass.name}`, 50, 42);
+        }
+      }
+
+      // Estatísticas Gerais
       doc.setFontSize(14);
-      doc.text('Informações Gerais', 20, 50);
+      doc.text('Estatísticas Gerais', 20, selectedClassId !== 'all' ? 55 : 50);
+
+      const averageAccuracy = reportData.totalQuestions > 0 
+        ? ((reportData.totalCorrect / reportData.totalQuestions) * 100).toFixed(1)
+        : '0.0';
       
+      const averageTime = reportData.totalQuizzes > 0
+        ? Math.round(reportData.totalTimeSeconds / reportData.totalQuizzes)
+        : 0;
+
       const generalData = [
-        ['Nome', student.name],
-        ['Email', student.email],
-        ['Turma', student.class || 'N/A'],
-        ['RA', student.ra || 'N/A'],
-        ['IFCoins', student.coins.toString()],
-        ['Rank', rank?.current_rank || 'Iniciante'],
-        ['Pontos', rank?.total_points?.toString() || '0'],
+        ['Total de Alunos', reportData.totalStudents.toString()],
+        ['Total de Quizzes Respondidos', reportData.totalQuizzes.toString()],
+        ['Média de Acerto Geral', `${averageAccuracy}%`],
+        ['Tempo Médio por Quiz', `${Math.floor(averageTime / 60)}m ${averageTime % 60}s`],
       ];
 
       autoTable(doc, {
-        startY: 55,
-        head: [['Campo', 'Valor']],
+        startY: selectedClassId !== 'all' ? 60 : 55,
+        head: [['Métrica', 'Valor']],
         body: generalData,
         theme: 'grid',
       });
 
-      const completedAttempts = attempts.filter(a => a.is_completed);
-      if (completedAttempts.length > 0) {
-        doc.setFontSize(14);
-        doc.text('Desempenho em Quizzes', 20, (doc as any).lastAutoTable.finalY + 15);
+      // Desempenho por Aluno
+      doc.setFontSize(14);
+      const lastTableY = (doc as any).lastAutoTable.finalY || 100;
+      doc.text('Desempenho por Aluno', 20, lastTableY + 10);
 
-        const avgScore = completedAttempts.reduce((acc, a) => acc + (a.score / a.total_questions), 0) / completedAttempts.length;
-        const totalCoins = completedAttempts.reduce((acc, a) => acc + a.coins_earned, 0);
+      const studentData = reportData.students.map(s => [
+        s.name,
+        s.quizzesDone.toString(),
+        `${s.averageAccuracy.toFixed(1)}%`,
+        `${Math.floor(s.averageTime / 60)}m ${Math.round(s.averageTime % 60)}s`,
+      ]);
 
-        const quizStats = [
-          ['Total de Quizzes Realizados', completedAttempts.length.toString()],
-          ['Taxa Média de Acerto', `${(avgScore * 100).toFixed(1)}%`],
-          ['Total de Moedas Ganhas', totalCoins.toString()],
-          ['Melhor Desempenho', `${Math.max(...completedAttempts.map(a => (a.score / a.total_questions) * 100)).toFixed(1)}%`],
-        ];
+      autoTable(doc, {
+        startY: lastTableY + 15,
+        head: [['Aluno', 'Quizzes', 'Média Acerto', 'Tempo Médio']],
+        body: studentData,
+        theme: 'striped',
+      });
 
-        autoTable(doc, {
-          startY: (doc as any).lastAutoTable.finalY + 20,
-          head: [['Métrica', 'Valor']],
-          body: quizStats,
-          theme: 'grid',
-        });
-
-        doc.setFontSize(14);
-        doc.text('Últimas Tentativas (Top 10)', 20, (doc as any).lastAutoTable.finalY + 15);
-
-        const attemptsData = completedAttempts.slice(0, 10).map(a => [
-          a.quiz?.title || 'Quiz',
-          `${a.correct_answers}/${a.total_questions}`,
-          `${((a.score / a.total_questions) * 100).toFixed(1)}%`,
-          new Date(a.started_at).toLocaleDateString('pt-BR'),
-        ]);
-
-        autoTable(doc, {
-          startY: (doc as any).lastAutoTable.finalY + 20,
-          head: [['Quiz', 'Acertos', 'Taxa', 'Data']],
-          body: attemptsData,
-          theme: 'grid',
-        });
-      }
-
-      if (badges.length > 0) {
-        doc.addPage();
-        doc.setFontSize(14);
-        doc.text('Progresso de Badges', 20, 20);
-
-        const badgesData = badges.map(b => [
-          'Badge',
-          b.current_level || 'bronze',
-          b.current_progress.toString(),
-          new Date(b.created_at).toLocaleDateString('pt-BR'),
-        ]);
-
-        autoTable(doc, {
-          startY: 25,
-          head: [['Nome', 'Nível', 'Progresso', 'Data']],
-          body: badgesData,
-          theme: 'grid',
-        });
-      }
-
-      const fileName = `Relatorio_${student.name.replace(/\s/g, '_')}_${dateStr.replace(/\//g, '-')}.pdf`;
-      doc.save(fileName);
-
-      toast.success('Relatório PDF gerado com sucesso!');
+      doc.save(`relatorio-quizzes-${dateStr}.pdf`);
+      toast.success('Relatório gerado com sucesso!');
     } catch (error) {
-      console.error('Erro ao gerar relatório:', error);
-      toast.error('Erro ao gerar relatório PDF');
+      console.error('Erro ao gerar PDF:', error);
+      toast.error('Erro ao gerar relatório');
     } finally {
       setGenerating(false);
     }
   };
 
-  if (!profile) return null;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!reportData) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Relatório de Desempenho em Quizzes</CardTitle>
+          <CardDescription>Nenhum dado disponível</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            Não há quizzes respondidos{selectedClassId !== 'all' ? ' para esta turma' : ''} ainda.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const averageAccuracy = reportData.totalQuestions > 0 
+    ? ((reportData.totalCorrect / reportData.totalQuestions) * 100).toFixed(1)
+    : '0.0';
+  
+  const averageTime = reportData.totalQuizzes > 0
+    ? Math.round(reportData.totalTimeSeconds / reportData.totalQuizzes)
+    : 0;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileDown className="h-5 w-5" />
-          Relatório de Desempenho
-        </CardTitle>
-        <CardDescription>
-          Exportar relatório completo com estatísticas de desempenho
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button 
-          onClick={generatePDF} 
-          disabled={generating || !studentData}
-          className="w-full"
-        >
-          {generating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Gerando PDF...
-            </>
-          ) : (
-            <>
-              <FileDown className="mr-2 h-4 w-4" />
-              Exportar Relatório PDF
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Relatório de Desempenho em Quizzes</CardTitle>
+              <CardDescription>Visualize o desempenho dos alunos em quizzes</CardDescription>
+            </div>
+            <Button onClick={generatePDF} disabled={generating}>
+              {generating ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <FileDown className="mr-2 h-4 w-4" />
+              )}
+              Exportar PDF
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-6">
+            <label className="text-sm font-medium mb-2 block">Filtrar por Turma</label>
+            <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+              <SelectTrigger className="w-full md:w-64">
+                <SelectValue placeholder="Selecione uma turma" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Turmas</SelectItem>
+                {classes?.map((cls) => (
+                  <SelectItem key={cls.id} value={cls.id}>
+                    {cls.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Estatísticas Gerais */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-blue-600" />
+                  <CardTitle className="text-sm">Alunos</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{reportData.totalStudents}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-green-600" />
+                  <CardTitle className="text-sm">Quizzes Feitos</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{reportData.totalQuizzes}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-purple-600" />
+                  <CardTitle className="text-sm">Média de Acerto</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{averageAccuracy}%</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-orange-600" />
+                  <CardTitle className="text-sm">Tempo Médio</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {Math.floor(averageTime / 60)}m {averageTime % 60}s
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Tabela de Alunos */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Desempenho por Aluno</h3>
+            <div className="border rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Posição</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Aluno</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Turma</th>
+                      <th className="px-4 py-3 text-center text-sm font-medium">Quizzes</th>
+                      <th className="px-4 py-3 text-center text-sm font-medium">Média Acerto</th>
+                      <th className="px-4 py-3 text-center text-sm font-medium">Tempo Médio</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {reportData.students.map((student, index) => (
+                      <tr key={student.id} className="hover:bg-muted/50">
+                        <td className="px-4 py-3 text-sm font-medium">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}º`}
+                        </td>
+                        <td className="px-4 py-3 text-sm">{student.name}</td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground">
+                          {student.class || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center">{student.quizzesDone}</td>
+                        <td className="px-4 py-3 text-sm text-center">
+                          <span className={`font-medium ${
+                            student.averageAccuracy >= 70 ? 'text-green-600' : 'text-orange-600'
+                          }`}>
+                            {student.averageAccuracy.toFixed(1)}%
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center">
+                          {Math.floor(student.averageTime / 60)}m {Math.round(student.averageTime % 60)}s
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -154,15 +154,14 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
 
       // Calcular moedas por aluno (dividir total e arredondar para cima)
       const coinsPerStudent = Math.ceil(totalAmount / classStudents.length);
-      const finalCoinsPerStudent = calculateBonusCoins(coinsPerStudent);
-      const totalCoinsToDistribute = finalCoinsPerStudent * classStudents.length;
+      const totalBaseCoinsToDistribute = coinsPerStudent * classStudents.length;
 
-      // Verificar limite diário
-      const newTotal = dailyCoins + totalCoinsToDistribute;
+      // Verificar limite diário (apenas valor base, sem bônus)
+      const newTotal = dailyCoins + totalBaseCoinsToDistribute;
       if (newTotal > dailyLimit) {
         toast({
           title: "Limite diário atingido",
-          description: `Esta distribuição ultrapassaria seu limite diário (${newTotal}/${dailyLimit} moedas)`,
+          description: `Esta distribuição ultrapassaria seu limite diário (${newTotal}/${dailyLimit} moedas base)`,
           variant: "destructive"
         });
         return;
@@ -183,9 +182,11 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
       }
 
       if (successCount > 0) {
+        const finalCoinsPerStudent = calculateBonusCoins(coinsPerStudent);
+        const totalWithBonus = finalCoinsPerStudent * successCount;
         toast({
           title: "Moedas distribuídas!",
-          description: `${successCount} alunos receberam ${coinsPerStudent} moedas cada (${totalCoinsToDistribute} total)`,
+          description: `${successCount} alunos receberam ${coinsPerStudent} moedas cada (${totalBaseCoinsToDistribute} base${hasActiveEvent ? `, ${totalWithBonus} com bônus` : ''})`,
         });
         setSelectedClassId('');
         setCoinsAmount('');
@@ -249,22 +250,22 @@ export function TeacherGiveCoinsForm({ students, teacherId, onSuccess }: Teacher
       return;
     }
 
-    // Verificar limite diário do professor
-    const finalAmount = calculateBonusCoins(amount);
-    const newTotal = dailyCoins + finalAmount;
+    // Verificar limite diário do professor (apenas valor base, sem bônus)
+    const newTotal = dailyCoins + amount;
     
     console.log('🔍 Verificando limite:', {
       dailyCoins,
-      finalAmount,
+      amount,
       newTotal,
       dailyLimit,
-      excedeLimite: newTotal > dailyLimit
+      excedeLimite: newTotal > dailyLimit,
+      bonusMultiplier: hasActiveEvent ? multiplier : 1
     });
     
     if (newTotal > dailyLimit) {
       toast({
         title: "Limite diário atingido",
-        description: `Você já distribuiu ${dailyCoins} de ${dailyLimit} moedas hoje. Esta ação ultrapassaria seu limite (${newTotal} moedas no total).`,
+        description: `Você já distribuiu ${dailyCoins} de ${dailyLimit} moedas hoje. Esta ação ultrapassaria seu limite (${newTotal} moedas base).`,
         variant: "destructive"
       });
       return;
