@@ -128,41 +128,43 @@ export function Header({ onSectionChange, currentSection, activeSection }: Heade
                 <span>Configurações {profile.role === 'admin' ? 'Admin' : ''}</span>
               </DropdownMenuItem>
               
-              <DropdownMenuItem 
-                onClick={() => onSectionChange?.('profile')}
-                className="text-popover-foreground hover:bg-accent"
-              >
-                <User className="mr-2 h-4 w-4" />
-                <span>Perfil</span>
-              </DropdownMenuItem>
-
-              {profile.role === 'admin' && (
+              {profile.role !== 'student' && (
                 <>
                   <DropdownMenuItem 
-                    onClick={() => onSectionChange?.('analytics')}
+                    onClick={() => onSectionChange?.('profile')}
                     className="text-popover-foreground hover:bg-accent"
                   >
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span>Relatórios e Analytics</span>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Perfil</span>
+                  </DropdownMenuItem>
+
+                  {profile.role === 'admin' && (
+                    <DropdownMenuItem 
+                      onClick={() => onSectionChange?.('analytics')}
+                      className="text-popover-foreground hover:bg-accent"
+                    >
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span>Relatórios e Analytics</span>
+                    </DropdownMenuItem>
+                  )}
+                  
+                  <DropdownMenuItem 
+                    onClick={handleTestNotification}
+                    className="text-popover-foreground hover:bg-accent"
+                  >
+                    <Bell className="mr-2 h-4 w-4" />
+                    <span>Testar Notificação</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem 
+                    onClick={() => onSectionChange?.('help')}
+                    className="text-popover-foreground hover:bg-accent"
+                  >
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    <span>Ajuda</span>
                   </DropdownMenuItem>
                 </>
               )}
-              
-              <DropdownMenuItem 
-                onClick={handleTestNotification}
-                className="text-popover-foreground hover:bg-accent"
-              >
-                <Bell className="mr-2 h-4 w-4" />
-                <span>Testar Notificação</span>
-              </DropdownMenuItem>
-              
-              <DropdownMenuItem 
-                onClick={() => onSectionChange?.('help')}
-                className="text-popover-foreground hover:bg-accent"
-              >
-                <HelpCircle className="mr-2 h-4 w-4" />
-                <span>Ajuda</span>
-              </DropdownMenuItem>
               
               <DropdownMenuSeparator className="bg-border" />
               

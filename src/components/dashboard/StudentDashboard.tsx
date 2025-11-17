@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { JoinClassByCode } from '@/components/student/JoinClassByCode';
 import { Button } from '@/components/ui/button';
 import { CardDisplay } from '@/components/cards/CardDisplay';
-import { Gift, BookOpen, Users, Trophy, Calendar, Loader2, Bot } from 'lucide-react';
+import { Gift, BookOpen, Users, Trophy, Calendar, Loader2 } from 'lucide-react';
 import { RankDisplay } from './RankDisplay';
 import { QuizPerformanceReport } from '@/components/reports/QuizPerformanceReport';
 
@@ -157,7 +157,7 @@ export function StudentDashboard({ onSectionChange }: StudentDashboardProps) {
         <CoinBalance balance={profile.coins} showAnimation />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => onSectionChange('shop')}>
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
@@ -179,18 +179,6 @@ export function StudentDashboard({ onSectionChange }: StudentDashboardProps) {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600">{totalCards} cartas coletadas</p>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => onSectionChange('ai-tutor')}>
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">IA Tutor</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600">Ajuda personalizada e dicas de estudo</p>
           </CardContent>
         </Card>
 
