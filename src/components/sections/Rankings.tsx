@@ -33,7 +33,7 @@ export function Rankings() {
         {
           event: '*',
           schema: 'public',
-          table: 'user_cards',
+          table: 'cards',
         },
         (payload) => {
           console.log('🔄 Cartas atualizadas, atualizando rankings:', payload);
@@ -66,27 +66,28 @@ export function Rankings() {
     queryKey: ['card-rankings'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('user_cards')
+        .from('cards')
         .select(`
-          user_id,
-          quantity,
-          profiles!inner(id, name, role)
+          assigned_to,
+          profiles!cards_assigned_to_fkey(id, name, role)
         `)
-        .eq('profiles.role', 'student');
+        .not('assigned_to', 'is', null);
       
       if (error) throw error;
       
-      // Agrupar por usuário e somar total de cartas
+      // Agrupar por usuário e contar total de cartas
       const userCardCounts = data.reduce((acc: any, card: any) => {
-        const userId = card.user_id;
-        if (!acc[userId]) {
-          acc[userId] = {
-            user_id: userId,
-            name: card.profiles.name,
-            total_cards: 0,
-          };
+        if (card.profiles && card.profiles.role === 'student') {
+          const userId = card.assigned_to;
+          if (!acc[userId]) {
+            acc[userId] = {
+              user_id: userId,
+              name: card.profiles.name,
+              total_cards: 0,
+            };
+          }
+          acc[userId].total_cards += 1;
         }
-        acc[userId].total_cards += card.quantity;
         return acc;
       }, {});
 
