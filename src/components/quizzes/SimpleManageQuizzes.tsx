@@ -129,7 +129,7 @@ export function SimpleManageQuizzes() {
   
   console.log('🎯 [SimpleManageQuizzes] Quiz selecionado para resultados:', selectedQuiz?.title);
 
-  if (selectedQuiz) {
+  if (selectedQuizForResults && selectedQuiz) {
     console.log('🎯 [SimpleManageQuizzes] Renderizando QuizAttemptsList para quiz:', selectedQuiz.title);
     return (
       <QuizAttemptsList

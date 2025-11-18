@@ -338,75 +338,86 @@ export function TeacherDashboard() {
         </Card>
       </div>
 
-      {/* Class Dashboard */}
-      {/* TeacherClassDashboard e Rankings */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TeacherClassDashboard />
-        
-        {/* Ranking de Cartas */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" />
-              Top 5 - Colecionadores
-            </CardTitle>
-            <CardDescription>
-              Alunos com mais cartas coletadas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {cardRankings && cardRankings.length > 0 ? (
-              <div className="space-y-3">
-                {cardRankings.slice(0, 5).map((rank: any, index: number) => (
-                  <div key={rank.user_id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                        index === 0 ? 'bg-yellow-500' :
-                        index === 1 ? 'bg-gray-400' :
-                        index === 2 ? 'bg-amber-600' :
-                        'bg-gray-300'
-                      }`}>
-                        <span className="text-white font-bold text-sm">{index + 1}</span>
+      {/* Conditional rendering: Show Quiz Reports or Dashboard */}
+      {showQuizReports ? (
+        <QuizReports onBack={() => setShowQuizReports(false)} />
+      ) : (
+        <>
+          {/* Class Dashboard */}
+          {/* TeacherClassDashboard e Rankings */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TeacherClassDashboard />
+            
+            {/* Ranking de Cartas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-yellow-500" />
+                  Top 5 - Colecionadores
+                </CardTitle>
+                <CardDescription>
+                  Alunos com mais cartas coletadas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {cardRankings && cardRankings.length > 0 ? (
+                  <div className="space-y-3">
+                    {cardRankings.slice(0, 5).map((rank: any, index: number) => (
+                      <div key={rank.user_id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                            index === 0 ? 'bg-yellow-500' :
+                            index === 1 ? 'bg-gray-400' :
+                            index === 2 ? 'bg-amber-600' :
+                            'bg-gray-300'
+                          }`}>
+                            <span className="text-white font-bold text-sm">{index + 1}</span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{rank.student_name || 'Aluno'}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {rank.total_cards} {rank.total_cards === 1 ? 'carta' : 'cartas'}
+                            </p>
+                          </div>
+                        </div>
+                        <Trophy className="h-5 w-5 text-yellow-500" />
                       </div>
-                      <div>
-                        <p className="font-medium text-sm">{rank.name}</p>
-                        <p className="text-xs text-muted-foreground">{rank.total_cards} cartas</p>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhum dado disponível ainda
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tips */}
-      <Card>
-        <CardHeader>
-          <CardTitle>💡 Dicas para Professores</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Gerenciar Estudantes</h4>
-              <p className="text-sm text-blue-700">
-                Use motivos pré-definidos para recompensas rápidas e consistentes.
-              </p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-medium text-green-900 mb-2">Dar Moedas Especiais</h4>
-              <p className="text-sm text-green-700">
-                Reserve para atividades extracurriculares e casos únicos.
-              </p>
-            </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Trophy className="h-8 w-8 mx-auto mb-2" />
+                    <p className="text-sm">Nenhuma carta coletada ainda</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Tips Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>💡 Dicas para Professores</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">Gerenciar Estudantes</h4>
+                  <p className="text-sm text-blue-700">
+                    Use motivos pré-definidos para recompensas rápidas e consistentes.
+                  </p>
+                </div>
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <h4 className="font-medium text-green-900 mb-2">Dar Moedas Especiais</h4>
+                  <p className="text-sm text-green-700">
+                    Reserve para atividades extracurriculares e casos únicos.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
