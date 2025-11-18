@@ -28,6 +28,7 @@ export function QuizReports({ onBack }: QuizReportsProps) {
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
+  // All hooks must be at the top before any conditional returns
   const { data: quizzes, isLoading: loadingQuizzes } = useQuery({
     queryKey: ['quizzes-for-reports'],
     queryFn: async () => {
@@ -83,35 +84,42 @@ export function QuizReports({ onBack }: QuizReportsProps) {
     queryFn: async () => {
       if (!selectedQuizId) return [];
 
-      const { data, error } = await supabase
+      const { data: attemptsData, error } = await supabase
         .from('quiz_attempts')
-        .select(`
-          id,
-          user_id,
-          score,
-          total_questions,
-          is_completed,
-          completed_at,
-          profiles (
-            id,
-            name,
-            email,
-            ra,
-            class
-          )
-        `)
+        .select('id, user_id, score, total_questions, is_completed, completed_at')
         .eq('quiz_id', selectedQuizId)
         .eq('is_completed', true);
 
       if (error) throw error;
+      if (!attemptsData || attemptsData.length === 0) return [];
+
+      // Get unique student IDs
+      const studentIds = [...new Set(attemptsData.map(a => a.user_id))];
+      
+      // Fetch student profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, email, ra, class')
+        .in('id', studentIds);
+
+      if (profilesError) throw profilesError;
+
+      // Create profiles map
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
 
       // Group by student
       const studentMap = new Map();
-      data?.forEach((attempt: any) => {
+      attemptsData.forEach((attempt: any) => {
         const studentId = attempt.user_id;
+        const profile = profilesMap.get(studentId);
+        
         if (!studentMap.has(studentId)) {
           studentMap.set(studentId, {
-            ...attempt.profiles,
+            id: studentId,
+            name: profile?.name || 'Aluno',
+            email: profile?.email || '',
+            ra: profile?.ra || null,
+            class: profile?.class || null,
             attempts: [],
             bestScore: 0,
             totalAttempts: 0,
