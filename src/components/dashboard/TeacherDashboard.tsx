@@ -8,7 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { QuizReports } from '@/components/quizzes/QuizReports';
 import { TeacherClassDashboard } from '@/components/teacher/TeacherClassDashboard';
 
-export function TeacherDashboard() {
+interface TeacherDashboardProps {
+  onSectionChange?: (section: string) => void;
+}
+
+export function TeacherDashboard({ onSectionChange }: TeacherDashboardProps) {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
   const [showQuizReports, setShowQuizReports] = useState(false);
@@ -281,13 +285,14 @@ export function TeacherDashboard() {
                 <p className="text-xs text-muted-foreground">Para casos especiais</p>
               </div>
               
-              <a href="#rankings" className="block">
-                <div className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
-                  <Calendar className="h-6 w-6 mb-2 text-purple-600" />
-                  <p className="font-medium text-sm">Rankings</p>
-                  <p className="text-xs text-muted-foreground">Ver classificações de estudantes</p>
-                </div>
-              </a>
+              <div 
+                className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                onClick={() => onSectionChange?.('rankings')}
+              >
+                <Calendar className="h-6 w-6 mb-2 text-purple-600" />
+                <p className="font-medium text-sm">Rankings</p>
+                <p className="text-xs text-muted-foreground">Ver classificações de estudantes</p>
+              </div>
               
               <div 
                 className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
