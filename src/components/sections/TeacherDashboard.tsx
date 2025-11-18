@@ -11,7 +11,11 @@ import { ClassInviteManagement } from '@/components/admin/ClassInviteManagement'
 import { CSVImport } from '@/components/admin/CSVImport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export function TeacherDashboard() {
+interface TeacherDashboardProps {
+  onSectionChange?: (section: string) => void;
+}
+
+export function TeacherDashboard({ onSectionChange }: TeacherDashboardProps) {
   const { profile } = useAuth();
 
   const { data: students } = useQuery({
@@ -86,9 +90,10 @@ export function TeacherDashboard() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="rankings" onClick={() => onSectionChange?.('rankings')}>Rankings</TabsTrigger>
           <TabsTrigger value="communication">Comunicação</TabsTrigger>
           <TabsTrigger value="management">Gestão</TabsTrigger>
         </TabsList>

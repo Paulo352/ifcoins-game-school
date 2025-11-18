@@ -111,7 +111,7 @@ const Index = () => {
     switch (activeSection) {
       case 'dashboard':
         if (profile.role === 'student') return <StudentDashboard onSectionChange={setActiveSection} />;
-        if (profile.role === 'teacher') return <TeacherDashboard />;
+        if (profile.role === 'teacher') return <TeacherDashboard onSectionChange={setActiveSection} />;
         if (profile.role === 'admin') return <AdminDashboard />;
         break;
       case 'shop':
