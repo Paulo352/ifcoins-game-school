@@ -138,6 +138,7 @@ export function QuizReports({ onBack }: QuizReportsProps) {
     },
   });
 
+  // Render student performance view
   if (selectedStudentId && selectedQuizId) {
     return (
       <StudentQuizPerformance
@@ -148,6 +149,7 @@ export function QuizReports({ onBack }: QuizReportsProps) {
     );
   }
 
+  // Render students list for selected quiz
   if (selectedQuizId) {
     const selectedQuiz = quizzes?.find((q) => q.id === selectedQuizId);
     return (
@@ -215,6 +217,7 @@ export function QuizReports({ onBack }: QuizReportsProps) {
     );
   }
 
+  // Render quizzes list
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
