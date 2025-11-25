@@ -6,9 +6,27 @@ export function useClasses() {
   return useQuery({
     queryKey: ['classes'],
     queryFn: async () => {
-      const { data: classesData, error } = await supabase
+      // Obter usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Verificar role do usuário
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      let query = supabase
         .from('classes')
-        .select('*')
+        .select('*');
+
+      // Se for professor (não admin), filtrar apenas turmas onde ele é responsável
+      if (profile?.role === 'teacher') {
+        query = query.or(`teacher_id.eq.${user.id},additional_teachers.cs.{${user.id}}`);
+      }
+
+      const { data: classesData, error } = await query
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -29,11 +47,19 @@ export function useClasses() {
 
         const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
 
-        const enrichedData = classesData.map(cls => ({
-          ...cls,
-          teacher: cls.teacher_id ? profilesMap.get(cls.teacher_id) : null,
-          creator: cls.created_by ? profilesMap.get(cls.created_by) : null
-        }));
+        const enrichedData = classesData.map(cls => {
+          // Buscar dados dos professores adicionais
+          const additionalTeachersData = cls.additional_teachers
+            ? cls.additional_teachers.map((teacherId: string) => profilesMap.get(teacherId)).filter(Boolean)
+            : [];
+
+          return {
+            ...cls,
+            teacher: cls.teacher_id ? profilesMap.get(cls.teacher_id) : null,
+            creator: cls.created_by ? profilesMap.get(cls.created_by) : null,
+            additional_teachers_data: additionalTeachersData
+          };
+        });
 
         return enrichedData;
       }
@@ -135,12 +161,30 @@ export function useCreateClass() {
       }
 
       console.log('✅ Turma criada com sucesso:', data);
-      return data;
+
+      // Criar convite automático para a turma
+      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const { error: inviteError } = await supabase
+        .from('class_invites')
+        .insert([{
+          class_id: data.id,
+          invite_code: inviteCode,
+          created_by: user.id,
+          is_active: true
+        }]);
+
+      if (inviteError) {
+        console.error('⚠️ Erro ao criar convite:', inviteError);
+      } else {
+        console.log('✅ Convite criado:', inviteCode);
+      }
+
+      return { ...data, invite_code: inviteCode };
     },
     onSuccess: (data) => {
       console.log('🎉 Sucesso! Turma criada:', data);
       queryClient.invalidateQueries({ queryKey: ['classes'] });
-      toast.success('Turma criada com sucesso!');
+      toast.success(`Turma criada! Código de convite: ${data.invite_code}`);
     },
     onError: (error: any) => {
       console.error('❌ Erro na mutação:', error);

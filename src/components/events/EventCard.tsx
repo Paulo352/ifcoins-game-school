@@ -16,8 +16,9 @@ interface EventCardProps {
 export function EventCard({ event, isAdmin, onEdit, onDelete, onDeactivate }: EventCardProps) {
   const getEventStatus = (startDate: string, endDate: string) => {
     const now = new Date();
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    // Converter para UTC para comparação correta
+    const start = new Date(startDate + 'T00:00:00Z');
+    const end = new Date(endDate + 'T23:59:59Z');
     
     if (now < start) return 'upcoming';
     if (now > end) return 'finished';
@@ -75,7 +76,13 @@ export function EventCard({ event, isAdmin, onEdit, onDelete, onDeactivate }: Ev
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Calendar className="h-4 w-4" />
-            {new Date(event.start_date).toLocaleDateString('pt-BR')} - {new Date(event.end_date).toLocaleDateString('pt-BR')}
+            {new Date(event.start_date).toLocaleString('pt-BR', { 
+              dateStyle: 'short', 
+              timeStyle: 'short' 
+            })} - {new Date(event.end_date).toLocaleString('pt-BR', { 
+              dateStyle: 'short', 
+              timeStyle: 'short' 
+            })}
           </div>
           <div className="flex items-center gap-2">
             <Trophy className="h-4 w-4 text-ifpr-green" />

@@ -32,10 +32,15 @@ export function QuizReports({ onBack }: QuizReportsProps) {
   const { data: quizzes, isLoading: loadingQuizzes } = useQuery({
     queryKey: ['quizzes-for-reports'],
     queryFn: async () => {
-      // Buscar quizzes
+      // Obter usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      // Buscar apenas quizzes criados pelo usuário atual
       const { data: quizzesData, error: quizzesError } = await supabase
         .from('quizzes')
         .select('*')
+        .eq('created_by', user.id)
         .order('created_at', { ascending: false });
 
       if (quizzesError) throw quizzesError;

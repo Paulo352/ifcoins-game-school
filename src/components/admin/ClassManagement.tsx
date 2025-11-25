@@ -170,10 +170,13 @@ export function ClassManagement() {
                 <div className="text-xs space-y-1">
                   <p className="font-medium">Professor Principal:</p>
                   <p className="text-muted-foreground">{cls.teacher?.name || 'Não atribuído'}</p>
-                  {additionalTeachersCount > 0 && (
-                    <p className="text-muted-foreground mt-1">
-                      +{additionalTeachersCount} professor(es) adicional(is)
-                    </p>
+                  {cls.additional_teachers_data && cls.additional_teachers_data.length > 0 && (
+                    <div className="mt-2">
+                      <p className="font-medium">Professores Adicionais:</p>
+                      {cls.additional_teachers_data.map((teacher: any) => (
+                        <p key={teacher.id} className="text-muted-foreground">{teacher.name}</p>
+                      ))}
+                    </div>
                   )}
                 </div>
                 {isAdmin && (
