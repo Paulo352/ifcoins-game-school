@@ -66,51 +66,38 @@ export function Rankings() {
     queryKey: ['card-rankings'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('cards')
-        .select('assigned_to')
-        .not('assigned_to', 'is', null);
+        .from('user_cards')
+        .select(`
+          user_id,
+          quantity,
+          profiles!inner(id, name, role)
+        `)
+        .eq('profiles.role', 'student');
       
       if (error) {
-        console.error('Erro ao buscar cartas:', error);
+        console.error('Erro ao buscar cartas para ranking:', error);
         throw error;
       }
 
       if (!data || data.length === 0) return [];
       
-      // Agrupar por usuário e contar
-      const userCardCounts = data.reduce((acc: any, card: any) => {
-        const userId = card.assigned_to;
+      // Agrupar por usuário e somar total de cartas
+      const userCardCounts = data.reduce((acc: any, row: any) => {
+        const userId = row.user_id;
         if (!acc[userId]) {
           acc[userId] = {
             user_id: userId,
+            name: row.profiles?.name || 'Estudante',
             total_cards: 0,
           };
         }
-        acc[userId].total_cards += 1;
+        acc[userId].total_cards += row.quantity || 0;
         return acc;
-      }, {});
+      }, {} as Record<string, { user_id: string; name: string; total_cards: number }>);
 
-      // Buscar informações dos usuários
-      const userIds = Object.keys(userCardCounts);
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, name, role')
-        .in('id', userIds)
-        .eq('role', 'student');
-
-      if (profilesError) {
-        console.error('Erro ao buscar perfis:', profilesError);
-        throw profilesError;
-      }
-
-      // Combinar dados
-      const result = profiles?.map(profile => ({
-        user_id: profile.id,
-        name: profile.name,
-        total_cards: userCardCounts[profile.id].total_cards
-      })) || [];
-
-      return result.sort((a: any, b: any) => b.total_cards - a.total_cards);
+      return (Object.values(userCardCounts) as { user_id: string; name: string; total_cards: number }[]).sort(
+        (a, b) => b.total_cards - a.total_cards
+      );
     },
   });
 

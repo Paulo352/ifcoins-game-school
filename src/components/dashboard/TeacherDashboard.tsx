@@ -153,16 +153,16 @@ export function TeacherDashboard({ onSectionChange }: TeacherDashboardProps) {
         if (!acc[userId]) {
           acc[userId] = {
             user_id: userId,
-            name: card.profiles.name,
+            student_name: card.profiles?.name || 'Aluno',
             total_cards: 0,
           };
         }
-        acc[userId].total_cards += card.quantity;
+        acc[userId].total_cards += card.quantity || 0;
         return acc;
-      }, {});
+      }, {} as Record<string, { user_id: string; student_name: string; total_cards: number }>);
 
-      return Object.values(userCardCounts)
-        .sort((a: any, b: any) => b.total_cards - a.total_cards);
+      return (Object.values(userCardCounts) as any[])
+        .sort((a, b) => b.total_cards - a.total_cards);
     },
   });
 

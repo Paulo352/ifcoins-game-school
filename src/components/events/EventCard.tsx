@@ -16,9 +16,9 @@ interface EventCardProps {
 export function EventCard({ event, isAdmin, onEdit, onDelete, onDeactivate }: EventCardProps) {
   const getEventStatus = (startDate: string, endDate: string) => {
     const now = new Date();
-    // Converter para UTC para comparação correta
-    const start = new Date(startDate + 'T00:00:00Z');
-    const end = new Date(endDate + 'T23:59:59Z');
+    // Usar datas locais completas para evitar problemas de fuso horário
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T23:59:59');
     
     if (now < start) return 'upcoming';
     if (now > end) return 'finished';
