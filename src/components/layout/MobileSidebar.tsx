@@ -29,19 +29,21 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   { icon: Home, label: 'Início', id: 'dashboard', roles: ['student', 'teacher', 'admin'] },
-  { icon: Coins, label: 'Dar Moedas', id: 'give-coins', roles: ['teacher', 'admin'] },
+  { icon: HelpCircle, label: 'Quizzes', id: 'quizzes', roles: ['student', 'teacher', 'admin'] },
   { icon: Gift, label: 'Loja de Cartas', id: 'shop', roles: ['student'] },
   { icon: BookOpen, label: 'Minha Coleção', id: 'collection', roles: ['student'] },
-  { icon: HelpCircle, label: 'Quizzes', id: 'quizzes', roles: ['student', 'teacher'] },
-  { icon: Vote, label: 'Votações', id: 'polls', roles: ['admin'] },
-  { icon: Bot, label: 'IA Tutor', id: 'ai-tutor', roles: ['student', 'teacher', 'admin'] },
   { icon: Trophy, label: 'Rankings', id: 'rankings', roles: ['student', 'teacher', 'admin'] },
   { icon: Calendar, label: 'Eventos', id: 'events', roles: ['student', 'teacher', 'admin'] },
-  { icon: Users, label: 'Gerenciar Estudantes', id: 'manage-students', roles: ['teacher', 'admin'] },
+  { icon: Bot, label: 'Tutor IA', id: 'ai-tutor', roles: ['student', 'teacher', 'admin'] },
+  { icon: Users, label: 'Turmas', id: 'manage-classes', roles: ['teacher', 'admin'] },
+  { icon: Coins, label: 'Dar Moedas', id: 'give-coins', roles: ['teacher', 'admin'] },
+  { icon: Users, label: 'Gerenciar Alunos', id: 'manage-students', roles: ['admin'] },
   { icon: BookOpen, label: 'Gerenciar Cartas', id: 'manage-cards', roles: ['admin'] },
   { icon: Package, label: 'Gerenciar Pacotes', id: 'manage-packs', roles: ['admin'] },
-  { icon: HelpCircle, label: 'Gerenciar Quizzes', id: 'manage-quizzes', roles: ['admin'] },
-  { icon: Settings, label: 'Configurações', id: 'settings', roles: ['admin'] }
+  { icon: Vote, label: 'Enquetes', id: 'polls', roles: ['admin'] },
+  { icon: Package, label: 'Dashboard Mentoria', id: 'mentorship-dashboard', roles: ['admin'] },
+  { icon: Package, label: 'Analytics', id: 'analytics', roles: ['admin'] },
+  { icon: Settings, label: 'Configurações', id: 'settings', roles: ['student', 'teacher', 'admin'] },
 ];
 
 interface MobileSidebarProps {

@@ -53,10 +53,18 @@ export const useAdminStats = () => {
         .from('trades')
         .select('id');
 
-      // Buscar eventos
+      // Buscar eventos e considerar apenas os ativos
       const { data: events } = await supabase
         .from('events')
-        .select('id');
+        .select('id, start_date, end_date');
+
+      const totalActiveEvents = (events || []).filter((event) => {
+        if (!event.start_date || !event.end_date) return false;
+        const now = new Date();
+        const start = new Date(event.start_date + 'T00:00:00');
+        const end = new Date(event.end_date + 'T23:59:59');
+        return now >= start && now <= end;
+      }).length;
 
       // Buscar atividade recente dos logs de recompensa
       const { data: recentRewards } = await supabase
@@ -82,7 +90,7 @@ export const useAdminStats = () => {
         totalCards: cards?.length || 0,
         totalCoinsInCirculation,
         totalTrades: trades?.length || 0,
-        totalEvents: events?.length || 0,
+        totalEvents: totalActiveEvents,
         recentActivity
       });
 
