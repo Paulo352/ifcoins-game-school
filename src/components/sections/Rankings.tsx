@@ -67,32 +67,50 @@ export function Rankings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('cards')
-        .select(`
-          assigned_to,
-          profiles!cards_assigned_to_fkey(id, name, role)
-        `)
+        .select('assigned_to')
         .not('assigned_to', 'is', null);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar cartas:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) return [];
       
-      // Agrupar por usuário e contar total de cartas
+      // Agrupar por usuário e contar
       const userCardCounts = data.reduce((acc: any, card: any) => {
-        if (card.profiles && card.profiles.role === 'student') {
-          const userId = card.assigned_to;
-          if (!acc[userId]) {
-            acc[userId] = {
-              user_id: userId,
-              name: card.profiles.name,
-              total_cards: 0,
-            };
-          }
-          acc[userId].total_cards += 1;
+        const userId = card.assigned_to;
+        if (!acc[userId]) {
+          acc[userId] = {
+            user_id: userId,
+            total_cards: 0,
+          };
         }
+        acc[userId].total_cards += 1;
         return acc;
       }, {});
 
-      return Object.values(userCardCounts)
-        .sort((a: any, b: any) => b.total_cards - a.total_cards);
+      // Buscar informações dos usuários
+      const userIds = Object.keys(userCardCounts);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, role')
+        .in('id', userIds)
+        .eq('role', 'student');
+
+      if (profilesError) {
+        console.error('Erro ao buscar perfis:', profilesError);
+        throw profilesError;
+      }
+
+      // Combinar dados
+      const result = profiles?.map(profile => ({
+        user_id: profile.id,
+        name: profile.name,
+        total_cards: userCardCounts[profile.id].total_cards
+      })) || [];
+
+      return result.sort((a: any, b: any) => b.total_cards - a.total_cards);
     },
   });
 

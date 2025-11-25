@@ -33,11 +33,21 @@ export function EventForm({ event, onSubmit, onCancel, loading }: EventFormProps
 
   useEffect(() => {
     if (event) {
+      // Converter datas para formato datetime-local (yyyy-MM-ddThh:mm)
+      const formatDateTimeLocal = (dateString: string) => {
+        // Se já é um datetime completo, usar diretamente
+        if (dateString.includes('T')) {
+          return dateString.slice(0, 16); // yyyy-MM-ddThh:mm
+        }
+        // Se é apenas data, adicionar hora padrão 00:00
+        return `${dateString}T00:00`;
+      };
+
       setFormData({
         name: event.name,
         description: event.description || '',
-        start_date: event.start_date,
-        end_date: event.end_date,
+        start_date: formatDateTimeLocal(event.start_date),
+        end_date: formatDateTimeLocal(event.end_date),
         bonus_multiplier: event.bonus_multiplier,
         bonus_coins: (event as any).bonus_coins || 0
       });
@@ -60,7 +70,23 @@ export function EventForm({ event, onSubmit, onCancel, loading }: EventFormProps
       return;
     }
 
-    const success = await onSubmit(formData);
+    // Converter datetime-local para formato ISO completo
+    const formatToISO = (dateTimeLocal: string) => {
+      // Se já tem timezone, usar diretamente
+      if (dateTimeLocal.includes('Z') || dateTimeLocal.includes('+')) {
+        return dateTimeLocal;
+      }
+      // Adicionar timezone local
+      return new Date(dateTimeLocal).toISOString();
+    };
+
+    const eventData = {
+      ...formData,
+      start_date: formatToISO(formData.start_date),
+      end_date: formatToISO(formData.end_date)
+    };
+
+    const success = await onSubmit(eventData);
     if (success) {
       if (!event) {
         setFormData({
@@ -98,21 +124,27 @@ export function EventForm({ event, onSubmit, onCancel, loading }: EventFormProps
               <Label htmlFor="start_date">Data de Início</Label>
               <Input
                 id="start_date"
-                type="date"
+                type="datetime-local"
                 value={formData.start_date}
                 onChange={(e) => setFormData({...formData, start_date: e.target.value})}
                 required
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Selecione data e hora de início
+              </p>
             </div>
             <div>
               <Label htmlFor="end_date">Data de Fim</Label>
               <Input
                 id="end_date"
-                type="date"
+                type="datetime-local"
                 value={formData.end_date}
                 onChange={(e) => setFormData({...formData, end_date: e.target.value})}
                 required
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Selecione data e hora de término
+              </p>
             </div>
           </div>
           

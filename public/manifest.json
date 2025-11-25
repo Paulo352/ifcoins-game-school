@@ -2,7 +2,7 @@
   "name": "IFCoins - Sistema Educacional Gamificado",
   "short_name": "IFCoins",
   "description": "Sistema educacional gamificado do IFPR com moedas virtuais e cartas colecionáveis",
-  "start_url": "/",
+  "start_url": "/?v=2025",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#10b981",
@@ -20,5 +20,6 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "prefer_related_applications": false
 }

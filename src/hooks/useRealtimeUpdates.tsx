@@ -2,6 +2,7 @@ import { useRealtimeProfile } from './useRealtimeProfile';
 import { useRealtimeRewards } from './useRealtimeRewards';
 import { useRealtimeCards } from './useRealtimeCards';
 import { useRealtimeTrades } from './useRealtimeTrades';
+import { useRealtimeEvents } from './useRealtimeEvents';
 
 /**
  * Hook principal que habilita todas as atualizações em tempo real
@@ -12,4 +13,5 @@ export function useRealtimeUpdates() {
   useRealtimeRewards();
   useRealtimeCards();
   useRealtimeTrades();
+  useRealtimeEvents();
 }
