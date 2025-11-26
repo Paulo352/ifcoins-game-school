@@ -148,7 +148,7 @@ export function TeacherDashboard({ onSectionChange }: TeacherDashboardProps) {
       if (error) throw error;
       
       // Agrupar por usuário e somar total de cartas
-      const userCardCounts = data.reduce((acc: any, card: any) => {
+      const userCardCounts = (data || []).reduce((acc: any, card: any) => {
         const userId = card.user_id;
         if (!acc[userId]) {
           acc[userId] = {
