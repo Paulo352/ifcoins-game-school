@@ -34,7 +34,7 @@ export function useClasses() {
         throw error;
       }
 
-      // Buscar informações dos professores separadamente
+      // Buscar informações dos professores e códigos de convite separadamente
       if (classesData && classesData.length > 0) {
         const teacherIds = [...new Set(classesData.map(c => c.teacher_id).filter(Boolean))];
         const creatorIds = [...new Set(classesData.map(c => c.created_by).filter(Boolean))];
@@ -47,6 +47,17 @@ export function useClasses() {
 
         const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
 
+        // Buscar códigos de convite ativos para cada turma
+        const classIds = classesData.map(c => c.id);
+        const { data: invitesData } = await supabase
+          .from('class_invites')
+          .select('class_id, invite_code')
+          .in('class_id', classIds)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        const invitesMap = new Map(invitesData?.map(inv => [inv.class_id, inv.invite_code]) || []);
+
         const enrichedData = classesData.map(cls => {
           // Buscar dados dos professores adicionais
           const additionalTeachersData = cls.additional_teachers
@@ -57,7 +68,8 @@ export function useClasses() {
             ...cls,
             teacher: cls.teacher_id ? profilesMap.get(cls.teacher_id) : null,
             creator: cls.created_by ? profilesMap.get(cls.created_by) : null,
-            additional_teachers_data: additionalTeachersData
+            additional_teachers_data: additionalTeachersData,
+            invite_code: invitesMap.get(cls.id) || null
           };
         });
 

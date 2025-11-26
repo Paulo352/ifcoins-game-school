@@ -154,3 +154,18 @@ export function useStudents() {
     },
   });
 }
+
+// Hook para buscar todas as cartas do sistema (para nomes nas trades)
+export function useAllCardsNames() {
+  return useQuery({
+    queryKey: ['all-cards-names'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cards')
+        .select('id, name');
+      
+      if (error) throw error;
+      return data as { id: string; name: string }[];
+    },
+  });
+}
