@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { CoinBalance } from '@/components/ui/coin-balance';
 import { Plus, Send, Clock, Search, Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { useTrades, useCreateTrade, useUpdateTradeStatus, useStudents } from '@/hooks/trades/useTrades';
+import { useTrades, useCreateTrade, useUpdateTradeStatus, useStudents, useAllCardsNames } from '@/hooks/trades/useTrades';
 import { useUserCards } from '@/hooks/cards/useCards';
 import { CardSelector } from '@/components/trades/CardSelector';
 import { TradeCard } from '@/components/trades/TradeCard';
@@ -34,6 +34,7 @@ export function Trades() {
   const { data: userCards = [] } = useUserCards(user?.id);
   const { data: targetUserCards = [] } = useUserCards(newTrade.to_user_id || undefined);
   const { data: students = [] } = useStudents();
+  const { data: allCards = [] } = useAllCardsNames();
   const createTradeMutation = useCreateTrade();
   const updateTradeStatusMutation = useUpdateTradeStatus();
 
@@ -299,6 +300,7 @@ export function Trades() {
                     trade={trade}
                     isReceived={false}
                     userCards={userCards}
+                    allCards={allCards}
                     profilesMap={profilesMap}
                   />
                 ))
@@ -325,6 +327,7 @@ export function Trades() {
                     trade={trade}
                     isReceived={true}
                     userCards={userCards}
+                    allCards={allCards}
                     onAccept={handleAcceptTrade}
                     onReject={handleRejectTrade}
                     profilesMap={profilesMap}

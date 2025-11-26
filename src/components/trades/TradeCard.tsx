@@ -10,6 +10,7 @@ interface TradeCardProps {
   trade: Trade;
   isReceived?: boolean;
   userCards: UserCard[];
+  allCards?: { id: string; name: string }[];
   onAccept?: (tradeId: string) => void;
   onReject?: (tradeId: string) => void;
   profilesMap: Record<string, { name: string; email: string }>;
@@ -19,6 +20,7 @@ export function TradeCard({
   trade, 
   isReceived = false, 
   userCards, 
+  allCards = [],
   onAccept, 
   onReject,
   profilesMap 
@@ -42,8 +44,16 @@ export function TradeCard({
   };
 
   const getCardName = (cardId: string) => {
+    // Primeiro tenta nas cartas do usuário
     const userCard = userCards.find(uc => uc.card.id === cardId);
-    return userCard?.card.name || `Carta ${cardId.slice(0, 8)}`;
+    if (userCard) return userCard.card.name;
+    
+    // Depois tenta na lista geral de cartas (todas as cartas do sistema)
+    const generalCard = allCards.find(c => c.id === cardId);
+    if (generalCard) return generalCard.name;
+    
+    // Fallback para código
+    return `Carta ${cardId.slice(0, 8)}`;
   };
 
   const otherUserId = isReceived ? trade.from_user_id : trade.to_user_id;

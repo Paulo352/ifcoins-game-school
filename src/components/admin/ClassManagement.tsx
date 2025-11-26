@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 export function ClassManagement() {
   const { profile } = useAuth();
@@ -167,6 +168,14 @@ export function ClassManagement() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">{cls.description}</p>
+                
+                {cls.invite_code && (
+                  <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Código da Turma:</p>
+                    <code className="text-lg font-bold text-primary">{cls.invite_code}</code>
+                  </div>
+                )}
+                
                 <div className="text-xs space-y-1">
                   <p className="font-medium">Professor Principal:</p>
                   <p className="text-muted-foreground">{cls.teacher?.name || 'Não atribuído'}</p>
@@ -236,15 +245,46 @@ function ClassStudentsDialog({ classData, onClose }: any) {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-6">
-          {/* Teachers Info */}
-          <div className="p-4 border rounded-lg bg-muted/30">
-            <h4 className="font-semibold mb-2">Professores da Turma</h4>
-            <div className="space-y-1 text-sm">
-              <p><span className="font-medium">Principal:</span> {classData.teacher?.name}</p>
-              {additionalTeachersCount > 0 && (
-                <p className="text-muted-foreground">+ {additionalTeachersCount} professor(es) adicional(is)</p>
-              )}
+          {/* Teachers Info & Invite Code */}
+          <div className="space-y-3">
+            <div className="p-4 border rounded-lg bg-muted/30">
+              <h4 className="font-semibold mb-2">Professores da Turma</h4>
+              <div className="space-y-1 text-sm">
+                <p><span className="font-medium">Principal:</span> {classData.teacher?.name}</p>
+                {classData.additional_teachers_data && classData.additional_teachers_data.length > 0 && (
+                  <div className="mt-2">
+                    <p className="font-medium">Adicionais:</p>
+                    {classData.additional_teachers_data.map((teacher: any) => (
+                      <p key={teacher.id} className="text-muted-foreground">• {teacher.name}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+            
+            {classData.invite_code && (
+              <div className="p-4 border-2 border-primary/30 rounded-lg bg-primary/5">
+                <h4 className="font-semibold mb-2 text-sm">Código da Turma</h4>
+                <div className="flex items-center gap-2">
+                  <code className="text-2xl font-bold text-primary px-3 py-2 bg-background rounded">
+                    {classData.invite_code}
+                  </code>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(classData.invite_code);
+                      toast.success('Código copiado!');
+                    }}
+                  >
+                    Copiar
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Compartilhe este código com os alunos para que eles possam entrar na turma
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Add Student Section */}

@@ -15,12 +15,26 @@ export function MaintenanceControl() {
   const { toast } = useToast();
   const [message, setMessage] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
+  const [estimatedReturnDate, setEstimatedReturnDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleToggleMaintenance = async () => {
     setIsSubmitting(true);
     try {
-      const maintenanceMessage = message || 'Sistema em manutenção. Tente novamente mais tarde.';
+      let maintenanceMessage = message || 'Sistema em manutenção. Tente novamente mais tarde.';
+      
+      // Se tiver data prevista de retorno e estiver ativando, adicionar à mensagem
+      if (estimatedReturnDate && !status.enabled) {
+        const returnDate = new Date(estimatedReturnDate);
+        maintenanceMessage = `${maintenanceMessage}\n\nPrevisão de retorno: ${returnDate.toLocaleString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })}`;
+      }
+      
       await toggleMaintenanceMode(!status.enabled, maintenanceMessage);
       
       toast({
@@ -31,6 +45,7 @@ export function MaintenanceControl() {
       });
       
       setMessage('');
+      setEstimatedReturnDate('');
     } catch (error) {
       console.error('Erro ao alterar modo manutenção:', error);
       toast({
@@ -148,6 +163,20 @@ export function MaintenanceControl() {
               onChange={(e) => setMessage(e.target.value)}
               disabled={isSubmitting}
             />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="estimated-return">Data e Hora Prevista de Retorno (Opcional)</Label>
+            <Input
+              id="estimated-return"
+              type="datetime-local"
+              value={estimatedReturnDate}
+              onChange={(e) => setEstimatedReturnDate(e.target.value)}
+              disabled={isSubmitting}
+            />
+            <p className="text-xs text-muted-foreground">
+              Se definido, esta data será exibida aos usuários na tela de manutenção
+            </p>
           </div>
 
           {!status.enabled && (
