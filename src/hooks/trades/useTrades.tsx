@@ -160,12 +160,25 @@ export function useAllCardsNames() {
   return useQuery({
     queryKey: ['all-cards-names'],
     queryFn: async () => {
+      // Buscar nomes das cartas a partir de user_cards para respeitar as RLS
       const { data, error } = await supabase
-        .from('cards')
-        .select('id, name');
+        .from('user_cards')
+        .select(`
+          card_id,
+          card:cards(id, name)
+        `);
       
       if (error) throw error;
-      return data as { id: string; name: string }[];
+
+      // Garantir unicidade por card_id
+      const map = new Map<string, { id: string; name: string }>();
+      (data as any[] | null)?.forEach((row) => {
+        if (row.card?.id && row.card?.name && !map.has(row.card.id)) {
+          map.set(row.card.id, { id: row.card.id, name: row.card.name });
+        }
+      });
+
+      return Array.from(map.values());
     },
   });
 }

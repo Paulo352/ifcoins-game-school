@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useClasses } from '@/hooks/useClasses';
 import { Users, TrendingDown, BookOpen, Award, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,20 +14,8 @@ export function TeacherClassDashboard() {
   const { user } = useAuth();
   const [selectedClassId, setSelectedClassId] = useState<string>('all');
 
-  const { data: classes, isLoading: loadingClasses } = useQuery({
-    queryKey: ['teacher-classes', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('classes')
-        .select('*')
-        .or(`teacher_id.eq.${user?.id},additional_teachers.cs.{${user?.id}}`);
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id
-  });
-
+  const { data: classes, isLoading: loadingClasses } = useClasses();
+ 
   const { data: classStats, isLoading: loadingStats } = useQuery({
     queryKey: ['class-stats', selectedClassId],
     queryFn: async () => {
@@ -127,12 +116,21 @@ export function TeacherClassDashboard() {
     );
   }
 
+  const classesAny = (classes || []) as any[];
+  const selectedClass = classesAny.find((cls) => cls.id === selectedClassId);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Dashboard da Turma</h2>
           <p className="text-muted-foreground">Acompanhe o desempenho dos seus alunos</p>
+          {selectedClass && selectedClassId !== 'all' && selectedClass.invite_code && (
+            <div className="mt-2 inline-flex flex-col gap-1 p-2 rounded-md border bg-muted/40">
+              <span className="text-xs text-muted-foreground">Código da turma</span>
+              <code className="text-lg font-semibold text-primary">{selectedClass.invite_code}</code>
+            </div>
+          )}
         </div>
         <Select value={selectedClassId} onValueChange={setSelectedClassId}>
           <SelectTrigger className="w-64">
@@ -140,7 +138,7 @@ export function TeacherClassDashboard() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as Turmas</SelectItem>
-            {classes?.map(cls => (
+            {classesAny.map((cls) => (
               <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
             ))}
           </SelectContent>
