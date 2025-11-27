@@ -18,7 +18,7 @@ import { toast } from '@/hooks/use-toast';
 interface CardFormData {
   name: string;
   description: string;
-  rarity: 'common' | 'rare' | 'legendary' | 'mythic';
+  rarity: 'common' | 'rare' | 'legendary' | 'mythic' | 'epic';
   price: number;
   copies_available: number | null;
   image_url: string;
@@ -29,14 +29,16 @@ const rarityLabels = {
   common: 'Comum',
   rare: 'Raro',
   legendary: 'Lendário',
-  mythic: 'Mítico'
+  mythic: 'Mítico',
+  epic: 'Épica'
 };
 
 const rarityColors = {
   common: 'bg-gray-100 text-gray-800',
   rare: 'bg-blue-100 text-blue-800',
-  legendary: 'bg-purple-100 text-purple-800',
-  mythic: 'bg-yellow-100 text-yellow-800'
+  legendary: 'bg-orange-100 text-orange-800',
+  mythic: 'bg-cyan-100 text-cyan-800',
+  epic: 'bg-purple-100 text-purple-800'
 };
 
 export function ManageCards() {
@@ -231,6 +233,7 @@ export function ManageCards() {
                     <SelectItem value="rare">Raro</SelectItem>
                     <SelectItem value="legendary">Lendário</SelectItem>
                     <SelectItem value="mythic">Mítico</SelectItem>
+                    <SelectItem value="epic">Épica</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

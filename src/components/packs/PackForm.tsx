@@ -20,6 +20,7 @@ const packSchema = z.object({
   probability_rare: z.number().min(0).max(100).optional(),
   probability_legendary: z.number().min(0).max(100).optional(),
   probability_mythic: z.number().min(0).max(100).optional(),
+  probability_epic: z.number().min(0).max(100).optional(),
 });
 
 interface PackFormProps {
@@ -38,10 +39,11 @@ export function PackForm({ onSuccess }: PackFormProps) {
       price: 10,
       limit_per_student: 5,
       pack_type: 'random',
-      probability_common: 60,
+      probability_common: 50,
       probability_rare: 25,
-      probability_legendary: 10,
+      probability_legendary: 15,
       probability_mythic: 5,
+      probability_epic: 5,
     },
   });
 
@@ -71,6 +73,7 @@ export function PackForm({ onSuccess }: PackFormProps) {
       probability_rare: data.probability_rare,
       probability_legendary: data.probability_legendary,
       probability_mythic: data.probability_mythic,
+      probability_epic: data.probability_epic,
       cards: packType === 'fixed' ? selectedCards.filter(card => card.card_id) : undefined,
     };
 
@@ -194,6 +197,16 @@ export function PackForm({ onSuccess }: PackFormProps) {
                     min="0"
                     max="100"
                     {...form.register('probability_mythic', { valueAsNumber: true })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="epic">Épica</Label>
+                  <Input
+                    id="epic"
+                    type="number"
+                    min="0"
+                    max="100"
+                    {...form.register('probability_epic', { valueAsNumber: true })}
                   />
                 </div>
               </div>

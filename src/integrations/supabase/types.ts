@@ -2905,7 +2905,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "teacher" | "student"
-      card_rarity: "common" | "rare" | "legendary" | "mythic"
+      card_rarity: "common" | "rare" | "legendary" | "mythic" | "epic"
       listing_status: "active" | "sold" | "expired" | "removed"
       loan_status: "pending" | "approved" | "denied" | "repaid"
       trade_status: "pending" | "accepted" | "rejected"
@@ -3047,7 +3047,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "teacher", "student"],
-      card_rarity: ["common", "rare", "legendary", "mythic"],
+      card_rarity: ["common", "rare", "legendary", "mythic", "epic"],
       listing_status: ["active", "sold", "expired", "removed"],
       loan_status: ["pending", "approved", "denied", "repaid"],
       trade_status: ["pending", "accepted", "rejected"],

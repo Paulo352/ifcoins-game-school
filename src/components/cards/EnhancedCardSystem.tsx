@@ -63,7 +63,7 @@ interface EnhancedCardProps {
   name: string;
   description?: string;
   image_url: string | null;
-  rarity: 'common' | 'rare' | 'legendary' | 'mythic';
+  rarity: 'common' | 'rare' | 'legendary' | 'mythic' | 'epic';
   price?: number;
   quantity?: number;
   available?: boolean;
@@ -76,22 +76,25 @@ interface EnhancedCardProps {
 const rarityStyles = {
   common: 'border-gray-300 bg-gray-50',
   rare: 'border-blue-300 bg-blue-50',
-  legendary: 'border-purple-300 bg-purple-50',
-  mythic: 'border-yellow-300 bg-yellow-50'
+  legendary: 'border-orange-300 bg-orange-50',
+  mythic: 'border-cyan-300 bg-cyan-50',
+  epic: 'border-purple-300 bg-purple-50'
 };
 
 const rarityLabels = {
   common: 'Comum',
   rare: 'Rara',
   legendary: 'Lendária',
-  mythic: 'Mítica'
+  mythic: 'Mítica',
+  epic: 'Épica'
 };
 
 const rarityColors = {
   common: 'bg-gray-500',
   rare: 'bg-blue-500',
-  legendary: 'bg-purple-500',
-  mythic: 'bg-yellow-500'
+  legendary: 'bg-orange-500',
+  mythic: 'bg-cyan-500',
+  epic: 'bg-purple-500'
 };
 
 export function EnhancedCard({

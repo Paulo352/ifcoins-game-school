@@ -7,7 +7,7 @@ import { EnhancedCardImage } from './EnhancedCardSystem';
 interface CardData {
   id: string;
   name: string;
-  rarity: 'common' | 'rare' | 'legendary' | 'mythic';
+  rarity: 'common' | 'rare' | 'legendary' | 'mythic' | 'epic';
   imageUrl: string;
   available: boolean;
   price: number;
@@ -25,15 +25,17 @@ interface CardDisplayProps {
 const rarityStyles = {
   common: 'bg-gray-100 border-gray-300 text-gray-800',
   rare: 'bg-blue-100 border-blue-300 text-blue-800',
-  legendary: 'bg-purple-100 border-purple-300 text-purple-800',
-  mythic: 'bg-yellow-100 border-yellow-300 text-yellow-800'
+  legendary: 'bg-orange-100 border-orange-300 text-orange-800',
+  mythic: 'bg-cyan-100 border-cyan-300 text-cyan-800',
+  epic: 'bg-purple-100 border-purple-300 text-purple-800'
 };
 
 const rarityLabels = {
   common: 'Comum',
   rare: 'Raro',
   legendary: 'Lendário',
-  mythic: 'Mítico'
+  mythic: 'Mítico',
+  epic: 'Épica'
 };
 
 export function CardDisplay({ card, className, showPrice = false, showQuantity = false }: CardDisplayProps) {
