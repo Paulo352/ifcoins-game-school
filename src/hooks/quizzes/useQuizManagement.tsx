@@ -53,13 +53,23 @@ export function useActiveQuizzes() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('quizzes')
-        .select('*')
+        .select(`
+          *,
+          creator:profiles!quizzes_created_by_fkey(name, role)
+        `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Quiz[];
-    }
+      
+      // Transform creator array to single object
+      const transformedData = (data as any[]).map((quiz) => ({
+        ...quiz,
+        creator: quiz.creator?.[0] || null
+      }));
+      
+      return transformedData as (Quiz & { creator?: { name: string; role: string } | null })[];
+    },
   });
 }
 

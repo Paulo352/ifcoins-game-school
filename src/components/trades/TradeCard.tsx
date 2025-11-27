@@ -13,6 +13,7 @@ interface TradeCardProps {
   allCards?: { id: string; name: string }[];
   onAccept?: (tradeId: string) => void;
   onReject?: (tradeId: string) => void;
+  onCancel?: (tradeId: string) => void;
   profilesMap: Record<string, { name: string; email: string }>;
 }
 
@@ -23,6 +24,7 @@ export function TradeCard({
   allCards = [],
   onAccept, 
   onReject,
+  onCancel,
   profilesMap 
 }: TradeCardProps) {
   const getStatusColor = (status: string) => {
@@ -153,6 +155,19 @@ export function TradeCard({
             >
               <X className="h-3 w-3 mr-1" />
               Rejeitar
+            </Button>
+          </div>
+        )}
+
+        {!isReceived && trade.status === 'pending' && onCancel && (
+          <div className="flex gap-2 mt-4">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => onCancel(trade.id)}
+            >
+              <X className="h-3 w-3 mr-1" />
+              Cancelar Proposta
             </Button>
           </div>
         )}

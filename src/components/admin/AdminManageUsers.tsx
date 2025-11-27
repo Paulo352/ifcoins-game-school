@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Coins, UserCog, Trash2, Shield, Loader2 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Coins, UserCog, Trash2, Shield, Loader2, UserPlus } from 'lucide-react';
+import { toast } from 'sonner';
 import { useUpdateCoins } from '@/hooks/useUpdateCoins';
 import { Profile } from '@/types/supabase';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,26 +33,27 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  // Estados para criar usuário
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserRA, setNewUserRA] = useState('');
+  const [newUserRole, setNewUserRole] = useState<'student' | 'teacher' | 'admin'>('student');
+  const [newUserClass, setNewUserClass] = useState('');
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
   
   const { giveCoins, loading } = useUpdateCoins();
 
   const handleGiveCoins = async () => {
     if (!selectedUser || !coinsAmount || !reason) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos para dar/retirar moedas",
-        variant: "destructive"
-      });
+      toast.error('Preencha todos os campos para dar/retirar moedas');
       return;
     }
 
     const amount = parseInt(coinsAmount);
     if (amount === 0) {
-      toast({
-        title: "Quantidade inválida",
-        description: "A quantidade deve ser diferente de zero",
-        variant: "destructive"
-      });
+      toast.error('A quantidade deve ser diferente de zero');
       return;
     }
 
@@ -70,11 +71,7 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
 
   const handleUpdateRole = async () => {
     if (!selectedUserForRole || !selectedRole) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Selecione um usuário e o novo papel",
-        variant: "destructive"
-      });
+      toast.error('Selecione um usuário e o novo papel');
       return;
     }
 
@@ -91,21 +88,14 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
 
       const selectedUserName = users?.find(u => u.id === selectedUserForRole)?.name || 'Usuário';
       
-      toast({
-        title: "Papel atualizado com segurança!",
-        description: `${selectedUserName} agora é ${selectedRole === 'admin' ? 'Administrador' : selectedRole === 'teacher' ? 'Professor' : 'Estudante'}`,
-      });
+      toast.success(`${selectedUserName} agora é ${selectedRole === 'admin' ? 'Administrador' : selectedRole === 'teacher' ? 'Professor' : 'Estudante'}`);
       
       setSelectedUserForRole('');
       setSelectedRole('');
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar papel:', error);
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível atualizar o papel do usuário",
-        variant: "destructive"
-      });
+      toast.error(error.message || 'Não foi possível atualizar o papel do usuário');
     } finally {
       setUpdating(false);
     }
@@ -113,29 +103,17 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
 
   const handleChangePassword = async () => {
     if (!selectedPasswordUser) {
-      toast({
-        title: "Atenção",
-        description: "Selecione um usuário",
-        variant: "destructive",
-      });
+      toast.error('Selecione um usuário');
       return;
     }
 
     if (!newPassword || newPassword.length < 6) {
-      toast({
-        title: "Atenção",
-        description: "A senha deve ter no mínimo 6 caracteres",
-        variant: "destructive",
-      });
+      toast.error('A senha deve ter no mínimo 6 caracteres');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast({
-        title: "Atenção",
-        description: "As senhas não coincidem",
-        variant: "destructive",
-      });
+      toast.error('As senhas não coincidem');
       return;
     }
 
@@ -152,10 +130,7 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
 
       if (data?.success) {
         const user = users?.find(u => u.id === selectedPasswordUser);
-        toast({
-          title: "Sucesso",
-          description: `Senha alterada para ${user?.name || 'usuário'}`,
-        });
+        toast.success(`Senha alterada para ${user?.name || 'usuário'}`);
         setSelectedPasswordUser('');
         setNewPassword('');
         setConfirmPassword('');
@@ -164,11 +139,7 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
       }
     } catch (error: any) {
       console.error('Erro ao alterar senha:', error);
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível alterar a senha",
-        variant: "destructive",
-      });
+      toast.error(error.message || 'Não foi possível alterar a senha');
     } finally {
       setIsChangingPassword(false);
     }
@@ -188,22 +159,80 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
 
       const deletedUserName = users?.find(u => u.id === selectedUserForDelete)?.name || 'Usuário';
       
-      toast({
-        title: "Usuário removido!",
-        description: `${deletedUserName} foi removido completamente do sistema`,
-      });
+      toast.success(`${deletedUserName} foi removido completamente do sistema`);
       
       setSelectedUserForDelete('');
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao remover usuário:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover o usuário",
-        variant: "destructive"
-      });
+      toast.error('Não foi possível remover o usuário');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUserName || !newUserEmail || !newUserPassword) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    if (newUserPassword.length < 6) {
+      toast.error('A senha deve ter no mínimo 6 caracteres');
+      return;
+    }
+
+    setIsCreatingUser(true);
+    try {
+      // Criar usuário no auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: newUserEmail,
+        password: newUserPassword,
+        email_confirm: true,
+        user_metadata: {
+          name: newUserName,
+          ra: newUserRA || null,
+          class: newUserClass || null
+        }
+      });
+
+      if (authError) throw authError;
+
+      if (!authData.user) {
+        throw new Error('Falha ao criar usuário');
+      }
+
+      // Criar perfil
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          name: newUserName,
+          email: newUserEmail,
+          role: newUserRole,
+          ra: newUserRA || null,
+          class: newUserClass || null,
+          coins: 0
+        });
+
+      if (profileError) throw profileError;
+
+      toast.success(`Conta criada com sucesso para ${newUserName}`);
+      
+      // Limpar campos
+      setNewUserName('');
+      setNewUserEmail('');
+      setNewUserPassword('');
+      setNewUserRA('');
+      setNewUserRole('student');
+      setNewUserClass('');
+      
+      onSuccess();
+    } catch (error: any) {
+      console.error('Erro ao criar usuário:', error);
+      toast.error(error.message || 'Não foi possível criar o usuário');
+    } finally {
+      setIsCreatingUser(false);
     }
   };
 
@@ -468,6 +497,115 @@ export function AdminManageUsers({ users, adminId, onSuccess }: AdminManageUsers
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-primary" />
+            Criar Nova Conta
+          </CardTitle>
+          <CardDescription>
+            Crie contas de alunos ou professores diretamente pelo painel admin
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-user-name">Nome Completo *</Label>
+              <Input
+                id="new-user-name"
+                value={newUserName}
+                onChange={(e) => setNewUserName(e.target.value)}
+                placeholder="Ex: João Silva"
+                disabled={isCreatingUser}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-user-email">Email *</Label>
+              <Input
+                id="new-user-email"
+                type="email"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+                placeholder="usuario@email.com"
+                disabled={isCreatingUser}
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-user-password">Senha *</Label>
+              <Input
+                id="new-user-password"
+                type="password"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                disabled={isCreatingUser}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-user-role">Papel *</Label>
+              <Select 
+                value={newUserRole} 
+                onValueChange={(value: 'student' | 'teacher' | 'admin') => setNewUserRole(value)}
+                disabled={isCreatingUser}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">Estudante</SelectItem>
+                  <SelectItem value="teacher">Professor</SelectItem>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-user-ra">RA (Opcional)</Label>
+              <Input
+                id="new-user-ra"
+                value={newUserRA}
+                onChange={(e) => setNewUserRA(e.target.value)}
+                placeholder="Registro Acadêmico"
+                disabled={isCreatingUser}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-user-class">Turma (Opcional)</Label>
+              <Input
+                id="new-user-class"
+                value={newUserClass}
+                onChange={(e) => setNewUserClass(e.target.value)}
+                placeholder="Ex: 3º Ano A"
+                disabled={isCreatingUser}
+              />
+            </div>
+          </div>
+
+          <Button
+            onClick={handleCreateUser}
+            disabled={isCreatingUser}
+            className="w-full"
+          >
+            {isCreatingUser ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Criando conta...
+              </>
+            ) : (
+              <>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Criar Conta
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
     </div>
