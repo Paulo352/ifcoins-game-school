@@ -100,6 +100,10 @@ export function Trades() {
     updateTradeStatusMutation.mutate({ tradeId, status: 'rejected' });
   };
 
+  const handleCancelTrade = (tradeId: string) => {
+    updateTradeStatusMutation.mutate({ tradeId, status: 'rejected' });
+  };
+
   const handleCardChange = (type: 'offered' | 'requested', cardId: string, quantity: number) => {
     if (type === 'offered') {
       setNewTrade(prev => ({
@@ -302,6 +306,7 @@ export function Trades() {
                     userCards={userCards}
                     allCards={allCards}
                     profilesMap={profilesMap}
+                    onCancel={handleCancelTrade}
                   />
                 ))
               )}

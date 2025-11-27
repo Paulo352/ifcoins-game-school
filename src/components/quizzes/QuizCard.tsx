@@ -2,11 +2,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Coins, HelpCircle, Trophy } from 'lucide-react';
+import { Clock, Coins, HelpCircle, Trophy, User } from 'lucide-react';
 import { Quiz } from '@/hooks/quizzes/useQuizzes';
 
 interface QuizCardProps {
-  quiz: Quiz;
+  quiz: Quiz & { creator?: { name: string; role: string } };
   onStart?: (quizId: string) => void;
   userAttempts?: number;
   loading?: boolean;
@@ -39,6 +39,14 @@ export function QuizCard({
           <p className="text-sm text-muted-foreground line-clamp-3">
             {quiz.description}
           </p>
+        )}
+        {quiz.creator && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+            <User className="w-3 h-3" />
+            <span>
+              {quiz.creator.role === 'admin' ? 'Sistema' : `Prof. ${quiz.creator.name}`}
+            </span>
+          </div>
         )}
       </CardHeader>
       
