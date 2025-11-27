@@ -16,7 +16,7 @@ export interface User {
   };
 }
 
-export type CardRarity = 'common' | 'rare' | 'legendary' | 'mythic';
+export type CardRarity = 'common' | 'rare' | 'legendary' | 'mythic' | 'epic';
 
 export interface Card {
   id: string;

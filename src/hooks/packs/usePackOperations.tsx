@@ -11,6 +11,7 @@ export interface CreatePackData {
   probability_rare?: number;
   probability_legendary?: number;
   probability_mythic?: number;
+  probability_epic?: number;
   cards?: { card_id: string; quantity: number }[];
 }
 
@@ -30,10 +31,11 @@ export function useCreatePack() {
           price: packData.price,
           limit_per_student: packData.limit_per_student,
           pack_type: packData.pack_type,
-          probability_common: packData.probability_common || 60,
+          probability_common: packData.probability_common || 50,
           probability_rare: packData.probability_rare || 25,
-          probability_legendary: packData.probability_legendary || 10,
+          probability_legendary: packData.probability_legendary || 15,
           probability_mythic: packData.probability_mythic || 5,
+          probability_epic: packData.probability_epic || 5,
         }])
         .select()
         .single();

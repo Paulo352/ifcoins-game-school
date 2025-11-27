@@ -22,6 +22,7 @@ const packSchema = z.object({
   probability_rare: z.number().min(0).max(100).optional(),
   probability_legendary: z.number().min(0).max(100).optional(),
   probability_mythic: z.number().min(0).max(100).optional(),
+  probability_epic: z.number().min(0).max(100).optional(),
 });
 
 interface NewPackFormProps {
@@ -41,19 +42,21 @@ export function NewPackForm({ editingPack, onSuccess }: NewPackFormProps) {
       price: editingPack.price,
       limit_per_student: editingPack.limit_per_student,
       pack_type: editingPack.pack_type,
-      probability_common: editingPack.probability_common || 60,
+      probability_common: editingPack.probability_common || 50,
       probability_rare: editingPack.probability_rare || 25,
-      probability_legendary: editingPack.probability_legendary || 10,
+      probability_legendary: editingPack.probability_legendary || 15,
       probability_mythic: editingPack.probability_mythic || 5,
+      probability_epic: editingPack.probability_epic || 5,
     } : {
       name: '',
       price: 50,
       limit_per_student: 5,
       pack_type: 'random',
-      probability_common: 60,
+      probability_common: 50,
       probability_rare: 25,
-      probability_legendary: 10,
+      probability_legendary: 15,
       probability_mythic: 5,
+      probability_epic: 5,
     },
   });
 
@@ -62,7 +65,8 @@ export function NewPackForm({ editingPack, onSuccess }: NewPackFormProps) {
   const probRare = form.watch('probability_rare') || 0;
   const probLegendary = form.watch('probability_legendary') || 0;
   const probMythic = form.watch('probability_mythic') || 0;
-  const totalProb = probCommon + probRare + probLegendary + probMythic;
+  const probEpic = form.watch('probability_epic') || 0;
+  const totalProb = probCommon + probRare + probLegendary + probMythic + probEpic;
 
   const handleAddCard = () => {
     setSelectedCards([...selectedCards, { card_id: '', quantity: 1 }]);
@@ -88,6 +92,7 @@ export function NewPackForm({ editingPack, onSuccess }: NewPackFormProps) {
       probability_rare: data.probability_rare,
       probability_legendary: data.probability_legendary,
       probability_mythic: data.probability_mythic,
+      probability_epic: data.probability_epic,
       cards: packType === 'fixed' ? selectedCards.filter(card => card.card_id) : undefined,
     };
 
@@ -242,7 +247,7 @@ export function NewPackForm({ editingPack, onSuccess }: NewPackFormProps) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-purple-500" />
+                      <div className="w-3 h-3 rounded-full bg-orange-500" />
                       Lendária
                     </Label>
                     <span className="font-bold">{probLegendary}%</span>
@@ -260,7 +265,7 @@ export function NewPackForm({ editingPack, onSuccess }: NewPackFormProps) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                      <div className="w-3 h-3 rounded-full bg-cyan-500" />
                       Mítica
                     </Label>
                     <span className="font-bold">{probMythic}%</span>
@@ -268,6 +273,24 @@ export function NewPackForm({ editingPack, onSuccess }: NewPackFormProps) {
                   <Slider
                     value={[probMythic]}
                     onValueChange={(value) => form.setValue('probability_mythic', value[0])}
+                    max={100}
+                    step={1}
+                    className="py-2"
+                  />
+                </div>
+
+                {/* Epic */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-purple-500" />
+                      Épica
+                    </Label>
+                    <span className="font-bold">{probEpic}%</span>
+                  </div>
+                  <Slider
+                    value={[probEpic]}
+                    onValueChange={(value) => form.setValue('probability_epic', value[0])}
                     max={100}
                     step={1}
                     className="py-2"

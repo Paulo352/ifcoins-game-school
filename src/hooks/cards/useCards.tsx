@@ -6,7 +6,7 @@ export interface Card {
   id: string;
   name: string;
   description: string | null;
-  rarity: 'common' | 'rare' | 'legendary' | 'mythic';
+  rarity: 'common' | 'rare' | 'legendary' | 'mythic' | 'epic';
   price: number;
   available: boolean;
   copies_available: number | null;

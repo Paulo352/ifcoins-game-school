@@ -8,7 +8,7 @@ import { ShoppingCart, Eye } from 'lucide-react';
 interface CardData {
   id: string;
   name: string;
-  rarity: 'common' | 'rare' | 'legendary' | 'mythic';
+  rarity: 'common' | 'rare' | 'legendary' | 'mythic' | 'epic';
   image_url: string | null;
   price: number;
   description?: string;
@@ -29,22 +29,25 @@ interface NewCardProps {
 const rarityColors = {
   common: 'bg-gray-500 text-white',
   rare: 'bg-blue-500 text-white', 
-  legendary: 'bg-purple-500 text-white',
-  mythic: 'bg-yellow-500 text-black'
+  legendary: 'bg-orange-500 text-white',
+  mythic: 'bg-cyan-500 text-white',
+  epic: 'bg-purple-500 text-white'
 };
 
 const rarityLabels = {
   common: 'Comum',
   rare: 'Rara',
   legendary: 'Lendária', 
-  mythic: 'Mítica'
+  mythic: 'Mítica',
+  epic: 'Épica'
 };
 
 const rarityBorders = {
   common: 'border-gray-300',
   rare: 'border-blue-300',
-  legendary: 'border-purple-300',
-  mythic: 'border-yellow-300'
+  legendary: 'border-orange-300',
+  mythic: 'border-cyan-300',
+  epic: 'border-purple-300'
 };
 
 export function NewCard({ 
