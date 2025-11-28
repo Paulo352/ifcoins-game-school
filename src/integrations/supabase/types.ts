@@ -1302,6 +1302,7 @@ export type Database = {
           pack_type: string
           price: number
           probability_common: number
+          probability_epic: number
           probability_legendary: number
           probability_mythic: number
           probability_rare: number
@@ -1316,6 +1317,7 @@ export type Database = {
           pack_type?: string
           price: number
           probability_common?: number
+          probability_epic?: number
           probability_legendary?: number
           probability_mythic?: number
           probability_rare?: number
@@ -1330,6 +1332,7 @@ export type Database = {
           pack_type?: string
           price?: number
           probability_common?: number
+          probability_epic?: number
           probability_legendary?: number
           probability_mythic?: number
           probability_rare?: number

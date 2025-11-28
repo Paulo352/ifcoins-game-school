@@ -84,6 +84,8 @@ const sidebarGroups: SidebarGroup[] = [
       { icon: Building2, label: 'IFBank', id: 'bank', roles: ['student'], maintenance: true },
       { icon: ShoppingBag, label: 'IFMarket', id: 'market', roles: ['student'], maintenance: true },
       { icon: Trophy, label: 'Rankings', id: 'rankings', roles: ['student', 'teacher', 'admin'] },
+      { icon: Calendar, label: 'Eventos', id: 'events', roles: ['student', 'admin'] },
+      { icon: Vote, label: 'Votações', id: 'polls', roles: ['student', 'admin'] },
     ]
   },
   // Grupo Suporte (Estudantes)
