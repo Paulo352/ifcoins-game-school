@@ -43,6 +43,7 @@ const sidebarItems: SidebarItem[] = [
   { icon: Package, label: 'Gerenciar Pacotes', id: 'manage-packs', roles: ['admin'] },
   { icon: Package, label: 'Dashboard Mentoria', id: 'mentorship-dashboard', roles: ['admin'] },
   { icon: Package, label: 'Analytics', id: 'analytics', roles: ['admin'] },
+  { icon: Users, label: 'Usuários', id: 'user-management', roles: ['admin'] },
   { icon: Settings, label: 'Configurações', id: 'settings', roles: ['student', 'teacher', 'admin'] },
 ];
 

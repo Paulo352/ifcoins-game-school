@@ -7,6 +7,7 @@ export interface Profile {
   ra?: string;
   class?: string;
   coins: number;
+  avatar_url?: string;
   created_at: string;
   updated_at: string;
 }

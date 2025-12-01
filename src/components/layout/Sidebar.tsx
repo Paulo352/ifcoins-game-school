@@ -139,6 +139,7 @@ const sidebarGroups: SidebarGroup[] = [
     icon: Settings,
     roles: ['student', 'teacher', 'admin'],
     items: [
+      { icon: Users, label: 'Usuários', id: 'user-management', roles: ['admin'] },
       { icon: Settings, label: 'Configurações', id: 'settings', roles: ['admin', 'teacher', 'student'] },
     ]
   },
