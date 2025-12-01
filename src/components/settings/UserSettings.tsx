@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,6 +11,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useAvatarUpload } from '@/hooks/storage/useAvatarUpload';
 import { toast } from 'sonner';
 import { 
   User, 
@@ -25,13 +27,17 @@ import {
   Type,
   MousePointer,
   Keyboard,
-  Volume2
+  Volume2,
+  Upload,
+  Trash2
 } from 'lucide-react';
 
 export function UserSettings() {
   const { profile } = useAuth();
   const { theme, setTheme } = useTheme();
   const { settings: a11ySettings, updateSetting } = useAccessibility();
+  const { uploadAvatar, deleteAvatar, isUploading } = useAvatarUpload();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [passwords, setPasswords] = useState({
     current: '',
@@ -47,6 +53,22 @@ export function UserSettings() {
   });
 
   const [saving, setSaving] = useState(false);
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!profile) return;
+    const result = await uploadAvatar(file, profile.id);
+    if (result) {
+      window.location.reload();
+    }
+  };
+
+  const handleAvatarDelete = async () => {
+    if (!profile) return;
+    const success = await deleteAvatar(profile.id, profile.avatar_url || undefined);
+    if (success) {
+      window.location.reload();
+    }
+  };
 
   const handlePasswordChange = async () => {
     if (passwords.new !== passwords.confirm) {
@@ -152,6 +174,47 @@ export function UserSettings() {
               <CardTitle>Informações do Perfil</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex flex-col items-center gap-4 pb-6 border-b">
+                <Avatar className="h-32 w-32">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="text-4xl">
+                    {profile?.name[0]?.toUpperCase() || profile?.email[0]?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleAvatarUpload(file);
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {profile?.avatar_url ? 'Alterar Foto' : 'Adicionar Foto'}
+                  </Button>
+                  {profile?.avatar_url && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleAvatarDelete}
+                      disabled={isUploading}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Remover
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="name">Nome Completo</Label>
