@@ -43,6 +43,7 @@ import { ClassReports } from '@/components/reports/ClassReports';
 import { useAchievementNotifications } from '@/hooks/useAchievementNotifications';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { UserManagement } from '@/components/users/UserManagement';
 
 const Index = () => {
   const { user, profile, loading } = useAuth();
@@ -113,6 +114,9 @@ const Index = () => {
         if (profile.role === 'student') return <StudentDashboard onSectionChange={setActiveSection} />;
         if (profile.role === 'teacher') return <TeacherDashboard onSectionChange={setActiveSection} />;
         if (profile.role === 'admin') return <AdminDashboard />;
+        break;
+      case 'user-management':
+        return <UserManagement />;
         break;
       case 'shop':
         return <NewCardShop />;
