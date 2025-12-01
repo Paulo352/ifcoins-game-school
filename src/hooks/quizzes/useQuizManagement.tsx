@@ -51,21 +51,30 @@ export function useActiveQuizzes() {
   return useQuery({
     queryKey: ['active-quizzes'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: quizzes, error } = await supabase
         .from('quizzes')
-        .select(`
-          *,
-          creator:profiles!quizzes_created_by_fkey(name, role)
-        `)
+        .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
+      if (!quizzes || quizzes.length === 0) return [];
       
-      // Transform creator array to single object
-      const transformedData = (data as any[]).map((quiz) => ({
+      // Buscar informações dos criadores
+      const creatorIds = [...new Set(quizzes.map(q => q.created_by))];
+      const { data: creators, error: creatorsError } = await supabase
+        .from('profiles')
+        .select('id, name, role')
+        .in('id', creatorIds);
+      
+      if (creatorsError) throw creatorsError;
+      
+      // Mapear criadores para os quizzes
+      const creatorsMap = new Map(creators?.map(c => [c.id, c]) || []);
+      
+      const transformedData = quizzes.map((quiz) => ({
         ...quiz,
-        creator: quiz.creator?.[0] || null
+        creator: creatorsMap.get(quiz.created_by) || null
       }));
       
       return transformedData as (Quiz & { creator?: { name: string; role: string } | null })[];
