@@ -44,48 +44,32 @@ export function UserManagement() {
 
     setIsCreating(true);
     try {
-      // Criar usuário no Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: newUser.email,
-        password: newUser.password,
-        email_confirm: true,
-        user_metadata: {
-          name: newUser.name,
-        }
-      });
-
-      if (authError) throw authError;
-
-      if (!authData.user) {
-        throw new Error('Usuário não foi criado');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Sessão não encontrada');
       }
 
-      // Criar perfil
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
+      const response = await fetch(`https://bcopgknrpjenixejhlfz.supabase.co/functions/v1/create-user`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           name: newUser.name,
           email: newUser.email,
+          password: newUser.password,
           ra: newUser.ra || null,
           class: newUser.class || null,
           role: newUser.role,
-          coins: 0,
-        });
+        }),
+      });
 
-      if (profileError) throw profileError;
+      const result = await response.json();
 
-      // Adicionar role na tabela user_roles
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: authData.user.id,
-          role: newUser.role,
-        });
-
-      if (roleError) {
-        console.error('Erro ao adicionar role:', roleError);
-        // Não bloquear criação se role já existir
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao criar usuário');
       }
 
       toast({
