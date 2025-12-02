@@ -94,18 +94,82 @@ Deno.serve(async (req) => {
       }
     })
 
-    // 5. Delete user from auth.users (cascades to profiles and user_roles)
+    // 5. Delete related records first to avoid FK constraints
+    console.log('Deleting related records for user:', userId)
+    
+    // Delete user cards
+    await supabaseAdmin.from('user_cards').delete().eq('user_id', userId)
+    
+    // Delete quiz attempts and answers
+    const { data: attempts } = await supabaseAdmin.from('quiz_attempts').select('id').eq('user_id', userId)
+    if (attempts && attempts.length > 0) {
+      const attemptIds = attempts.map(a => a.id)
+      await supabaseAdmin.from('quiz_answers').delete().in('attempt_id', attemptIds)
+    }
+    await supabaseAdmin.from('quiz_attempts').delete().eq('user_id', userId)
+    
+    // Delete user badges
+    await supabaseAdmin.from('user_quiz_badges').delete().eq('user_id', userId)
+    
+    // Delete user ranks
+    await supabaseAdmin.from('user_ranks').delete().eq('user_id', userId)
+    
+    // Delete loans
+    await supabaseAdmin.from('loans').delete().eq('student_id', userId)
+    
+    // Delete transactions
+    await supabaseAdmin.from('transactions').delete().eq('sender_id', userId)
+    await supabaseAdmin.from('transactions').delete().eq('receiver_id', userId)
+    
+    // Delete reward logs
+    await supabaseAdmin.from('reward_logs').delete().eq('student_id', userId)
+    await supabaseAdmin.from('reward_logs').delete().eq('teacher_id', userId)
+    
+    // Delete trades
+    await supabaseAdmin.from('trades').delete().eq('from_user_id', userId)
+    await supabaseAdmin.from('trades').delete().eq('to_user_id', userId)
+    
+    // Delete market listings
+    await supabaseAdmin.from('market_listings').delete().eq('seller_id', userId)
+    
+    // Delete poll votes
+    await supabaseAdmin.from('poll_votes').delete().eq('user_id', userId)
+    
+    // Delete notifications
+    await supabaseAdmin.from('notifications').delete().eq('user_id', userId)
+    await supabaseAdmin.from('achievement_notifications').delete().eq('user_id', userId)
+    
+    // Delete class students
+    await supabaseAdmin.from('class_students').delete().eq('student_id', userId)
+    
+    // Delete mentorships
+    await supabaseAdmin.from('mentorships').delete().eq('mentor_id', userId)
+    await supabaseAdmin.from('mentorships').delete().eq('mentee_id', userId)
+    
+    // Delete security logs for this user (both as actor and target)
+    await supabaseAdmin.from('security_logs').delete().eq('user_id', userId)
+    await supabaseAdmin.from('security_logs').delete().eq('target_user_id', userId)
+    
+    // Delete user roles
+    await supabaseAdmin.from('user_roles').delete().eq('user_id', userId)
+    
+    // Delete profile
+    await supabaseAdmin.from('profiles').delete().eq('id', userId)
+    
+    console.log('Related records deleted, now deleting auth user')
+
+    // 6. Delete user from auth.users
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
     if (deleteError) {
       console.error('Error deleting user:', deleteError)
       return new Response(
-        JSON.stringify({ error: 'Failed to delete user' }),
+        JSON.stringify({ error: 'Failed to delete user: ' + deleteError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // 6. Log successful deletion
+    // 7. Log successful deletion
     await supabaseAdmin.from('security_logs').insert({
       user_id: user.id,
       action: 'user_deleted',
@@ -114,6 +178,8 @@ Deno.serve(async (req) => {
         ip_address: req.headers.get('x-forwarded-for') || 'unknown'
       }
     })
+
+    console.log('User deleted successfully:', userId)
 
     return new Response(
       JSON.stringify({ success: true, message: 'User deleted successfully' }),
