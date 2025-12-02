@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Mail, Clock, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, Clock, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface MaintenanceScreenProps {
@@ -23,6 +23,10 @@ export function MaintenanceScreen({
     await signOut();
     window.location.reload();
   };
+
+  // Extract estimated return from message if present
+  const hasEstimatedReturn = message.includes('Previsão de retorno:');
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg text-center">
@@ -35,31 +39,18 @@ export function MaintenanceScreen({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground whitespace-pre-line">
             {message}
           </p>
           
-          {scheduledAt && (
+          {scheduledAt && !hasEstimatedReturn && (
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span>
-                Agendado para: {new Date(scheduledAt).toLocaleString('pt-BR')}
+                Previsão de retorno: {new Date(scheduledAt).toLocaleString('pt-BR')}
               </span>
             </div>
           )}
-          
-          <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-            <div className="flex items-center justify-center gap-2 text-sm font-medium">
-              <Mail className="h-4 w-4" />
-              <span>Notificação por Email</span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {showEmailNotice 
-                ? 'Você será notificado por email quando o sistema voltar ao normal.'
-                : 'Verifique novamente em alguns instantes.'
-              }
-            </p>
-          </div>
           
           <p className="text-xs text-muted-foreground">
             Desculpe pelo transtorno. Estamos trabalhando para resolver o mais rápido possível.
