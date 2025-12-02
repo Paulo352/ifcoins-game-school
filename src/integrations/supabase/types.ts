@@ -2806,7 +2806,7 @@ export type Database = {
         }
         Returns: string
       }
-      delete_event: { Args: { event_id: string }; Returns: boolean }
+      delete_event: { Args: { p_event_id: string }; Returns: boolean }
       dreamlit_auth_admin_executor: {
         Args: { command: string }
         Returns: undefined

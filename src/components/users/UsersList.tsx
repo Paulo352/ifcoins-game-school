@@ -4,12 +4,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Trash2, Search } from 'lucide-react';
+import { Upload, Trash2, Search, UserX } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/supabase';
 import { AvatarUploadResult } from '@/hooks/storage/useAvatarUpload';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface UsersListProps {
   onAvatarUpload: (file: File, userId: string) => Promise<AvatarUploadResult | null>;
@@ -60,6 +71,49 @@ export function UsersList({ onAvatarUpload, onAvatarDelete, isUploading }: Users
     const success = await onAvatarDelete(userId, avatarUrl);
     if (success) {
       fetchUsers(); // Recarregar lista
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para excluir usuários.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await fetch('https://bcopgknrpjenixejhlfz.supabase.co/functions/v1/delete-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao excluir usuário');
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Usuário excluído com sucesso!"
+      });
+      
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Erro ao excluir usuário:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível excluir o usuário.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -178,13 +232,39 @@ export function UsersList({ onAvatarUpload, onAvatarDelete, isUploading }: Users
                     {user.avatar_url && (currentProfile?.role === 'admin' || isCurrentUser) && (
                       <Button
                         size="sm"
-                        variant="destructive"
+                        variant="outline"
                         onClick={() => handleAvatarDelete(user.id, user.avatar_url || undefined)}
                         disabled={isUploading}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Remover Foto
                       </Button>
+                    )}
+
+                    {/* Excluir usuário - apenas admin */}
+                    {currentProfile?.role === 'admin' && !isCurrentUser && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="destructive">
+                            <UserX className="h-4 w-4 mr-2" />
+                            Excluir Usuário
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir {user.name}? Esta ação não pode ser desfeita e removerá todos os dados do usuário.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                   </div>
                 </div>

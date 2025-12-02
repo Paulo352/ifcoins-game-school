@@ -154,7 +154,7 @@ export function useEventManagement() {
     setLoading(true);
     try {
       const { data, error } = await supabase.rpc('delete_event', {
-        event_id: eventId
+        p_event_id: eventId
       });
 
       if (error) throw error;
