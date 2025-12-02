@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Trophy, Medal, Award, Crown, Coins } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,7 +54,7 @@ export function Rankings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, coins, created_at')
+        .select('id, name, coins, created_at, avatar_url')
         .eq('role', 'student')
         .order('coins', { ascending: false });
 
@@ -70,7 +71,7 @@ export function Rankings() {
         .select(`
           user_id,
           quantity,
-          profiles!inner(id, name, role)
+          profiles!inner(id, name, role, avatar_url)
         `)
         .eq('profiles.role', 'student');
       
@@ -88,14 +89,15 @@ export function Rankings() {
           acc[userId] = {
             user_id: userId,
             name: row.profiles?.name || 'Estudante',
+            avatar_url: row.profiles?.avatar_url,
             total_cards: 0,
           };
         }
         acc[userId].total_cards += row.quantity || 0;
         return acc;
-      }, {} as Record<string, { user_id: string; name: string; total_cards: number }>);
+      }, {} as Record<string, { user_id: string; name: string; avatar_url?: string; total_cards: number }>);
 
-      return (Object.values(userCardCounts) as { user_id: string; name: string; total_cards: number }[]).sort(
+      return (Object.values(userCardCounts) as { user_id: string; name: string; avatar_url?: string; total_cards: number }[]).sort(
         (a, b) => b.total_cards - a.total_cards
       );
     },
@@ -152,6 +154,12 @@ export function Rankings() {
                     </span>
                     {getPositionIcon(index + 1)}
                   </div>
+                  <Avatar className="h-10 w-10">
+                    {user.avatar_url && <AvatarImage src={user.avatar_url} alt={user.name} />}
+                    <AvatarFallback className="text-sm">
+                      {user.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??'}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1">
                     <p className="font-medium text-foreground">{user.name}</p>
                   </div>
@@ -190,6 +198,12 @@ export function Rankings() {
                     </span>
                     {getPositionIcon(index + 1)}
                   </div>
+                  <Avatar className="h-10 w-10">
+                    {item.avatar_url && <AvatarImage src={item.avatar_url} alt={item.name} />}
+                    <AvatarFallback className="text-sm">
+                      {item.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || '??'}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1">
                     <p className="font-medium text-foreground">{item.name}</p>
                   </div>
