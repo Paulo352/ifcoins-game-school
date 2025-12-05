@@ -1746,6 +1746,42 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_classes: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          quiz_id: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          quiz_id: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          quiz_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_classes_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_classes_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_questions: {
         Row: {
           correct_answer: string

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveQuizzes, useUserAttempts } from '@/hooks/quizzes/useQuizzes';
+import { useClasses } from '@/hooks/useClasses';
 import { QuizCard } from './QuizCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { HelpCircle } from 'lucide-react';
@@ -13,8 +14,7 @@ export function QuizList({ onStartQuiz }: QuizListProps) {
   const { profile, user, loading: authLoading } = useAuth();
   const { data: quizzes, isLoading } = useActiveQuizzes();
   const { data: userAttempts } = useUserAttempts(profile?.id);
-
-  console.log('QuizList - Profile:', profile, 'User:', user, 'Auth Loading:', authLoading);
+  const { data: classes } = useClasses();
 
   if (isLoading || authLoading) {
     return (
@@ -56,6 +56,9 @@ export function QuizList({ onStartQuiz }: QuizListProps) {
     return acc;
   }, {} as Record<string, number>) || {};
 
+  // Mapear classes para uso no QuizCard
+  const classNames = classes?.map(c => ({ id: c.id, name: c.name })) || [];
+
   return (
     <div className="space-y-6">
       <div>
@@ -72,6 +75,7 @@ export function QuizList({ onStartQuiz }: QuizListProps) {
             quiz={quiz}
             onStart={onStartQuiz}
             userAttempts={attemptsByQuiz[quiz.id] || 0}
+            classNames={classNames}
           />
         ))}
       </div>

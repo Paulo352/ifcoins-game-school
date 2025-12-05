@@ -2,17 +2,18 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Coins, HelpCircle, Trophy, User } from 'lucide-react';
+import { Clock, Coins, HelpCircle, Trophy, User, Users } from 'lucide-react';
 import { Quiz } from '@/hooks/quizzes/useQuizzes';
 
 interface QuizCardProps {
-  quiz: Quiz & { creator?: { name: string; role: string } };
+  quiz: Quiz & { creator?: { name: string; role: string } | null; class_ids?: string[] };
   onStart?: (quizId: string) => void;
   userAttempts?: number;
   loading?: boolean;
   showManagement?: boolean;
   onToggleStatus?: (quizId: string, isActive: boolean) => void;
   onDelete?: (quizId: string) => void;
+  classNames?: { id: string; name: string }[];
 }
 
 export function QuizCard({ 
@@ -22,9 +23,36 @@ export function QuizCard({
   loading = false,
   showManagement = false,
   onToggleStatus,
-  onDelete
+  onDelete,
+  classNames = []
 }: QuizCardProps) {
   const canAttempt = !quiz.max_attempts || userAttempts < quiz.max_attempts;
+  
+  // Determinar o texto do criador
+  const getCreatorText = () => {
+    if (!quiz.creator) return null;
+    // Se o role do criador é admin, mostrar "Sistema"
+    if (quiz.creator.role === 'admin') {
+      return 'Sistema';
+    }
+    // Se é teacher, mostrar "Prof. Nome"
+    return `Prof. ${quiz.creator.name}`;
+  };
+
+  // Obter nomes das turmas associadas
+  const getClassNamesText = () => {
+    if (!quiz.class_ids || quiz.class_ids.length === 0) {
+      return 'Todas as turmas';
+    }
+    const names = quiz.class_ids
+      .map(id => classNames.find(c => c.id === id)?.name)
+      .filter(Boolean);
+    if (names.length === 0) return 'Turmas específicas';
+    if (names.length <= 2) return names.join(', ');
+    return `${names.slice(0, 2).join(', ')} +${names.length - 2}`;
+  };
+
+  const creatorText = getCreatorText();
 
   return (
     <Card className="h-full transition-all duration-300 hover:shadow-lg">
@@ -40,12 +68,16 @@ export function QuizCard({
             {quiz.description}
           </p>
         )}
-        {quiz.creator && (
+        {creatorText && (
           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
             <User className="w-3 h-3" />
-            <span>
-              Criado por: {quiz.creator.role === 'admin' ? 'Sistema' : `Prof. ${quiz.creator.name}`}
-            </span>
+            <span>Criado por: {creatorText}</span>
+          </div>
+        )}
+        {showManagement && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+            <Users className="w-3 h-3" />
+            <span>{getClassNamesText()}</span>
           </div>
         )}
       </CardHeader>

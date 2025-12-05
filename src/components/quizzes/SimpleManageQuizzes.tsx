@@ -683,7 +683,7 @@ export function SimpleManageQuizzes() {
             
             <CardContent className="space-y-4">
               <div className="text-sm space-y-1">
-                <p><strong>Criado por:</strong> Sistema</p>
+                <p><strong>Criado por:</strong> {(quiz as any).creator_role === 'admin' ? 'Sistema' : `Prof. ${(quiz as any).creator_name}`}</p>
                 <p><strong>Recompensa:</strong> {quiz.reward_coins} moedas</p>
                 {quiz.max_attempts && (
                   <p><strong>Tentativas:</strong> {quiz.max_attempts}</p>
