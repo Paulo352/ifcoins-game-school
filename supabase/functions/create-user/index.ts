@@ -85,10 +85,10 @@ serve(async (req) => {
       );
     }
 
-    // Create profile
+    // Create or update profile (trigger might have created it already)
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .insert({
+      .upsert({
         id: authData.user.id,
         name,
         email,
@@ -96,16 +96,10 @@ serve(async (req) => {
         class: userClass || null,
         role,
         coins: 100,
-      });
+      }, { onConflict: 'id' });
 
     if (profileError) {
       console.error('Error creating profile:', profileError);
-      // Try to delete the auth user if profile creation fails
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-      return new Response(
-        JSON.stringify({ error: 'Failed to create user profile' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
     }
 
     // Add role to user_roles table
