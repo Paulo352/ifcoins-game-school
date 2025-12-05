@@ -9,9 +9,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useCreateQuiz, CreateQuizData } from '@/hooks/quizzes/useQuizzes';
 import { useClasses } from '@/hooks/useClasses';
-import { Plus, Minus, HelpCircle, Trash2 } from 'lucide-react';
+import { Plus, HelpCircle, Trash2 } from 'lucide-react';
 import { useNewCards } from '@/hooks/useNewCards';
 
 const questionSchema = z.object({
@@ -30,7 +31,6 @@ const quizSchema = z.object({
   reward_card_id: z.string().optional(),
   max_attempts: z.number().min(1).optional(),
   time_limit_minutes: z.number().min(1).optional(),
-  class_id: z.string().optional(),
   questions: z.array(questionSchema).min(1, 'Adicione pelo menos uma pergunta'),
 });
 
@@ -43,6 +43,7 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
   const { data: cards } = useNewCards();
   const { data: classes } = useClasses();
   const [rewardType, setRewardType] = useState<'coins' | 'card'>('coins');
+  const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
 
   const form = useForm<z.infer<typeof quizSchema>>({
     resolver: zodResolver(quizSchema),
@@ -52,7 +53,6 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
       reward_type: 'coins',
       reward_coins: 10,
       reward_card_id: undefined,
-      class_id: undefined,
       max_attempts: 1,
       time_limit_minutes: undefined,
       questions: [{
@@ -86,6 +86,24 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
     }
   };
 
+  const toggleClassSelection = (classId: string) => {
+    setSelectedClassIds(prev => 
+      prev.includes(classId) 
+        ? prev.filter(id => id !== classId)
+        : [...prev, classId]
+    );
+  };
+
+  const selectAllClasses = () => {
+    if (classes) {
+      setSelectedClassIds(classes.map(c => c.id));
+    }
+  };
+
+  const clearClassSelection = () => {
+    setSelectedClassIds([]);
+  };
+
   const onSubmit = (data: z.infer<typeof quizSchema>) => {
     const quizData: CreateQuizData = {
       title: data.title,
@@ -93,7 +111,7 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
       reward_type: data.reward_type,
       reward_coins: data.reward_type === 'coins' ? data.reward_coins : 0,
       reward_card_id: data.reward_type === 'card' ? data.reward_card_id : undefined,
-      class_id: data.class_id,
+      class_ids: selectedClassIds.length > 0 ? selectedClassIds : undefined,
       max_attempts: data.max_attempts,
       time_limit_minutes: data.time_limit_minutes,
       questions: data.questions.map(question => ({
@@ -109,6 +127,7 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
     createQuiz.mutate(quizData, {
       onSuccess: () => {
         form.reset();
+        setSelectedClassIds([]);
         onSuccess?.();
       },
     });
@@ -210,26 +229,49 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
                 placeholder="Opcional"
               />
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="class_id">Turma (Opcional)</Label>
-              <Select
-                value={form.watch('class_id') || 'all'}
-                onValueChange={(value) => form.setValue('class_id', value === 'all' ? undefined : value)}
-              >
-                <SelectTrigger id="class_id">
-                  <SelectValue placeholder="Quiz para todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as turmas</SelectItem>
-                  {classes?.map((classItem) => (
-                    <SelectItem key={classItem.id} value={classItem.id}>
-                      {classItem.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Seleção de Turmas */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label>Turmas (deixe vazio para todas as turmas)</Label>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={selectAllClasses}>
+                  Selecionar Todas
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={clearClassSelection}>
+                  Limpar
+                </Button>
+              </div>
             </div>
+            
+            {classes && classes.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 border rounded-md">
+                {classes.map((classItem) => (
+                  <div key={classItem.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`class-${classItem.id}`}
+                      checked={selectedClassIds.includes(classItem.id)}
+                      onCheckedChange={() => toggleClassSelection(classItem.id)}
+                    />
+                    <label
+                      htmlFor={`class-${classItem.id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {classItem.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhuma turma disponível</p>
+            )}
+            
+            {selectedClassIds.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                {selectedClassIds.length} turma(s) selecionada(s)
+              </p>
+            )}
           </div>
 
           <div>
@@ -347,11 +389,7 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
                       <Label>Resposta Correta</Label>
                       <Input
                         {...form.register(`questions.${index}.correct_answer`)}
-                        placeholder={
-                          form.watch(`questions.${index}.question_type`) === 'multiple_choice' 
-                            ? "Digite exatamente como aparece nas opções" 
-                            : "Resposta esperada"
-                        }
+                        placeholder="Digite exatamente como aparece nas opções"
                       />
                     </div>
                   )}

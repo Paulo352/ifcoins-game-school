@@ -16,6 +16,7 @@ export interface Quiz {
   created_by: string;
   created_at: string;
   updated_at: string;
+  class_ids?: string[];
 }
 
 export interface QuizQuestion {
@@ -34,7 +35,7 @@ export interface CreateQuizData {
   reward_type: 'coins' | 'card';
   reward_coins: number;
   reward_card_id?: string;
-  class_id?: string;
+  class_ids?: string[];
   max_attempts?: number;
   time_limit_minutes?: number;
   questions: Array<{
@@ -51,10 +52,8 @@ export function useActiveQuizzes() {
   return useQuery({
     queryKey: ['active-quizzes'],
     queryFn: async () => {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Get user profile to check role
       const { data: profile } = await supabase
         .from('profiles')
         .select('id, role')
@@ -70,10 +69,23 @@ export function useActiveQuizzes() {
       if (error) throw error;
       if (!quizzes || quizzes.length === 0) return [];
       
-      // If student, filter quizzes by their enrolled classes
+      // Buscar turmas associadas a cada quiz
+      const quizIds = quizzes.map(q => q.id);
+      const { data: quizClasses } = await supabase
+        .from('quiz_classes')
+        .select('quiz_id, class_id')
+        .in('quiz_id', quizIds);
+      
+      // Mapear turmas por quiz
+      const quizClassesMap = new Map<string, string[]>();
+      quizClasses?.forEach(qc => {
+        const existing = quizClassesMap.get(qc.quiz_id) || [];
+        quizClassesMap.set(qc.quiz_id, [...existing, qc.class_id]);
+      });
+      
+      // Se for estudante, filtrar quizzes por turmas matriculadas
       let filteredQuizzes = quizzes;
       if (profile?.role === 'student' && user?.id) {
-        // Get classes the student is enrolled in
         const { data: enrollments } = await supabase
           .from('class_students')
           .select('class_id')
@@ -81,10 +93,16 @@ export function useActiveQuizzes() {
         
         const enrolledClassIds = enrollments?.map(e => e.class_id) || [];
         
-        // Filter quizzes: show if class_id is null (all classes) or matches enrolled class
-        filteredQuizzes = quizzes.filter(quiz => 
-          !quiz.class_id || enrolledClassIds.includes(quiz.class_id)
-        );
+        // Filtrar quizzes: mostrar se não tem turma ou se alguma turma do quiz está nas matrículas
+        filteredQuizzes = quizzes.filter(quiz => {
+          const quizClassIds = quizClassesMap.get(quiz.id) || [];
+          // Se não tem turmas associadas, mostrar para todos
+          if (quizClassIds.length === 0 && !quiz.class_id) return true;
+          // Se tem class_id legado, verificar
+          if (quiz.class_id && enrolledClassIds.includes(quiz.class_id)) return true;
+          // Se tem turmas na nova tabela, verificar se alguma bate
+          return quizClassIds.some(classId => enrolledClassIds.includes(classId));
+        });
       }
       
       // Buscar informações dos criadores
@@ -96,11 +114,11 @@ export function useActiveQuizzes() {
       
       if (creatorsError) throw creatorsError;
       
-      // Mapear criadores para os quizzes
       const creatorsMap = new Map(creators?.map(c => [c.id, c]) || []);
       
       const transformedData = filteredQuizzes.map((quiz) => ({
         ...quiz,
+        class_ids: quizClassesMap.get(quiz.id) || [],
         creator: creatorsMap.get(quiz.created_by) || null
       }));
       
@@ -136,7 +154,7 @@ export function useCreateQuiz() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
       
-      // Criar quiz
+      // Criar quiz (sem class_id, agora usamos quiz_classes)
       const { data: quiz, error: quizError } = await supabase
         .from('quizzes')
         .insert({
@@ -145,7 +163,6 @@ export function useCreateQuiz() {
           reward_type: quizData.reward_type,
           reward_coins: quizData.reward_coins,
           reward_card_id: quizData.reward_card_id,
-          class_id: quizData.class_id,
           max_attempts: quizData.max_attempts,
           time_limit_minutes: quizData.time_limit_minutes,
           created_by: user.id,
@@ -155,6 +172,20 @@ export function useCreateQuiz() {
         .single();
       
       if (quizError) throw quizError;
+      
+      // Criar associações com turmas
+      if (quizData.class_ids && quizData.class_ids.length > 0) {
+        const quizClassesInserts = quizData.class_ids.map(classId => ({
+          quiz_id: quiz.id,
+          class_id: classId
+        }));
+        
+        const { error: classesError } = await supabase
+          .from('quiz_classes')
+          .insert(quizClassesInserts);
+        
+        if (classesError) throw classesError;
+      }
       
       // Criar perguntas
       const questions = quizData.questions.map((q, index) => ({
@@ -191,6 +222,8 @@ export function useDeleteQuiz() {
   
   return useMutation({
     mutationFn: async (quizId: string) => {
+      // quiz_classes será deletado automaticamente por CASCADE
+      
       // Deletar perguntas primeiro
       const { error: questionsError } = await supabase
         .from('quiz_questions')
