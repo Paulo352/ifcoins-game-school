@@ -51,6 +51,16 @@ export function useActiveQuizzes() {
   return useQuery({
     queryKey: ['active-quizzes'],
     queryFn: async () => {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Get user profile to check role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('id', user?.id || '')
+        .single();
+      
       const { data: quizzes, error } = await supabase
         .from('quizzes')
         .select('*')
@@ -60,8 +70,25 @@ export function useActiveQuizzes() {
       if (error) throw error;
       if (!quizzes || quizzes.length === 0) return [];
       
+      // If student, filter quizzes by their enrolled classes
+      let filteredQuizzes = quizzes;
+      if (profile?.role === 'student' && user?.id) {
+        // Get classes the student is enrolled in
+        const { data: enrollments } = await supabase
+          .from('class_students')
+          .select('class_id')
+          .eq('student_id', user.id);
+        
+        const enrolledClassIds = enrollments?.map(e => e.class_id) || [];
+        
+        // Filter quizzes: show if class_id is null (all classes) or matches enrolled class
+        filteredQuizzes = quizzes.filter(quiz => 
+          !quiz.class_id || enrolledClassIds.includes(quiz.class_id)
+        );
+      }
+      
       // Buscar informações dos criadores
-      const creatorIds = [...new Set(quizzes.map(q => q.created_by))];
+      const creatorIds = [...new Set(filteredQuizzes.map(q => q.created_by))];
       const { data: creators, error: creatorsError } = await supabase
         .from('profiles')
         .select('id, name, role')
@@ -72,7 +99,7 @@ export function useActiveQuizzes() {
       // Mapear criadores para os quizzes
       const creatorsMap = new Map(creators?.map(c => [c.id, c]) || []);
       
-      const transformedData = quizzes.map((quiz) => ({
+      const transformedData = filteredQuizzes.map((quiz) => ({
         ...quiz,
         creator: creatorsMap.get(quiz.created_by) || null
       }));
