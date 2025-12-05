@@ -44,7 +44,7 @@ export function QuizCard({
           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
             <User className="w-3 h-3" />
             <span>
-              Criado por: {quiz.creator.role === 'admin' ? 'Sistema' : quiz.creator.name}
+              Criado por: {quiz.creator.role === 'admin' ? 'Sistema' : `Prof. ${quiz.creator.name}`}
             </span>
           </div>
         )}
