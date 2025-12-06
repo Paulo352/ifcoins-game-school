@@ -3,7 +3,7 @@ export interface Profile {
   id: string;
   name: string;
   email: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: 'student' | 'teacher' | 'admin' | 'intruso';
   ra?: string;
   class?: string;
   coins: number;

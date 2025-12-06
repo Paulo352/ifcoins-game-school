@@ -2946,7 +2946,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "teacher" | "student"
+      app_role: "admin" | "teacher" | "student" | "intruso"
       card_rarity: "common" | "rare" | "legendary" | "mythic" | "epic"
       listing_status: "active" | "sold" | "expired" | "removed"
       loan_status: "pending" | "approved" | "denied" | "repaid"
@@ -2960,7 +2960,7 @@ export type Database = {
         | "market_sale"
         | "market_fee"
         | "system_buy"
-      user_role: "student" | "teacher" | "admin"
+      user_role: "student" | "teacher" | "admin" | "intruso"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3088,7 +3088,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "teacher", "student"],
+      app_role: ["admin", "teacher", "student", "intruso"],
       card_rarity: ["common", "rare", "legendary", "mythic", "epic"],
       listing_status: ["active", "sold", "expired", "removed"],
       loan_status: ["pending", "approved", "denied", "repaid"],
@@ -3103,7 +3103,7 @@ export const Constants = {
         "market_fee",
         "system_buy",
       ],
-      user_role: ["student", "teacher", "admin"],
+      user_role: ["student", "teacher", "admin", "intruso"],
     },
   },
 } as const

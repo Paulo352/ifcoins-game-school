@@ -74,7 +74,7 @@ export function QuizCard({
             <span>Criado por: {creatorText}</span>
           </div>
         )}
-        {showManagement && (
+        {(showManagement || quiz.class_ids?.length) && (
           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
             <Users className="w-3 h-3" />
             <span>{getClassNamesText()}</span>
