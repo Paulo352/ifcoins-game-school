@@ -128,12 +128,14 @@ export function UsersList({ onAvatarUpload, onAvatarDelete, isUploading }: Users
       admin: 'destructive' as const,
       teacher: 'default' as const,
       student: 'secondary' as const,
+      intruso: 'outline' as const,
     };
     
     const labels = {
       admin: 'Administrador',
       teacher: 'Professor',
       student: 'Estudante',
+      intruso: 'Intruso',
     };
 
     return (

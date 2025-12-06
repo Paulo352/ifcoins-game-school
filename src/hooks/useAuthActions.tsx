@@ -77,11 +77,14 @@ export function useAuthActions() {
       
       // Tipo de usuário é determinado automaticamente no backend
       // baseado em configuração segura na tabela admin_config
+      const allowedGmail = 'paulocauan39@gmail.com';
+      
       const getUserTypeFromEmail = (email: string) => {
         if (email.endsWith('@estudantes.ifpr.edu.br')) return 'student';
         if (email.endsWith('@ifpr.edu.br')) return 'teacher';
-        // Admin será determinado no backend via configuração segura
-        return 'student'; // default
+        if (email.toLowerCase() === allowedGmail) return 'student';
+        // Qualquer outro domínio será marcado como intruso
+        return 'intruso';
       };
 
       const userType = getUserTypeFromEmail(email);

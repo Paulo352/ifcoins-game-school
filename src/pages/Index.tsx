@@ -44,6 +44,7 @@ import { useAchievementNotifications } from '@/hooks/useAchievementNotifications
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { UserManagement } from '@/components/users/UserManagement';
+import { IntrusoScreen } from '@/components/maintenance/IntrusoScreen';
 
 const Index = () => {
   const { user, profile, loading } = useAuth();
@@ -106,6 +107,11 @@ const Index = () => {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // Verificar se é usuário intruso
+  if (profile.role === 'intruso') {
+    return <IntrusoScreen />;
   }
 
   const renderContent = () => {

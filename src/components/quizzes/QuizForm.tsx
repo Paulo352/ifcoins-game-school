@@ -234,10 +234,15 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
           {/* Seleção de Turmas */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>Turmas (deixe vazio para todas as turmas)</Label>
+              <div>
+                <Label>Turmas</Label>
+                <p className="text-xs text-muted-foreground">
+                  Selecione uma ou mais turmas. Deixe vazio para disponibilizar para todos.
+                </p>
+              </div>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" size="sm" onClick={selectAllClasses}>
-                  Selecionar Todas
+                  Todas
                 </Button>
                 <Button type="button" variant="outline" size="sm" onClick={clearClassSelection}>
                   Limpar
@@ -248,7 +253,15 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
             {classes && classes.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 border rounded-md">
                 {classes.map((classItem) => (
-                  <div key={classItem.id} className="flex items-center space-x-2">
+                  <div 
+                    key={classItem.id} 
+                    className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer transition-colors ${
+                      selectedClassIds.includes(classItem.id) 
+                        ? 'bg-primary/10 border border-primary/30' 
+                        : 'hover:bg-muted'
+                    }`}
+                    onClick={() => toggleClassSelection(classItem.id)}
+                  >
                     <Checkbox
                       id={`class-${classItem.id}`}
                       checked={selectedClassIds.includes(classItem.id)}
@@ -256,7 +269,7 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
                     />
                     <label
                       htmlFor={`class-${classItem.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
                     >
                       {classItem.name}
                     </label>
@@ -268,7 +281,7 @@ export function QuizForm({ onSuccess }: QuizFormProps) {
             )}
             
             {selectedClassIds.length > 0 && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-primary font-medium">
                 {selectedClassIds.length} turma(s) selecionada(s)
               </p>
             )}
