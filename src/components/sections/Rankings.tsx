@@ -3,9 +3,10 @@ import React, { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Trophy, Medal, Award, Crown, Coins } from 'lucide-react';
+import { Trophy, Medal, Award, Crown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import ifcoinsIcon from '@/assets/ifcoins-icon.png';
 
 export function Rankings() {
   const queryClient = useQueryClient();
@@ -137,7 +138,7 @@ export function Rankings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Coins className="h-5 w-5 text-yellow-600" />
+              <img src={ifcoinsIcon} alt="IFCoins" className="h-8 w-8 object-contain" />
               Rankings - IFCoins
             </CardTitle>
             <CardDescription>
