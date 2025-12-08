@@ -2857,6 +2857,14 @@ export type Database = {
       }
       generate_invite_code: { Args: never; Returns: string }
       generate_room_code: { Args: never; Returns: string }
+      get_creator_info: {
+        Args: { creator_ids: string[] }
+        Returns: {
+          id: string
+          name: string
+          role: string
+        }[]
+      }
       get_current_user_role: { Args: never; Returns: string }
       get_poll_results: {
         Args: { poll_id: string }
