@@ -14,7 +14,7 @@ export function CoinBalance({ balance, className = '', showAnimation = false }: 
       <img 
         src={ifcoinsIcon} 
         alt="IFCoins"
-        className={`h-8 w-8 object-contain ${showAnimation ? 'animate-coin-flip' : ''}`} 
+        className={`h-16 w-16 object-contain ${showAnimation ? 'animate-coin-flip' : ''}`} 
       />
       <span className="font-bold text-lg text-ifpr-green">
         {balance.toLocaleString('pt-BR')} IFCoins
