@@ -105,16 +105,20 @@ export function useActiveQuizzes() {
         });
       }
       
-      // Buscar informações dos criadores
+      // Buscar informações dos criadores (com tratamento de erro para RLS)
       const creatorIds = [...new Set(filteredQuizzes.map(q => q.created_by))];
-      const { data: creators, error: creatorsError } = await supabase
-        .from('profiles')
-        .select('id, name, role')
-        .in('id', creatorIds);
+      let creatorsMap = new Map<string, { id: string; name: string; role: string }>();
       
-      if (creatorsError) throw creatorsError;
-      
-      const creatorsMap = new Map(creators?.map(c => [c.id, c]) || []);
+      if (creatorIds.length > 0) {
+        const { data: creators } = await supabase
+          .from('profiles')
+          .select('id, name, role')
+          .in('id', creatorIds);
+        
+        if (creators) {
+          creatorsMap = new Map(creators.map(c => [c.id, c]));
+        }
+      }
       
       const transformedData = filteredQuizzes.map((quiz) => ({
         ...quiz,
