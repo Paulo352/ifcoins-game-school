@@ -77,7 +77,15 @@ export function QuizSystemList({ onStartQuiz, onViewChange }: QuizSystemListProp
         </div>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{quizzes.map((quiz: Quiz) => (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{quizzes.map((quiz: Quiz & { creator?: { name: string; role: string } | null }) => {
+          // Determinar o texto do criador
+          const getCreatorText = () => {
+            if (!quiz.creator) return 'Sistema';
+            if (quiz.creator.role === 'admin') return 'Sistema';
+            return `Prof. ${quiz.creator.name}`;
+          };
+          
+          return (
           <Card key={quiz.id} className="flex flex-col">
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -101,7 +109,7 @@ export function QuizSystemList({ onStartQuiz, onViewChange }: QuizSystemListProp
               <div className="space-y-2 mb-4">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <User className="w-4 h-4 mr-2" />
-                  Criado por: Sistema
+                  Criado por: {getCreatorText()}
                 </div>
                 
                 {quiz.time_limit_minutes && (
@@ -150,7 +158,8 @@ export function QuizSystemList({ onStartQuiz, onViewChange }: QuizSystemListProp
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
