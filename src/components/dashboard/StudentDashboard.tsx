@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { CardDisplay } from '@/components/cards/CardDisplay';
 import { Gift, BookOpen, Users, Trophy, Calendar, Loader2 } from 'lucide-react';
 import { RankDisplay } from './RankDisplay';
-import { QuizPerformanceReport } from '@/components/reports/QuizPerformanceReport';
+
 
 interface StudentDashboardProps {
   onSectionChange: (section: string) => void;
@@ -200,8 +200,6 @@ export function StudentDashboard({ onSectionChange }: StudentDashboardProps) {
       {/* Rank Display */}
       <RankDisplay />
 
-      {/* Performance Report */}
-      <QuizPerformanceReport />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
