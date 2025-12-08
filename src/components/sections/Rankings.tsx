@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Trophy, Medal, Award, Crown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import ifcoinsIcon from '@/assets/ifcoins-icon.png';
+import ifcoins3d from '@/assets/ifcoins-3d.png';
 
 export function Rankings() {
   const queryClient = useQueryClient();
@@ -138,7 +138,7 @@ export function Rankings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <img src={ifcoinsIcon} alt="IFCoins" className="h-8 w-8 object-contain" />
+              <img src={ifcoins3d} alt="IFCoins" className="h-8 w-8 object-contain" />
               Rankings - IFCoins
             </CardTitle>
             <CardDescription>
