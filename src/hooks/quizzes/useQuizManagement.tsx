@@ -105,18 +105,16 @@ export function useActiveQuizzes() {
         });
       }
       
-      // Buscar informações dos criadores (com tratamento de erro para RLS)
+      // Buscar informações dos criadores usando função security definer
       const creatorIds = [...new Set(filteredQuizzes.map(q => q.created_by))];
       let creatorsMap = new Map<string, { id: string; name: string; role: string }>();
       
       if (creatorIds.length > 0) {
         const { data: creators } = await supabase
-          .from('profiles')
-          .select('id, name, role')
-          .in('id', creatorIds);
+          .rpc('get_creator_info', { creator_ids: creatorIds });
         
         if (creators) {
-          creatorsMap = new Map(creators.map(c => [c.id, c]));
+          creatorsMap = new Map(creators.map((c: { id: string; name: string; role: string }) => [c.id, c]));
         }
       }
       
