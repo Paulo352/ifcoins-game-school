@@ -2,11 +2,12 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Coins, ShoppingCart, Loader2, RefreshCw } from 'lucide-react';
+import { ShoppingCart, Loader2, RefreshCw } from 'lucide-react';
 import { useAvailableCards } from '@/hooks/cards/useCards';
 import { useCardPurchase } from '@/hooks/cards/useCardPurchase';
 import { toast } from '@/hooks/use-toast';
 import { EnhancedCard } from './EnhancedCardSystem';
+import ifcoinsIcon from '@/assets/ifcoins-icon.png';
 
 
 export function CardShop() {
@@ -61,7 +62,7 @@ export function CardShop() {
           </p>
         </div>
         <div className="flex items-center gap-2 bg-card border rounded-lg px-4 py-2">
-          <Coins className="h-5 w-5 text-primary" />
+          <img src={ifcoinsIcon} alt="IFCoins" className="h-8 w-8 object-contain" />
           <span className="font-semibold text-lg">
             {profile.coins.toLocaleString('pt-BR')} IFCoins
           </span>
