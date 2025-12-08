@@ -138,7 +138,7 @@ export function Rankings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <img src={ifcoinsIcon} alt="IFCoins" className="h-8 w-8 object-contain" />
+              <img src={ifcoinsIcon} alt="IFCoins" className="h-16 w-16 object-contain" />
               Rankings - IFCoins
             </CardTitle>
             <CardDescription>

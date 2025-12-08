@@ -62,7 +62,7 @@ export function CardShop() {
           </p>
         </div>
         <div className="flex items-center gap-2 bg-card border rounded-lg px-4 py-2">
-          <img src={ifcoinsIcon} alt="IFCoins" className="h-8 w-8 object-contain" />
+          <img src={ifcoinsIcon} alt="IFCoins" className="h-16 w-16 object-contain" />
           <span className="font-semibold text-lg">
             {profile.coins.toLocaleString('pt-BR')} IFCoins
           </span>

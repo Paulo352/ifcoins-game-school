@@ -10,7 +10,7 @@ export function AuthHeader() {
         <img 
           src={ifcoinsIcon} 
           alt="IFCoins"
-          className="h-8 w-8 object-contain"
+          className="h-16 w-16 object-contain"
         />
       </div>
       <div>
