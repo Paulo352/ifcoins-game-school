@@ -1,15 +1,17 @@
 
 import React from 'react';
 import { CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Coins } from 'lucide-react';
+import ifcoinsIcon from '@/assets/ifcoins-icon.png';
 
 export function AuthHeader() {
   return (
     <CardHeader className="text-center space-y-4">
       <div className="flex justify-center">
-        <div className="bg-primary text-primary-foreground rounded-full p-4">
-          <Coins className="h-8 w-8" />
-        </div>
+        <img 
+          src={ifcoinsIcon} 
+          alt="IFCoins"
+          className="h-20 w-20 object-contain"
+        />
       </div>
       <div>
         <CardTitle className="text-3xl font-bold text-primary">IFCoins</CardTitle>
