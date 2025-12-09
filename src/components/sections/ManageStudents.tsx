@@ -8,6 +8,8 @@ import { TeacherGiveCoinsSection } from '@/components/manage/TeacherGiveCoinsSec
 import { UsersTable } from '@/components/manage/UsersTable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminUserManagement } from '@/components/manage/AdminUserManagement';
+import { IntrusoManagement } from '@/components/manage/IntrusoManagement';
+import { AlertTriangle } from 'lucide-react';
 
 export function ManageStudents() {
   const { profile } = useAuth();
@@ -39,6 +41,7 @@ export function ManageStudents() {
   const studentUsers = users?.filter(user => user.role === 'student') || [];
   const teacherUsers = users?.filter(user => user.role === 'teacher') || [];
   const adminUsers = users?.filter(user => user.role === 'admin') || [];
+  const intrusoUsers = users?.filter(user => user.role === 'intruso') || [];
 
   return (
     <div className="space-y-6">
@@ -60,7 +63,7 @@ export function ManageStudents() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className={`grid w-full ${profile.role === 'admin' ? 'grid-cols-4' : 'grid-cols-3'}`}>
           <TabsTrigger value="students">
             Alunos ({studentUsers.length})
           </TabsTrigger>
@@ -68,8 +71,14 @@ export function ManageStudents() {
             Professores ({teacherUsers.length})
           </TabsTrigger>
           <TabsTrigger value="admins">
-            Administradores ({adminUsers.length})
+            Admins ({adminUsers.length})
           </TabsTrigger>
+          {profile.role === 'admin' && (
+            <TabsTrigger value="intrusos" className="flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              Intrusos ({intrusoUsers.length})
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="students" className="space-y-6">
@@ -119,6 +128,21 @@ export function ManageStudents() {
             )}
           </div>
         </TabsContent>
+
+        {profile.role === 'admin' && (
+          <TabsContent value="intrusos" className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Intrusos ({intrusoUsers.length})
+              </h3>
+              <IntrusoManagement 
+                users={intrusoUsers}
+                onSuccess={refetch}
+              />
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
