@@ -104,7 +104,7 @@ export function IntrusoManagement({ users, onSuccess }: IntrusoManagementProps) 
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    {new Date(user.created_at).toLocaleDateString('pt-BR')}
+                    {user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : '-'}
                   </TableCell>
                   <TableCell>
                     <Badge variant="destructive">Intruso</Badge>
