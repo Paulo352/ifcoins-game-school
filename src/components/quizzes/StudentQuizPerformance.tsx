@@ -183,49 +183,70 @@ export function StudentQuizPerformance({
                   {attempt.quiz_answers && attempt.quiz_answers.length > 0 && (
                     <div className="space-y-3 mt-4">
                       <h4 className="font-semibold">Respostas:</h4>
-                      {attempt.quiz_answers.map((answer: any, qIndex: number) => (
-                        <Card key={answer.id} className="p-4">
-                          <div className="flex items-start gap-3">
-                            {answer.is_correct ? (
-                              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-1" />
-                            ) : (
-                              <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-1" />
-                            )}
-                            <div className="flex-1 space-y-2">
-                              <p className="font-medium">
-                                Questão {qIndex + 1}:{' '}
-                                {answer.quiz_questions?.question_text}
-                              </p>
-                              <div className="text-sm space-y-1">
-                                <p>
-                                  <strong>Resposta do aluno:</strong>{' '}
-                                  <span
-                                    className={
-                                      answer.is_correct
-                                        ? 'text-green-600'
-                                        : 'text-red-600'
-                                    }
-                                  >
-                                    {answer.user_answer}
-                                  </span>
+                      {attempt.quiz_answers.map((answer: any, qIndex: number) => {
+                        // Handle quiz_questions which might be an object or array
+                        const questionData = Array.isArray(answer.quiz_questions) 
+                          ? answer.quiz_questions[0] 
+                          : answer.quiz_questions;
+                        
+                        const questionText = typeof questionData?.question_text === 'string' 
+                          ? questionData.question_text 
+                          : 'Questão';
+                        const correctAnswer = typeof questionData?.correct_answer === 'string'
+                          ? questionData.correct_answer
+                          : String(questionData?.correct_answer || '-');
+                        const points = typeof questionData?.points === 'number'
+                          ? questionData.points
+                          : 0;
+                        const userAnswer = typeof answer.user_answer === 'string'
+                          ? answer.user_answer
+                          : String(answer.user_answer || '-');
+                        const pointsEarned = typeof answer.points_earned === 'number'
+                          ? answer.points_earned
+                          : 0;
+
+                        return (
+                          <Card key={answer.id} className="p-4">
+                            <div className="flex items-start gap-3">
+                              {answer.is_correct ? (
+                                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-1" />
+                              ) : (
+                                <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-1" />
+                              )}
+                              <div className="flex-1 space-y-2">
+                                <p className="font-medium">
+                                  Questão {qIndex + 1}: {questionText}
                                 </p>
-                                {!answer.is_correct && (
+                                <div className="text-sm space-y-1">
                                   <p>
-                                    <strong>Resposta correta:</strong>{' '}
-                                    <span className="text-green-600">
-                                      {answer.quiz_questions?.correct_answer}
+                                    <strong>Resposta do aluno:</strong>{' '}
+                                    <span
+                                      className={
+                                        answer.is_correct
+                                          ? 'text-green-600'
+                                          : 'text-red-600'
+                                      }
+                                    >
+                                      {userAnswer}
                                     </span>
                                   </p>
-                                )}
-                                <p className="text-muted-foreground">
-                                  Pontos: {answer.points_earned} /{' '}
-                                  {answer.quiz_questions?.points}
-                                </p>
+                                  {!answer.is_correct && (
+                                    <p>
+                                      <strong>Resposta correta:</strong>{' '}
+                                      <span className="text-green-600">
+                                        {correctAnswer}
+                                      </span>
+                                    </p>
+                                  )}
+                                  <p className="text-muted-foreground">
+                                    Pontos: {pointsEarned} / {points}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </Card>
-                      ))}
+                          </Card>
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>
