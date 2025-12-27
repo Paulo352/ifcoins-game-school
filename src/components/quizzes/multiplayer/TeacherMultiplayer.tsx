@@ -6,17 +6,30 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useActiveQuizzes } from '@/hooks/quizzes/useQuizManagement';
-import { useCreateRoom, useActiveRooms } from '@/hooks/quizzes/useMultiplayerQuiz';
+import { useCreateRoom, useActiveRooms, useDeleteRoom } from '@/hooks/quizzes/useMultiplayerQuiz';
 import { useClasses } from '@/hooks/useClasses';
 import { useCards } from '@/hooks/cards/useCards';
 import { TeacherQuizLobby } from './TeacherQuizLobby';
 import { TeacherQuizControl } from './TeacherQuizControl';
 import { MultiplayerMatchHistory } from './MultiplayerMatchHistory';
-import { Gamepad2, Plus, ArrowLeft, History, Coins, CreditCard, Gift } from 'lucide-react';
+import { Gamepad2, Plus, ArrowLeft, History, Coins, CreditCard, Gift, Trash2, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export function TeacherMultiplayer() {
+  const { user } = useAuth();
   const [view, setView] = useState<'list' | 'create' | 'lobby' | 'game' | 'history'>('list');
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   
@@ -34,11 +47,15 @@ export function TeacherMultiplayer() {
   const [rewardCardId, setRewardCardId] = useState<string>('');
   const [rewardExternalDescription, setRewardExternalDescription] = useState<string>('');
 
-  const { data: quizzes } = useActiveQuizzes();
+  const { data: quizzes, isLoading: quizzesLoading } = useActiveQuizzes();
   const { data: classes } = useClasses();
   const { data: cards } = useCards();
   const { data: activeRooms, isLoading } = useActiveRooms();
   const createRoomMutation = useCreateRoom();
+  const deleteRoomMutation = useDeleteRoom();
+
+  // Filter rooms created by current user
+  const myRooms = activeRooms?.filter(room => room.created_by === user?.id) || [];
 
   const handleCreateRoom = async () => {
     if (!selectedQuizId) return;
@@ -67,6 +84,10 @@ export function TeacherMultiplayer() {
     setView('lobby');
   };
 
+  const handleDeleteRoom = async (roomId: string) => {
+    await deleteRoomMutation.mutateAsync(roomId);
+  };
+
   const handleLeaveRoom = () => {
     setSelectedRoomId(null);
     setView('list');
@@ -74,6 +95,19 @@ export function TeacherMultiplayer() {
 
   const handleGameStart = () => {
     setView('game');
+  };
+
+  const resetForm = () => {
+    setSelectedQuizId('');
+    setMaxPlayers(30);
+    setSelectedClassId('all');
+    setTimePerQuestion(30);
+    setRewardType('coins');
+    setRewardCoins1st(100);
+    setRewardCoins2nd(50);
+    setRewardCoins3rd(25);
+    setRewardCardId('');
+    setRewardExternalDescription('');
   };
 
   if (view === 'game' && selectedRoomId) {
@@ -96,6 +130,10 @@ export function TeacherMultiplayer() {
           roomId={selectedRoomId}
           onGameStart={handleGameStart}
           onLeave={handleLeaveRoom}
+          onDelete={() => {
+            handleDeleteRoom(selectedRoomId);
+            handleLeaveRoom();
+          }}
         />
       </div>
     );
@@ -116,7 +154,7 @@ export function TeacherMultiplayer() {
   if (view === 'create') {
     return (
       <div className="max-w-2xl mx-auto space-y-4">
-        <Button variant="ghost" onClick={() => setView('list')}>
+        <Button variant="ghost" onClick={() => { setView('list'); resetForm(); }}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
@@ -129,19 +167,28 @@ export function TeacherMultiplayer() {
           <CardContent className="space-y-6">
             {/* Quiz Selection */}
             <div className="space-y-2">
-              <Label htmlFor="quiz">Quiz</Label>
-              <Select value={selectedQuizId} onValueChange={setSelectedQuizId}>
-                <SelectTrigger id="quiz">
-                  <SelectValue placeholder="Selecione um quiz" />
-                </SelectTrigger>
-                <SelectContent>
-                  {quizzes?.map((quiz) => (
-                    <SelectItem key={quiz.id} value={quiz.id}>
-                      {quiz.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="quiz">Quiz *</Label>
+              {quizzesLoading ? (
+                <div className="h-10 bg-muted animate-pulse rounded-md" />
+              ) : quizzes && quizzes.length > 0 ? (
+                <Select value={selectedQuizId} onValueChange={setSelectedQuizId}>
+                  <SelectTrigger id="quiz">
+                    <SelectValue placeholder="Selecione um quiz existente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {quizzes.map((quiz) => (
+                      <SelectItem key={quiz.id} value={quiz.id}>
+                        {quiz.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="p-4 border rounded-lg text-center text-muted-foreground">
+                  <p>Nenhum quiz disponível.</p>
+                  <p className="text-sm mt-1">Crie um quiz primeiro na aba "Meus Quizzes".</p>
+                </div>
+              )}
             </div>
 
             {/* Settings */}
@@ -194,15 +241,15 @@ export function TeacherMultiplayer() {
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="coins" className="flex items-center gap-1">
                     <Coins className="w-4 h-4" />
-                    Moedas
+                    <span className="hidden sm:inline">Moedas</span>
                   </TabsTrigger>
                   <TabsTrigger value="card" className="flex items-center gap-1">
                     <CreditCard className="w-4 h-4" />
-                    Carta
+                    <span className="hidden sm:inline">Carta</span>
                   </TabsTrigger>
                   <TabsTrigger value="external" className="flex items-center gap-1">
                     <Gift className="w-4 h-4" />
-                    Externo
+                    <span className="hidden sm:inline">Externo</span>
                   </TabsTrigger>
                   <TabsTrigger value="none">Nenhum</TabsTrigger>
                 </TabsList>
@@ -284,7 +331,7 @@ export function TeacherMultiplayer() {
               size="lg"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Criar Sala
+              {createRoomMutation.isPending ? 'Criando...' : 'Criar Sala'}
             </Button>
           </CardContent>
         </Card>
@@ -294,7 +341,7 @@ export function TeacherMultiplayer() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Gamepad2 className="w-6 h-6" />
@@ -320,33 +367,68 @@ export function TeacherMultiplayer() {
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      ) : activeRooms && activeRooms.length > 0 ? (
+      ) : myRooms.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {activeRooms.map((room) => (
+          {myRooms.map((room) => (
             <Card key={room.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between text-lg">
-                  <span className="truncate">{room.quizzes?.title}</span>
+                  <span className="truncate">{room.quizzes?.title || 'Quiz'}</span>
                   <Badge variant={room.status === 'waiting' ? 'secondary' : 'default'}>
                     {room.status === 'waiting' ? 'Aguardando' : 'Em andamento'}
                   </Badge>
                 </CardTitle>
-                <CardDescription>{room.quizzes?.description}</CardDescription>
+                <CardDescription className="line-clamp-2">
+                  {room.quizzes?.description || 'Sem descrição'}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Código:</span>
                   <span className="font-mono font-bold text-lg">{room.room_code}</span>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Máx. {room.max_players} jogadores • {room.time_per_question_seconds || 30}s por questão
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Users className="w-4 h-4" />
+                  <span>Máx. {room.max_players} jogadores</span>
+                  <span>•</span>
+                  <span>{room.time_per_question_seconds || 30}s por questão</span>
                 </div>
-                <Button
-                  onClick={() => handleManageRoom(room.id)}
-                  className="w-full"
-                >
-                  Gerenciar Sala
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleManageRoom(room.id)}
+                    className="flex-1"
+                  >
+                    Gerenciar
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir sala?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta ação não pode ser desfeita. Todos os jogadores serão removidos.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteRoom(room.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </CardContent>
             </Card>
           ))}

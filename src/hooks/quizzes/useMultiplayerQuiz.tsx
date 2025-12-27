@@ -629,6 +629,39 @@ export function useDistributeRewards() {
   });
 }
 
+// Hook para deletar sala (só criador)
+export function useDeleteRoom() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (roomId: string) => {
+      // Primeiro deletar jogadores da sala
+      await supabase
+        .from('quiz_room_players')
+        .delete()
+        .eq('room_id', roomId);
+
+      // Depois deletar a sala
+      const { error } = await supabase
+        .from('quiz_rooms')
+        .delete()
+        .eq('id', roomId);
+
+      if (error) throw error;
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-quiz-rooms'] });
+      queryClient.invalidateQueries({ queryKey: ['quiz-room'] });
+      toast.success('Sala excluída com sucesso!');
+    },
+    onError: (error: any) => {
+      console.error('Erro ao deletar sala:', error);
+      toast.error('Erro ao deletar sala');
+    }
+  });
+}
+
 // Hook para sair da sala
 export function useLeaveRoom() {
   const queryClient = useQueryClient();
