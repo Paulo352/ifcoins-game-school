@@ -1098,7 +1098,10 @@ export type Database = {
           finished_at: string
           id: string
           match_data: Json
+          players_ranking: Json | null
           quiz_id: string
+          reward_description: string | null
+          reward_type: string | null
           room_id: string
           started_at: string
           total_players: number
@@ -1109,7 +1112,10 @@ export type Database = {
           finished_at: string
           id?: string
           match_data?: Json
+          players_ranking?: Json | null
           quiz_id: string
+          reward_description?: string | null
+          reward_type?: string | null
           room_id: string
           started_at: string
           total_players: number
@@ -1120,7 +1126,10 @@ export type Database = {
           finished_at?: string
           id?: string
           match_data?: Json
+          players_ranking?: Json | null
           quiz_id?: string
+          reward_description?: string | null
+          reward_type?: string | null
           room_id?: string
           started_at?: string
           total_players?: number
@@ -1882,26 +1891,38 @@ export type Database = {
       quiz_room_players: {
         Row: {
           attempt_id: string | null
+          correct_answers: number | null
+          current_question_index: number | null
+          finished_at: string | null
           id: string
           joined_at: string | null
           position: number | null
           room_id: string
+          score: number | null
           user_id: string
         }
         Insert: {
           attempt_id?: string | null
+          correct_answers?: number | null
+          current_question_index?: number | null
+          finished_at?: string | null
           id?: string
           joined_at?: string | null
           position?: number | null
           room_id: string
+          score?: number | null
           user_id: string
         }
         Update: {
           attempt_id?: string | null
+          correct_answers?: number | null
+          current_question_index?: number | null
+          finished_at?: string | null
           id?: string
           joined_at?: string | null
           position?: number | null
           room_id?: string
+          score?: number | null
           user_id?: string
         }
         Relationships: [
@@ -1926,39 +1947,69 @@ export type Database = {
           class_id: string | null
           created_at: string | null
           created_by: string
+          current_question_index: number | null
           finished_at: string | null
           id: string
           max_players: number
+          question_started_at: string | null
           quiz_id: string
+          reward_card_id: string | null
+          reward_coins_1st: number | null
+          reward_coins_2nd: number | null
+          reward_coins_3rd: number | null
+          reward_external_description: string | null
+          reward_type: string | null
+          rewards_distributed: boolean | null
           room_code: string
           started_at: string | null
           status: string
+          time_per_question_seconds: number | null
           updated_at: string | null
         }
         Insert: {
           class_id?: string | null
           created_at?: string | null
           created_by: string
+          current_question_index?: number | null
           finished_at?: string | null
           id?: string
           max_players?: number
+          question_started_at?: string | null
           quiz_id: string
+          reward_card_id?: string | null
+          reward_coins_1st?: number | null
+          reward_coins_2nd?: number | null
+          reward_coins_3rd?: number | null
+          reward_external_description?: string | null
+          reward_type?: string | null
+          rewards_distributed?: boolean | null
           room_code: string
           started_at?: string | null
           status?: string
+          time_per_question_seconds?: number | null
           updated_at?: string | null
         }
         Update: {
           class_id?: string | null
           created_at?: string | null
           created_by?: string
+          current_question_index?: number | null
           finished_at?: string | null
           id?: string
           max_players?: number
+          question_started_at?: string | null
           quiz_id?: string
+          reward_card_id?: string | null
+          reward_coins_1st?: number | null
+          reward_coins_2nd?: number | null
+          reward_coins_3rd?: number | null
+          reward_external_description?: string | null
+          reward_type?: string | null
+          rewards_distributed?: boolean | null
           room_code?: string
           started_at?: string | null
           status?: string
+          time_per_question_seconds?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1974,6 +2025,13 @@ export type Database = {
             columns: ["quiz_id"]
             isOneToOne: false
             referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_rooms_reward_card_id_fkey"
+            columns: ["reward_card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
             referencedColumns: ["id"]
           },
         ]
