@@ -3,40 +3,40 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useRoom, useRoomPlayers, useStartRoom, useJoinRoom } from '@/hooks/quizzes/useMultiplayerQuiz';
+import { useRoom, useRoomPlayers, useStartRoom, useFinishRoom } from '@/hooks/quizzes/useMultiplayerQuiz';
 import { useAuth } from '@/contexts/AuthContext';
-import { Users, Clock, Play, Copy, Check, Trophy, Coins, CreditCard, Gift } from 'lucide-react';
+import { Users, Clock, Play, Copy, Check, Trophy, Coins, CreditCard, Gift, Trash2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface TeacherQuizLobbyProps {
   roomId: string;
   onGameStart: () => void;
   onLeave: () => void;
+  onDelete?: () => void;
 }
 
-export function TeacherQuizLobby({ roomId, onGameStart, onLeave }: TeacherQuizLobbyProps) {
-  const { profile, user } = useAuth();
+export function TeacherQuizLobby({ roomId, onGameStart, onLeave, onDelete }: TeacherQuizLobbyProps) {
+  const { user } = useAuth();
   const { data: room, isLoading: roomLoading } = useRoom(roomId);
-  const { players } = useRoomPlayers(roomId);
+  const { players, isLoading: playersLoading } = useRoomPlayers(roomId);
   const startRoomMutation = useStartRoom();
-  const joinRoomMutation = useJoinRoom();
+  const finishRoomMutation = useFinishRoom();
   const [copied, setCopied] = useState(false);
-  const [hasJoined, setHasJoined] = useState(false);
 
   const isCreator = room?.created_by === user?.id;
   const canStart = isCreator && players.length >= 1;
-
-  // Auto-join room if not already joined (for teacher)
-  useEffect(() => {
-    if (!user || !roomId || hasJoined) return;
-
-    const isPlayerInRoom = players.some(p => p.user_id === user.id);
-    if (!isPlayerInRoom && isCreator) {
-      // Professor não precisa entrar como jogador
-      setHasJoined(true);
-    }
-  }, [user, roomId, players, hasJoined, isCreator]);
 
   // Listen for room status changes
   useEffect(() => {
@@ -51,6 +51,11 @@ export function TeacherQuizLobby({ roomId, onGameStart, onLeave }: TeacherQuizLo
       return;
     }
     startRoomMutation.mutate(roomId);
+  };
+
+  const handleCancelRoom = async () => {
+    await finishRoomMutation.mutateAsync(roomId);
+    onLeave();
   };
 
   const handleCopyCode = () => {
@@ -145,7 +150,7 @@ export function TeacherQuizLobby({ roomId, onGameStart, onLeave }: TeacherQuizLo
             </div>
             <div className="p-3 bg-muted rounded-lg">
               <Trophy className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
-              <p className="font-semibold capitalize">{room.reward_type}</p>
+              <p className="font-semibold capitalize">{room.reward_type || 'Nenhum'}</p>
               <p className="text-xs text-muted-foreground">Prêmio</p>
             </div>
           </div>
@@ -159,8 +164,14 @@ export function TeacherQuizLobby({ roomId, onGameStart, onLeave }: TeacherQuizLo
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Jogadores na Sala ({players.length})</span>
-            {players.length === 0 && (
+            <span className="flex items-center gap-2">
+              Jogadores na Sala 
+              <Badge variant="outline">{players.length}</Badge>
+            </span>
+            {playersLoading && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            )}
+            {players.length === 0 && !playersLoading && (
               <Badge variant="outline" className="animate-pulse">
                 Aguardando jogadores...
               </Badge>
@@ -190,8 +201,8 @@ export function TeacherQuizLobby({ roomId, onGameStart, onLeave }: TeacherQuizLo
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p className="font-medium">{player.profiles?.name}</p>
-                    <p className="text-sm text-muted-foreground">{player.profiles?.email}</p>
+                    <p className="font-medium">{player.profiles?.name || 'Jogador'}</p>
+                    <p className="text-sm text-muted-foreground">{player.profiles?.email || ''}</p>
                   </div>
                   <Badge variant="outline" className="text-green-600">
                     Pronto
@@ -203,22 +214,74 @@ export function TeacherQuizLobby({ roomId, onGameStart, onLeave }: TeacherQuizLo
         </CardContent>
       </Card>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <Button
           variant="outline"
           onClick={onLeave}
-          className="flex-1"
+          className="sm:flex-1"
         >
-          Sair da Sala
+          Voltar
         </Button>
+        
+        {onDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="text-destructive hover:text-destructive">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Excluir Sala
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir sala?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação não pode ser desfeita. Todos os jogadores serão removidos.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={onDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" className="text-orange-600 hover:text-orange-600">
+              <XCircle className="w-4 h-4 mr-2" />
+              Encerrar
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Encerrar sala?</AlertDialogTitle>
+              <AlertDialogDescription>
+                A sala será marcada como finalizada. Não será possível iniciar o quiz.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleCancelRoom}>
+                Encerrar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        
         <Button
           onClick={handleStart}
           disabled={!canStart || startRoomMutation.isPending}
-          className="flex-1"
+          className="sm:flex-1"
           size="lg"
         >
           <Play className="w-4 h-4 mr-2" />
-          Iniciar Quiz ({players.length} jogadores)
+          {startRoomMutation.isPending ? 'Iniciando...' : `Iniciar Quiz (${players.length} jogadores)`}
         </Button>
       </div>
 
