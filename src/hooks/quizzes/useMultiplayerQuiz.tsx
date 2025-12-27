@@ -122,28 +122,41 @@ export function useRoom(roomId: string | null) {
 
 // Hook para jogadores da sala com realtime
 export function useRoomPlayers(roomId: string | null) {
+  const queryClient = useQueryClient();
   const [players, setPlayers] = useState<RoomPlayer[]>([]);
 
-  useQuery({
+  const fetchPlayers = async () => {
+    if (!roomId) return [];
+
+    const { data, error } = await supabase
+      .from('quiz_room_players')
+      .select(`
+        *,
+        profiles(name, email)
+      `)
+      .eq('room_id', roomId)
+      .order('score', { ascending: false });
+
+    if (error) {
+      console.error('Erro ao buscar jogadores:', error);
+      return [];
+    }
+    return data as unknown as RoomPlayer[];
+  };
+
+  const query = useQuery({
     queryKey: ['room-players', roomId],
-    queryFn: async () => {
-      if (!roomId) return [];
-
-      const { data, error } = await supabase
-        .from('quiz_room_players')
-        .select(`
-          *,
-          profiles(name, email)
-        `)
-        .eq('room_id', roomId)
-        .order('score', { ascending: false });
-
-      if (error) throw error;
-      setPlayers(data as unknown as RoomPlayer[]);
-      return data;
-    },
-    enabled: !!roomId
+    queryFn: fetchPlayers,
+    enabled: !!roomId,
+    refetchInterval: 3000, // Polling a cada 3 segundos como backup
   });
+
+  // Atualizar state quando query mudar
+  useEffect(() => {
+    if (query.data) {
+      setPlayers(query.data);
+    }
+  }, [query.data]);
 
   // Realtime subscription
   useEffect(() => {
@@ -159,27 +172,24 @@ export function useRoomPlayers(roomId: string | null) {
           table: 'quiz_room_players',
           filter: `room_id=eq.${roomId}`
         },
-        async () => {
-          const { data } = await supabase
-            .from('quiz_room_players')
-            .select(`
-              *,
-              profiles(name, email)
-            `)
-            .eq('room_id', roomId)
-            .order('score', { ascending: false });
-
-          if (data) setPlayers(data as unknown as RoomPlayer[]);
+        async (payload) => {
+          console.log('Realtime player update:', payload);
+          // Refetch players quando houver mudança
+          const newPlayers = await fetchPlayers();
+          setPlayers(newPlayers);
+          queryClient.invalidateQueries({ queryKey: ['room-players', roomId] });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [roomId]);
+  }, [roomId, queryClient]);
 
-  return { players };
+  return { players, isLoading: query.isLoading, refetch: query.refetch };
 }
 
 // Hook para criar sala (só professor/admin)
@@ -297,7 +307,9 @@ export function useJoinRoomByCode() {
       if (joinError) throw joinError;
       return room;
     },
-    onSuccess: () => {
+    onSuccess: (room) => {
+      // Invalidar com o roomId específico
+      queryClient.invalidateQueries({ queryKey: ['room-players', room.id] });
       queryClient.invalidateQueries({ queryKey: ['room-players'] });
       toast.success('Você entrou na sala!');
     },
