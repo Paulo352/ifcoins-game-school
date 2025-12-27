@@ -3,7 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { QuizSystemMain } from './QuizSystemMain';
 import { SimpleManageQuizzes } from './SimpleManageQuizzes';
 import { QuizPerformanceReport } from '../reports/QuizPerformanceReport';
-import { MultiplayerQuizRoom } from './multiplayer/MultiplayerQuizRoom';
+import { TeacherMultiplayer } from './multiplayer/TeacherMultiplayer';
+import { StudentMultiplayer } from './multiplayer/StudentMultiplayer';
 import { MultiplayerMaintenanceScreen } from './multiplayer/MultiplayerMaintenanceScreen';
 import { CustomBadgesManagement } from './badges/CustomBadgesManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,10 +14,7 @@ export function QuizzesDashboard() {
   const { profile, user, loading: authLoading } = useAuth();
   const isAdminOrTeacher = profile?.role === 'admin' || profile?.role === 'teacher';
 
-  console.log('🎯 [QuizzesDashboard] Renderizando - Profile:', profile?.role, 'User:', user?.email, 'AuthLoading:', authLoading, 'isAdminOrTeacher:', isAdminOrTeacher);
-
   if (authLoading) {
-    console.log('🎯 [QuizzesDashboard] Mostrando loading...');
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -25,7 +23,6 @@ export function QuizzesDashboard() {
   }
 
   if (!user || !profile) {
-    console.log('🎯 [QuizzesDashboard] Usuário não logado ou sem profile');
     return (
       <div className="text-center py-8">
         <p className="text-muted-foreground">Você precisa estar logado para acessar os quizzes.</p>
@@ -75,7 +72,7 @@ export function QuizzesDashboard() {
           </TabsContent>
 
           <TabsContent value="multiplayer">
-            <MultiplayerMaintenanceScreen />
+            <TeacherMultiplayer />
           </TabsContent>
 
           <TabsContent value="student-view">
@@ -100,7 +97,7 @@ export function QuizzesDashboard() {
           </TabsContent>
 
           <TabsContent value="multiplayer">
-            <MultiplayerMaintenanceScreen />
+            <StudentMultiplayer />
           </TabsContent>
         </Tabs>
       )}
